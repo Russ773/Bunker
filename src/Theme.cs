@@ -26,6 +26,15 @@ public static class Theme
     public static readonly Font Brand = new("Segoe UI Black", 13f);
     public static readonly Font Mono = new("Consolas", 10.5f);
 
+    /// <summary>The icon embedded in the exe, so every window shows the Bunker logo.</summary>
+    public static readonly Icon? AppIcon = LoadIcon();
+
+    private static Icon? LoadIcon()
+    {
+        try { return Environment.ProcessPath is { } p ? Icon.ExtractAssociatedIcon(p) : null; }
+        catch { return null; }
+    }
+
     [DllImport("dwmapi.dll")]
     private static extern int DwmSetWindowAttribute(IntPtr hwnd, int attr, ref int value, int size);
 
@@ -35,6 +44,7 @@ public static class Theme
         f.BackColor = Bg;
         f.ForeColor = Text;
         f.Font = UI;
+        if (AppIcon is not null) f.Icon = AppIcon;
         f.HandleCreated += (_, _) => { int on = 1; DwmSetWindowAttribute(f.Handle, 20, ref on, sizeof(int)); };
     }
 

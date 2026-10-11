@@ -1,0 +1,46 @@
+﻿<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 1300 560" width="1300" height="560">
+  <rect width="1300" height="560" rx="32" fill="#14161a"/>
+  <svg x="40" y="24" width="512" height="512" viewBox="0 0 512 512">
+  <defs>
+    <linearGradient id="bg" x1="0" y1="0" x2="0" y2="1">
+      <stop offset="0" stop-color="#262a32"/><stop offset="1" stop-color="#14161a"/>
+    </linearGradient>
+    <linearGradient id="rust" x1="0" y1="0" x2="0" y2="1">
+      <stop offset="0" stop-color="#f48a45"/><stop offset="0.55" stop-color="#d4501f"/><stop offset="1" stop-color="#8f2e10"/>
+    </linearGradient>
+    <linearGradient id="glow" x1="0" y1="0" x2="1" y2="0">
+      <stop offset="0" stop-color="#ffb347"/><stop offset="0.5" stop-color="#ffe08a"/><stop offset="1" stop-color="#ffb347"/>
+    </linearGradient>
+    <radialGradient id="halo" cx="0.5" cy="0.5" r="0.5">
+      <stop offset="0" stop-color="#ff9b3d" stop-opacity="0.55"/><stop offset="1" stop-color="#ff9b3d" stop-opacity="0"/>
+    </radialGradient>
+  </defs>
+  <rect width="512" height="512" rx="112" fill="url(#bg)"/>
+  <rect x="3" y="3" width="506" height="506" rx="110" fill="none" stroke="#3a3f49" stroke-width="3"/>
+  <!-- glow behind the slit -->
+  <ellipse cx="256" cy="282" rx="230" ry="110" fill="url(#halo)"/>
+  <!-- bunker dome -->
+  <path d="M84 388 V304 Q84 160 256 160 Q428 160 428 304 V388 Z" fill="url(#rust)"/>
+  <!-- weathered streaks -->
+  <path d="M150 200 Q256 150 362 200" fill="none" stroke="#ffb98a" stroke-opacity="0.35" stroke-width="8" stroke-linecap="round"/>
+  <g fill="#7a2509" fill-opacity="0.55">
+    <rect x="120" y="318" width="10" height="70" rx="5"/><rect x="190" y="330" width="8" height="58" rx="4"/>
+    <rect x="330" y="322" width="9" height="66" rx="4.5"/><rect x="388" y="336" width="8" height="52" rx="4"/>
+  </g>
+  <!-- firing slit -->
+  <rect x="140" y="248" width="232" height="46" rx="12" fill="#101216"/>
+  <rect x="152" y="260" width="208" height="22" rx="7" fill="url(#glow)"/>
+  <!-- door -->
+  <rect x="216" y="316" width="80" height="72" rx="6" fill="#16181d"/>
+  <rect x="226" y="326" width="60" height="62" rx="4" fill="#2a2e36"/>
+  <circle cx="276" cy="360" r="4" fill="#ffb347"/>
+  <!-- rivets -->
+  <g fill="#6b1f08" fill-opacity="0.8">
+    <circle cx="116" cy="372" r="6"/><circle cx="160" cy="372" r="6"/><circle cx="352" cy="372" r="6"/><circle cx="396" cy="372" r="6"/>
+  </g>
+  <!-- ground -->
+  <rect x="56" y="388" width="400" height="26" rx="13" fill="#3a3f49"/>
+</svg>
+  <text x="600" y="316" font-family="'Segoe UI Black','Arial Black',sans-serif" font-size="150" fill="#e6e8ec" letter-spacing="6">BUNKER</text>
+  <text x="608" y="382" font-family="'Segoe UI','Arial',sans-serif" font-size="34" fill="#f06a2c" letter-spacing="9">RUST SERVER ADMIN</text>
+</svg>
