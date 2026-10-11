@@ -1,13 +1,13 @@
 using System.Text.Json;
 
-namespace ChaosAdmin;
+namespace Bunker;
 
 public class AppSettings
 {
     public bool CheckForUpdatesOnLaunch { get; set; } = true;
 
     private static readonly string FilePath = Path.Combine(
-        Environment.GetFolderPath(Environment.SpecialFolder.ApplicationData), "ChaosAdmin", "settings.json");
+        Environment.GetFolderPath(Environment.SpecialFolder.ApplicationData), "Bunker", "settings.json");
 
     public static AppSettings Load()
     {

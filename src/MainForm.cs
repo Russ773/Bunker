@@ -1,6 +1,6 @@
 using System.Drawing;
 
-namespace ChaosAdmin;
+namespace Bunker;
 
 public class MainForm : Form
 {
@@ -31,7 +31,7 @@ public class MainForm : Form
 
     public MainForm()
     {
-        Text = "Chaos Admin v0.0.1";
+        Text = "Bunker v0.0.1";
         Size = new Size(1000, 650);
         MinimumSize = new Size(700, 400);
         BackColor = Color.FromArgb(29, 32, 38);

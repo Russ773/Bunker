@@ -2,7 +2,7 @@ using System.Net.WebSockets;
 using System.Text;
 using System.Text.Json;
 
-namespace ChaosAdmin;
+namespace Bunker;
 
 public record RconMessage(int Identifier, string Message, string Type);
 
@@ -31,7 +31,7 @@ public sealed class RconClient : IDisposable
     public async Task SendCommandAsync(string command)
     {
         if (_ws is not { State: WebSocketState.Open }) throw new InvalidOperationException("Not connected");
-        var json = JsonSerializer.Serialize(new { Identifier = Interlocked.Increment(ref _nextId), Message = command, Name = "ChaosAdmin" });
+        var json = JsonSerializer.Serialize(new { Identifier = Interlocked.Increment(ref _nextId), Message = command, Name = "Bunker" });
         await _ws.SendAsync(Encoding.UTF8.GetBytes(json), WebSocketMessageType.Text, true, _cts!.Token);
     }
 

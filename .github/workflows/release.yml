@@ -22,26 +22,26 @@ jobs:
         run: echo "VERSION=${GITHUB_REF_NAME#v}" >> "$GITHUB_ENV"
 
       - name: Publish
-        run: dotnet publish src/ChaosAdmin.csproj -c Release -r win-x64 --self-contained -p:PublishSingleFile=true -p:Version=${{ env.VERSION }} -o publish
+        run: dotnet publish src/Bunker.csproj -c Release -r win-x64 --self-contained -p:PublishSingleFile=true -p:Version=${{ env.VERSION }} -o publish
 
       - name: Install Inno Setup
         run: choco install innosetup -y --no-progress
 
       - name: Build installer
-        run: '& "C:\Program Files (x86)\Inno Setup 6\ISCC.exe" /DAppVersion=${{ env.VERSION }} /DSourceDir=..\publish installer\ChaosAdmin.iss'
+        run: '& "C:\Program Files (x86)\Inno Setup 6\ISCC.exe" /DAppVersion=${{ env.VERSION }} /DSourceDir=..\publish installer\Bunker.iss'
 
       - name: Write latest.json
         shell: bash
         run: |
-          printf '{\n  "version": "%s",\n  "file": "ChaosAdmin-Setup-%s.exe",\n  "released": "%s"\n}\n' \
+          printf '{\n  "version": "%s",\n  "file": "Bunker-Setup-%s.exe",\n  "released": "%s"\n}\n' \
             "$VERSION" "$VERSION" "$(date -u +%Y-%m-%dT%H:%M:%SZ)" > dist/latest.json
-          cp "dist/ChaosAdmin-Setup-$VERSION.exe" dist/ChaosAdmin-Setup-latest.exe
+          cp "dist/Bunker-Setup-$VERSION.exe" dist/Bunker-Setup-latest.exe
 
       - name: GitHub release
         shell: bash
         env:
           GH_TOKEN: ${{ github.token }}
-        run: gh release create "$GITHUB_REF_NAME" "dist/ChaosAdmin-Setup-$VERSION.exe" --title "Chaos Admin $VERSION" --generate-notes
+        run: gh release create "$GITHUB_REF_NAME" "dist/Bunker-Setup-$VERSION.exe" --title "Bunker $VERSION" --generate-notes
 
       - uses: actions/upload-artifact@v4
         with:
@@ -70,7 +70,7 @@ jobs:
           if [ -z "$SFTP_HOST" ]; then echo "SFTP_HOST secret not set - skipping webspace upload"; exit 0; fi
           mkdir -p ~/.ssh
           ssh-keyscan -p "${SFTP_PORT:-22}" "$SFTP_HOST" >> ~/.ssh/known_hosts
-          printf 'cd %s\nput dist/ChaosAdmin-Setup-*.exe\nput dist/latest.json\n' "${SFTP_PATH:-.}" > batch.txt
+          printf 'cd %s\nput dist/Bunker-Setup-*.exe\nput dist/latest.json\n' "${SFTP_PATH:-.}" > batch.txt
           OPTS="-P ${SFTP_PORT:-22} -b batch.txt"
           if [ -n "$SFTP_KEY" ]; then
             echo "$SFTP_KEY" > key && chmod 600 key

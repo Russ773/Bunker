@@ -1,11 +1,11 @@
 using System.Drawing;
 
-namespace ChaosAdmin;
+namespace Bunker;
 
 public class SettingsForm : Form
 {
     private readonly AppSettings _settings;
-    private readonly CheckBox _autoUpdate = new() { Text = "Check for updates when Chaos Admin starts", AutoSize = true };
+    private readonly CheckBox _autoUpdate = new() { Text = "Check for updates when Bunker starts", AutoSize = true };
     private readonly Button _check = new() { Text = "Check for updates", AutoSize = true };
     private readonly Label _result = new() { AutoSize = true, MaximumSize = new Size(380, 0) };
     private readonly ProgressBar _progress = new() { Width = 380, Visible = false };
@@ -46,7 +46,7 @@ public class SettingsForm : Form
             if (update is null) { _result.Text = "You're up to date."; return; }
 
             var answer = MessageBox.Show(this,
-                $"Version {update.Version} is available (you have {Updater.CurrentVersion}).\n\nInstall now? Chaos Admin will restart.",
+                $"Version {update.Version} is available (you have {Updater.CurrentVersion}).\n\nInstall now? Bunker will restart.",
                 "Update available", MessageBoxButtons.YesNo, MessageBoxIcon.Information);
             if (answer != DialogResult.Yes) { _result.Text = $"Version {update.Version} is available."; return; }
 

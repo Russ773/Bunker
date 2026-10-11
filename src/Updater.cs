@@ -2,21 +2,21 @@ using System.Diagnostics;
 using System.Reflection;
 using System.Text.Json;
 
-namespace ChaosAdmin;
+namespace Bunker;
 
 public record UpdateInfo(Version Version, string DownloadUrl, string Notes);
 
 /// <summary>Checks GitHub Releases for a newer installer and runs it silently.</summary>
 public static class Updater
 {
-    public const string Repo = "Russ773/Chaos-Admin";
+    public const string Repo = "Russ773/Bunker";
 
     private static readonly HttpClient Http = CreateClient();
 
     private static HttpClient CreateClient()
     {
         var c = new HttpClient { Timeout = TimeSpan.FromMinutes(10) };
-        c.DefaultRequestHeaders.UserAgent.ParseAdd("ChaosAdmin-Updater");
+        c.DefaultRequestHeaders.UserAgent.ParseAdd("Bunker-Updater");
         c.DefaultRequestHeaders.Accept.ParseAdd("application/vnd.github+json");
         return c;
     }
@@ -55,7 +55,7 @@ public static class Updater
     /// <summary>Downloads the installer and launches it silently. The caller should exit the app afterwards.</summary>
     public static async Task DownloadAndLaunchAsync(UpdateInfo update, IProgress<int>? progress = null)
     {
-        var path = Path.Combine(Path.GetTempPath(), $"ChaosAdmin-Setup-{update.Version}.exe");
+        var path = Path.Combine(Path.GetTempPath(), $"Bunker-Setup-{update.Version}.exe");
         using (var resp = await Http.GetAsync(update.DownloadUrl, HttpCompletionOption.ResponseHeadersRead))
         {
             resp.EnsureSuccessStatusCode();

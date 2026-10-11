@@ -7,8 +7,8 @@
     <Nullable>enable</Nullable>
     <ImplicitUsings>enable</ImplicitUsings>
     <Version>0.0.1</Version>
-    <AssemblyName>ChaosAdmin</AssemblyName>
-    <RootNamespace>ChaosAdmin</RootNamespace>
+    <AssemblyName>Bunker</AssemblyName>
+    <RootNamespace>Bunker</RootNamespace>
   </PropertyGroup>
 
 </Project>

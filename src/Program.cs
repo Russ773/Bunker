@@ -1,4 +1,4 @@
-namespace ChaosAdmin;
+namespace Bunker;
 
 static class Program
 {
