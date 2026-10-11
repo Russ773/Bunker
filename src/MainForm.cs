@@ -6,109 +6,141 @@ public class MainForm : Form
 {
     private const int MaxChars = 500_000;
 
-    private readonly TextBox _host = new() { Text = "127.0.0.1", Width = 130 };
-    private readonly NumericUpDown _port = new() { Minimum = 1, Maximum = 65535, Value = 28016, Width = 70 };
-    private readonly TextBox _password = new() { UseSystemPasswordChar = true, Width = 120 };
-    private readonly Button _connect = new() { Text = "Connect", AutoSize = true };
-    private readonly Button _disconnect = new() { Text = "Disconnect", AutoSize = true, Enabled = false };
-    private readonly CheckBox _autoScroll = new() { Text = "Auto-scroll", Checked = true, AutoSize = true, ForeColor = Color.Gainsboro };
-    private readonly Button _clear = new() { Text = "Clear", AutoSize = true };
-    private readonly RichTextBox _console = new()
-    {
-        Dock = DockStyle.Fill, ReadOnly = true, BorderStyle = BorderStyle.None,
-        BackColor = Color.FromArgb(20, 22, 26), ForeColor = Color.Gainsboro,
-        Font = new Font("Consolas", 10f), HideSelection = false, DetectUrls = false,
-    };
-    private readonly TextBox _input = new() { Dock = DockStyle.Fill, Font = new Font("Consolas", 10f), Enabled = false };
-    private readonly Button _send = new() { Text = "Send", AutoSize = true, Enabled = false };
-    private readonly Label _status = new() { Text = "Disconnected", AutoSize = true, ForeColor = Color.Gray, Anchor = AnchorStyles.Left };
-
-    private readonly Button _settingsBtn = new() { Text = "Settings", AutoSize = true };
     private readonly AppSettings _settings = AppSettings.Load();
     private readonly RconClient _rcon = new();
     private readonly List<string> _history = new();
     private int _historyIndex;
 
+    private readonly Label _serverName = new() { Font = Theme.Semibold, AutoSize = true };
+    private readonly Label _serverAddr = new() { Font = Theme.Small, ForeColor = Theme.Muted, AutoSize = true };
+    private readonly Label _status = new() { AutoSize = true, Margin = new Padding(0, 9, 14, 0) };
+    private readonly Button _connect = Theme.PrimaryButton("Connect");
+    private readonly Button _disconnect = Theme.GhostButton("Disconnect");
+    private readonly Button _clear = Theme.GhostButton("Clear");
+    private readonly Button _settingsBtn = Theme.GhostButton("Settings");
+    private readonly CheckBox _autoScroll = new() { Text = "Auto-scroll", Checked = true, AutoSize = true, ForeColor = Theme.Muted, Margin = new Padding(0, 8, 14, 0), Cursor = Cursors.Hand };
+    private readonly RichTextBox _console = new()
+    {
+        Dock = DockStyle.Fill, ReadOnly = true, BorderStyle = BorderStyle.None,
+        BackColor = Theme.Bg, ForeColor = Theme.Text, Font = Theme.Mono, HideSelection = false, DetectUrls = false,
+    };
+    private readonly ModernField _input = new();
+    private readonly Button _send = Theme.PrimaryButton("Send");
+
     public MainForm()
     {
-        Text = "Bunker v0.0.1";
-        Size = new Size(1000, 650);
-        MinimumSize = new Size(700, 400);
-        BackColor = Color.FromArgb(29, 32, 38);
+        Theme.Apply(this);
+        Text = "Bunker";
+        Size = new Size(1100, 700);
+        MinimumSize = new Size(820, 440);
 
-        foreach (var c in new Control[] { _host, _password, _port })
-        {
-            c.BackColor = Color.FromArgb(20, 22, 26);
-            c.ForeColor = Color.Gainsboro;
-        }
-        _input.BackColor = Color.FromArgb(20, 22, 26);
-        _input.ForeColor = Color.Gainsboro;
+        // Header
+        var header = new Panel { Dock = DockStyle.Top, Height = 66, BackColor = Theme.Panel };
+        header.Paint += (_, e) => { using var p = new Pen(Theme.Border); e.Graphics.DrawLine(p, 0, header.Height - 1, header.Width, header.Height - 1); };
+        var brand = new Label { Text = "BUNKER", Font = Theme.Brand, ForeColor = Theme.Accent, AutoSize = true, Location = new Point(22, 20) };
+        _serverName.Location = new Point(140, 14);
+        _serverAddr.Location = new Point(140, 36);
+        var actions = new FlowLayoutPanel { Dock = DockStyle.Right, AutoSize = true, WrapContents = false, Padding = new Padding(0, 15, 18, 0), BackColor = Color.Transparent };
+        foreach (var b in new[] { _connect, _disconnect, _clear, _settingsBtn }) b.Margin = new Padding(0, 0, 8, 0);
+        actions.Controls.AddRange(new Control[] { _status, _autoScroll, _clear, _settingsBtn, _disconnect, _connect });
+        header.Controls.AddRange(new Control[] { brand, _serverName, _serverAddr, actions });
 
-        var top = new FlowLayoutPanel { Dock = DockStyle.Top, AutoSize = true, Padding = new Padding(8), WrapContents = true };
-        top.Controls.AddRange(new Control[]
-        {
-            Lbl("Host"), _host, Lbl("Port"), _port, Lbl("Password"), _password,
-            _connect, _disconnect, _autoScroll, _clear, _settingsBtn, _status,
-        });
+        // Command bar
+        var bar = new Panel { Dock = DockStyle.Bottom, Height = 68, BackColor = Theme.Panel, Padding = new Padding(16, 14, 16, 14) };
+        bar.Paint += (_, e) => { using var p = new Pen(Theme.Border); e.Graphics.DrawLine(p, 0, 0, bar.Width, 0); };
+        _input.Dock = DockStyle.Fill;
+        _input.Box.Font = Theme.Mono;
+        _input.Box.PlaceholderText = "Type a command (e.g. status, say hello)  -  Up/Down for history";
+        var gap = new Panel { Dock = DockStyle.Right, Width = 10 };
+        _send.Dock = DockStyle.Right;
+        _send.Width = 96;
+        bar.Controls.AddRange(new Control[] { _input, gap, _send });
 
-        var bottom = new TableLayoutPanel { Dock = DockStyle.Bottom, AutoSize = true, ColumnCount = 2, Padding = new Padding(8) };
-        bottom.ColumnStyles.Add(new ColumnStyle(SizeType.Percent, 100));
-        bottom.ColumnStyles.Add(new ColumnStyle(SizeType.AutoSize));
-        bottom.Controls.Add(_input, 0, 0);
-        bottom.Controls.Add(_send, 1, 0);
+        var consoleHost = new Panel { Dock = DockStyle.Fill, BackColor = Theme.Bg, Padding = new Padding(20, 14, 12, 8) };
+        consoleHost.Controls.Add(_console);
 
-        Controls.Add(_console);
-        Controls.Add(top);
-        Controls.Add(bottom);
+        Controls.Add(consoleHost);
+        Controls.Add(header);
+        Controls.Add(bar);
         AcceptButton = _send;
+
+        RefreshServer();
+        SetConnected(false, "Disconnected");
 
         _connect.Click += async (_, _) => await ConnectAsync();
         _disconnect.Click += async (_, _) => { await _rcon.DisconnectAsync(); SetConnected(false, "Disconnected"); };
         _clear.Click += (_, _) => _console.Clear();
         _send.Click += async (_, _) => await SendAsync();
-        _input.KeyDown += InputKeyDown;
+        _input.Box.KeyDown += InputKeyDown;
+        _settingsBtn.Click += (_, _) => { using var f = new SettingsForm(_settings); f.ShowDialog(this); RefreshServer(); };
         _rcon.MessageReceived += m => BeginInvoke(() => OnMessage(m));
-        _rcon.Disconnected += reason => BeginInvoke(() => { Append(reason, Color.Gray); SetConnected(false, reason); });
-        _settingsBtn.Click += (_, _) => { using var f = new SettingsForm(_settings); f.ShowDialog(this); };
-        Shown += async (_, _) => await AutoUpdateAsync();
+        _rcon.Disconnected += reason => BeginInvoke(() => { Append(reason, Theme.Muted); SetConnected(false, reason); });
+        Shown += async (_, _) => await StartupAsync();
         FormClosing += (_, _) => _rcon.Dispose();
     }
 
-    private async Task AutoUpdateAsync()
+    private async Task StartupAsync()
     {
-        if (!_settings.CheckForUpdatesOnLaunch) return;
+        if (await AutoUpdateAsync()) return;
+        if (_settings.Server is null) RunOnboarding();
+        if (_settings.Server is not null) await ConnectAsync();
+    }
+
+    private bool RunOnboarding()
+    {
+        using var f = new OnboardingForm(_settings.Server, firstRun: _settings.Server is null);
+        if (f.ShowDialog(this) != DialogResult.OK) return false;
+        _settings.Server = f.Result;
+        _settings.Save();
+        RefreshServer();
+        return true;
+    }
+
+    private void RefreshServer()
+    {
+        var s = _settings.Server;
+        _serverName.Text = s?.DisplayName ?? "No server yet";
+        _serverAddr.Text = s is null ? "Click Connect to add one" : $"{s.Host}:{s.Port}";
+    }
+
+    /// <summary>Returns true if an update was started and the app is closing.</summary>
+    private async Task<bool> AutoUpdateAsync()
+    {
+        if (!_settings.CheckForUpdatesOnLaunch) return false;
         try
         {
-            var update = await Updater.CheckAsync();
-            if (update is null) return;
-            Append($"Update {update.Version} found - downloading and installing...", Color.Goldenrod);
-            SetStatus("Updating...", Color.Goldenrod);
+            using var cts = new CancellationTokenSource(TimeSpan.FromSeconds(6));
+            var update = await Updater.CheckAsync(cts.Token);
+            if (update is null) return false;
+            Append($"Update {update.Version} found - downloading and installing...", Theme.Warn);
+            SetStatusText("Updating...", Theme.Warn);
             await Updater.DownloadAndLaunchAsync(update);
             Application.Exit();
+            return true;
         }
         catch (Exception e)
         {
-            Append("Update check failed: " + e.Message, Color.Gray);
-            SetStatus("Disconnected", Color.Gray);
+            Append("Update check failed: " + e.Message, Theme.Muted);
+            return false;
         }
     }
 
-    private static Label Lbl(string t) => new() { Text = t, AutoSize = true, ForeColor = Color.Gainsboro, Anchor = AnchorStyles.Left, Margin = new Padding(6, 6, 0, 0) };
-
     private async Task ConnectAsync()
     {
+        if (_settings.Server is null && !RunOnboarding()) return;
+        var s = _settings.Server!;
         _connect.Enabled = false;
-        SetStatus("Connecting...", Color.Goldenrod);
+        SetStatusText("Connecting...", Theme.Warn);
         try
         {
-            await _rcon.ConnectAsync(_host.Text.Trim(), (int)_port.Value, _password.Text);
-            Append($"Connected to {_host.Text}:{_port.Value}", Color.Gray);
+            await _rcon.ConnectAsync(s.Host, s.Port, s.Password);
+            Append($"Connected to {s.DisplayName} ({s.Host}:{s.Port})", Theme.Muted);
             SetConnected(true, "Connected");
             await _rcon.SendCommandAsync("serverinfo");
         }
         catch (Exception e)
         {
-            Append("Connection failed: " + e.Message, Color.IndianRed);
+            Append("Connection failed: " + e.Message, Theme.Err);
             SetConnected(false, "Connection failed");
         }
     }
@@ -117,28 +149,35 @@ public class MainForm : Form
     {
         var cmd = _input.Text.Trim();
         if (cmd.Length == 0 || !_rcon.IsConnected) return;
-        Append("> " + cmd, Color.Gray);
+        Append("> " + cmd, Theme.Muted);
         _history.Add(cmd);
         _historyIndex = _history.Count;
-        _input.Clear();
+        _input.Text = "";
         try { await _rcon.SendCommandAsync(cmd); }
-        catch (Exception e) { Append("Send failed: " + e.Message, Color.IndianRed); }
+        catch (Exception e) { Append("Send failed: " + e.Message, Theme.Err); }
     }
 
     private void InputKeyDown(object? s, KeyEventArgs e)
     {
-        if (e.KeyCode == Keys.Up && _historyIndex > 0) { _input.Text = _history[--_historyIndex]; _input.SelectionStart = _input.TextLength; e.Handled = true; }
-        else if (e.KeyCode == Keys.Down && _historyIndex < _history.Count) { _historyIndex++; _input.Text = _historyIndex < _history.Count ? _history[_historyIndex] : ""; _input.SelectionStart = _input.TextLength; e.Handled = true; }
+        var box = _input.Box;
+        if (e.KeyCode == Keys.Up && _historyIndex > 0) { box.Text = _history[--_historyIndex]; box.SelectionStart = box.TextLength; e.Handled = true; }
+        else if (e.KeyCode == Keys.Down && _historyIndex < _history.Count)
+        {
+            _historyIndex++;
+            box.Text = _historyIndex < _history.Count ? _history[_historyIndex] : "";
+            box.SelectionStart = box.TextLength;
+            e.Handled = true;
+        }
     }
 
     private void OnMessage(RconMessage m)
     {
         var color = m.Type.ToLowerInvariant() switch
         {
-            "chat" => Color.LightSkyBlue,
-            "warning" => Color.Goldenrod,
-            "error" => Color.IndianRed,
-            _ => Color.Gainsboro,
+            "chat" => Theme.Chat,
+            "warning" => Theme.Warn,
+            "error" => Theme.Err,
+            _ => Theme.Text,
         };
         Append(m.Message.TrimEnd('\n'), color);
     }
@@ -147,13 +186,13 @@ public class MainForm : Form
     {
         _connect.Enabled = !on;
         _disconnect.Enabled = on;
-        _input.Enabled = on;
+        _input.Box.Enabled = on;
         _send.Enabled = on;
-        SetStatus(text, on ? Color.MediumSeaGreen : Color.Gray);
-        if (on) _input.Focus();
+        SetStatusText(text, on ? Theme.Ok : Theme.Muted);
+        if (on) _input.Box.Focus();
     }
 
-    private void SetStatus(string text, Color c) { _status.Text = text; _status.ForeColor = c; }
+    private void SetStatusText(string text, Color c) { _status.Text = "●  " + text; _status.ForeColor = c; }
 
     private void Append(string text, Color color)
     {
@@ -164,8 +203,8 @@ public class MainForm : Form
         }
         _console.SelectionStart = _console.TextLength;
         _console.SelectionLength = 0;
-        _console.SelectionColor = Color.DimGray;
-        _console.AppendText(DateTime.Now.ToString("HH:mm:ss") + " ");
+        _console.SelectionColor = Color.FromArgb(90, 96, 108);
+        _console.AppendText(DateTime.Now.ToString("HH:mm:ss") + "  ");
         _console.SelectionColor = color;
         _console.AppendText(text + Environment.NewLine);
         if (_autoScroll.Checked) _console.ScrollToCaret();

@@ -18,13 +18,14 @@ public sealed class RconClient : IDisposable
 
     public bool IsConnected => _ws?.State == WebSocketState.Open;
 
-    public async Task ConnectAsync(string host, int port, string password)
+    public async Task ConnectAsync(string host, int port, string password, CancellationToken ct = default)
     {
         await DisconnectAsync();
         _cts = new CancellationTokenSource();
         _ws = new ClientWebSocket();
         var uri = new Uri($"ws://{host}:{port}/{Uri.EscapeDataString(password)}");
-        await _ws.ConnectAsync(uri, _cts.Token);
+        using (var linked = CancellationTokenSource.CreateLinkedTokenSource(_cts.Token, ct))
+            await _ws.ConnectAsync(uri, linked.Token);
         _ = ReceiveLoop(_ws, _cts.Token);
     }
 

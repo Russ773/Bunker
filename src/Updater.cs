@@ -31,9 +31,9 @@ public static class Updater
     }
 
     /// <summary>Returns the newer release, or null if already up to date. Throws on network/parse errors.</summary>
-    public static async Task<UpdateInfo?> CheckAsync()
+    public static async Task<UpdateInfo?> CheckAsync(CancellationToken ct = default)
     {
-        var json = await Http.GetStringAsync($"https://api.github.com/repos/{Repo}/releases/latest");
+        var json = await Http.GetStringAsync($"https://api.github.com/repos/{Repo}/releases/latest", ct);
         using var doc = JsonDocument.Parse(json);
         var root = doc.RootElement;
 
