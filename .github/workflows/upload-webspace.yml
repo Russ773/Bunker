@@ -53,7 +53,7 @@ jobs:
           BASE="${BASE%/}"
           for f in dist/Bunker-Setup-*.exe dist/latest.json; do
             echo "Uploading $(basename "$f")"
-            curl --fail --ssl --ftp-create-dirs --user "$FTP_USER:$FTP_PASSWORD" -T "$f" "$BASE/$(basename "$f")"
+            curl --fail --connect-timeout 20 --max-time 900 --ssl --ftp-create-dirs --user "$FTP_USER:$FTP_PASSWORD" -T "$f" "$BASE/$(basename "$f")"
           done
 
       - name: Upload via SFTP
