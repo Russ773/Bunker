@@ -27,6 +27,7 @@ jobs:
       FTP_USER: ${{ secrets.FTP_USER }}
       FTP_PASSWORD: ${{ secrets.FTP_PASSWORD }}
       FTP_PATH: ${{ secrets.FTP_PATH }}
+      FTP_PINNED_PUBKEY: ${{ vars.FTP_PINNED_PUBKEY }}
       SFTP_HOST: ${{ secrets.SFTP_HOST }}
       SFTP_PORT: ${{ secrets.SFTP_PORT }}
       SFTP_USER: ${{ secrets.SFTP_USER }}
@@ -51,9 +52,12 @@ jobs:
           set -e
           BASE="ftp://$FTP_HOST:${FTP_PORT:-21}/${FTP_PATH#/}"
           BASE="${BASE%/}"
+          # Self-signed server certificate: trust only the pinned public key if one is configured.
+          TLS_OPTS=""
+          if [ -n "$FTP_PINNED_PUBKEY" ]; then TLS_OPTS="--insecure --pinnedpubkey $FTP_PINNED_PUBKEY"; fi
           for f in dist/Bunker-Setup-*.exe dist/latest.json; do
             echo "Uploading $(basename "$f")"
-            curl --fail --ftp-skip-pasv-ip --connect-timeout 20 --max-time 900 --ssl --ftp-create-dirs --user "$FTP_USER:$FTP_PASSWORD" -T "$f" "$BASE/$(basename "$f")"
+            curl --fail --ftp-skip-pasv-ip --connect-timeout 20 --max-time 900 --ssl $TLS_OPTS --ftp-create-dirs --user "$FTP_USER:$FTP_PASSWORD" -T "$f" "$BASE/$(basename "$f")"
           done
 
       - name: Upload via SFTP
