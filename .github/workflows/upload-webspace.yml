@@ -1,0 +1,77 @@
+name: Upload to webspace
+
+on:
+  workflow_call:
+    inputs:
+      tag:
+        required: true
+        type: string
+  workflow_dispatch:
+    inputs:
+      tag:
+        description: 'Release tag to upload (e.g. v0.0.2)'
+        required: true
+        type: string
+
+permissions:
+  contents: read
+
+jobs:
+  upload:
+    runs-on: ubuntu-latest
+    env:
+      TAG: ${{ inputs.tag }}
+      GH_TOKEN: ${{ github.token }}
+      FTP_HOST: ${{ secrets.FTP_HOST }}
+      FTP_PORT: ${{ secrets.FTP_PORT }}
+      FTP_USER: ${{ secrets.FTP_USER }}
+      FTP_PASSWORD: ${{ secrets.FTP_PASSWORD }}
+      FTP_PATH: ${{ secrets.FTP_PATH }}
+      SFTP_HOST: ${{ secrets.SFTP_HOST }}
+      SFTP_PORT: ${{ secrets.SFTP_PORT }}
+      SFTP_USER: ${{ secrets.SFTP_USER }}
+      SFTP_PASSWORD: ${{ secrets.SFTP_PASSWORD }}
+      SFTP_KEY: ${{ secrets.SFTP_KEY }}
+      SFTP_PATH: ${{ secrets.SFTP_PATH }}
+    steps:
+      - name: Get release files
+        run: |
+          set -e
+          VERSION="${TAG#v}"
+          mkdir dist
+          gh release download "$TAG" --repo "${{ github.repository }}" --pattern '*.exe' --dir dist
+          cp "dist/Bunker-Setup-$VERSION.exe" dist/Bunker-Setup-latest.exe
+          printf '{\n  "version": "%s",\n  "file": "Bunker-Setup-%s.exe",\n  "released": "%s"\n}\n' \
+            "$VERSION" "$VERSION" "$(date -u +%Y-%m-%dT%H:%M:%SZ)" > dist/latest.json
+          ls -la dist
+
+      - name: Upload via FTP (explicit TLS if the server offers it)
+        if: env.FTP_HOST != ''
+        run: |
+          set -e
+          BASE="ftp://$FTP_HOST:${FTP_PORT:-21}/${FTP_PATH#/}"
+          BASE="${BASE%/}"
+          for f in dist/Bunker-Setup-*.exe dist/latest.json; do
+            echo "Uploading $(basename "$f")"
+            curl --fail --ssl --ftp-create-dirs --user "$FTP_USER:$FTP_PASSWORD" -T "$f" "$BASE/$(basename "$f")"
+          done
+
+      - name: Upload via SFTP
+        if: env.FTP_HOST == '' && env.SFTP_HOST != ''
+        run: |
+          set -e
+          mkdir -p ~/.ssh
+          ssh-keyscan -p "${SFTP_PORT:-22}" "$SFTP_HOST" >> ~/.ssh/known_hosts
+          printf 'cd %s\nput dist/Bunker-Setup-*.exe\nput dist/latest.json\n' "${SFTP_PATH:-.}" > batch.txt
+          OPTS="-P ${SFTP_PORT:-22} -b batch.txt"
+          if [ -n "$SFTP_KEY" ]; then
+            echo "$SFTP_KEY" > key && chmod 600 key
+            sftp $OPTS -i key "$SFTP_USER@$SFTP_HOST"
+          else
+            sudo apt-get install -y sshpass >/dev/null
+            SSHPASS="$SFTP_PASSWORD" sshpass -e sftp $OPTS "$SFTP_USER@$SFTP_HOST"
+          fi
+
+      - name: Nothing configured
+        if: env.FTP_HOST == '' && env.SFTP_HOST == ''
+        run: echo "No FTP_HOST or SFTP_HOST secret set - skipping webspace upload"
