@@ -12,7 +12,7 @@ public class WidgetRulesTests
     public void Every_bundled_widget_is_valid()
     {
         var folder = Path.Combine(AppContext.BaseDirectory, "widgets");
-        var files = Directory.GetFiles(folder, "*.json");
+        var files = Directory.GetFiles(folder, "*.json").Where(f => Path.GetFileName(f) != "index.json").ToArray();
         Assert.NotEmpty(files);
         foreach (var file in files)
         {
@@ -98,5 +98,18 @@ public class WidgetRulesTests
         var names = new Dictionary<string, string> { ["target"] = "Ironclad" };
         Assert.Equal("inventory.giveto 76561198000000001 wood 50", WidgetRules.Expand("inventory.giveto {target} wood {amount}", values, names));
         Assert.Equal("Give Ironclad a pack?", WidgetRules.Expand("Give {target.name} a pack?", values, names));
+    }
+}
+
+public class WidgetLibraryIndexTests
+{
+    [Fact]
+    public void Index_lists_exactly_the_widget_files()
+    {
+        var folder = Path.Combine(AppContext.BaseDirectory, "widgets");
+        using var doc = System.Text.Json.JsonDocument.Parse(File.ReadAllText(Path.Combine(folder, "index.json")));
+        var listed = doc.RootElement.GetProperty("widgets").EnumerateArray().Select(e => e.GetString()!).OrderBy(n => n).ToList();
+        var onDisk = Directory.GetFiles(folder, "*.json").Select(Path.GetFileName).Where(n => n != "index.json").OrderBy(n => n).ToList();
+        Assert.Equal(onDisk, listed);
     }
 }

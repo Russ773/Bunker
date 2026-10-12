@@ -253,7 +253,7 @@ Have an idea? [Open an issue](https://github.com/Russ773/Bunker/issues) or build
 
 ## 🤝 Contributing
 
-Pull requests are welcome, especially **widgets** (add a `.json` file to [`widgets/`](widgets)) and bug reports with the steps to reproduce them. Please run `dotnet test tests/Bunker.Tests` before you open a PR.
+Pull requests are welcome, especially **widgets** (add a `.json` file to [`widgets/`](widgets) and list it in `widgets/index.json`) and bug reports with the steps to reproduce them. Please run `dotnet test tests/Bunker.Tests` before you open a PR.
 
 ---
 

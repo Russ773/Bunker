@@ -85,7 +85,7 @@ Inside a button's `commands` (and `confirm`) text, `{id}` is replaced by what th
 ## Share your widget
 
 1. Make sure the file passes in Bunker (**Tools → Widgets → Add from file…**).
-2. Fork this repository and add your file to [`widgets/`](../widgets) (keep it under 64 KB).
+2. Fork this repository, add your file to [`widgets/`](../widgets) (keep it under 64 KB) and add its file name to [`widgets/index.json`](../widgets/index.json) so it shows up in **Browse library**.
 3. Open a pull request. Describe what the widget does and which Rust commands it uses, and say where you checked that they work.
 
 Widgets are reviewed by hand before they are merged, and anyone can still install widgets from other places using a link.

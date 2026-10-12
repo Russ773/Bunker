@@ -287,11 +287,13 @@ public class WidgetLibraryForm : Form
         _status.Text = "Loading the library...";
         try
         {
-            var listing = await WidgetNet.GetAsync($"https://api.github.com/repos/{Updater.Repo}/contents/widgets");
-            using var doc = JsonDocument.Parse(listing);
-            var files = doc.RootElement.EnumerateArray()
-                .Where(e => e.GetProperty("name").GetString()?.EndsWith(".json", StringComparison.OrdinalIgnoreCase) == true)
-                .Select(e => (Name: e.GetProperty("name").GetString()!, Url: e.GetProperty("download_url").GetString()!)).ToList();
+            // A plain index file, served from raw.githubusercontent.com, so browsing is not limited by GitHub's API rate limit.
+            var baseUrl = $"https://raw.githubusercontent.com/{Updater.Repo}/main/widgets/";
+            using var doc = JsonDocument.Parse(await WidgetNet.GetAsync(baseUrl + "index.json"));
+            var files = doc.RootElement.GetProperty("widgets").EnumerateArray()
+                .Select(e => e.GetString() ?? "")
+                .Where(n => System.Text.RegularExpressions.Regex.IsMatch(n, @"^[a-z0-9][a-z0-9_-]*\.json$"))
+                .Select(n => (Name: n, Url: baseUrl + n)).ToList();
 
             foreach (var (name, url) in files)
             {
