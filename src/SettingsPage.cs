@@ -207,6 +207,11 @@ public partial class SettingsPage : Panel, ISectionPage
     {
         var inner = new Panel { BackColor = Theme.Panel };
         inner.Controls.Add(new Label { Text = $"Current version: {Updater.VersionText}", AutoSize = true, ForeColor = Theme.Muted, Location = new Point(0, 6) });
+        if (Updater.IsStoreVersion)
+        {
+            inner.Controls.Add(new Label { Text = "This copy of Bunker comes from the Microsoft Store, which keeps it up to date for you.", AutoSize = true, ForeColor = Theme.Text, Location = new Point(0, 40) });
+            return Wrap("Updates", inner);
+        }
         inner.Controls.Add(Check("Check for updates when Bunker starts (you are asked before anything installs)", _core.Settings.CheckForUpdatesOnLaunch, 36, v => _core.Settings.CheckForUpdatesOnLaunch = v));
         _check.Location = new Point(0, 76);
         inner.Controls.Add(_check);

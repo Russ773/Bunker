@@ -11,6 +11,22 @@ public static class Updater
 {
     public const string Repo = "Russ773/Bunker";
 
+    [System.Runtime.InteropServices.DllImport("kernel32.dll", CharSet = System.Runtime.InteropServices.CharSet.Unicode)]
+    private static extern int GetCurrentPackageFullName(ref int length, System.Text.StringBuilder? name);
+
+    /// <summary>True when running as the Microsoft Store (MSIX) version, which the Store updates itself.</summary>
+    public static bool IsStoreVersion { get; } = DetectPackaged();
+
+    private static bool DetectPackaged()
+    {
+        try
+        {
+            int length = 0;
+            return GetCurrentPackageFullName(ref length, null) != 15700; // APPMODEL_ERROR_NO_PACKAGE
+        }
+        catch (EntryPointNotFoundException) { return false; }
+    }
+
     private static readonly HttpClient Http = CreateClient();
 
     private static HttpClient CreateClient()

@@ -92,6 +92,24 @@ jobs:
         shell: bash
         run: cp "sign-out/installer/Bunker-Setup-$VERSION.exe" "dist/Bunker-Setup-$VERSION.exe"
 
+      # Microsoft Store package. Switched on by the repository variables MSIX_IDENTITY_NAME,
+      # MSIX_PUBLISHER and MSIX_PUBLISHER_DISPLAY_NAME (from Partner Center, Product identity).
+      # Download it from the run's artifacts and upload it to Partner Center; the Store signs it.
+      - name: Build Microsoft Store package
+        if: vars.MSIX_IDENTITY_NAME != ''
+        run: .\msix\build-msix.ps1 -PublishDir publish -Version $env:VERSION -IdentityName $env:MSIX_IDENTITY_NAME -Publisher $env:MSIX_PUBLISHER -PublisherDisplayName $env:MSIX_PUBLISHER_DISPLAY_NAME -Output "dist\Bunker-$env:VERSION.msix"
+        env:
+          MSIX_IDENTITY_NAME: ${{ vars.MSIX_IDENTITY_NAME }}
+          MSIX_PUBLISHER: ${{ vars.MSIX_PUBLISHER }}
+          MSIX_PUBLISHER_DISPLAY_NAME: ${{ vars.MSIX_PUBLISHER_DISPLAY_NAME }}
+
+      - name: Keep the Store package
+        if: vars.MSIX_IDENTITY_NAME != ''
+        uses: actions/upload-artifact@v4
+        with:
+          name: bunker-store-package
+          path: dist/Bunker-${{ env.VERSION }}.msix
+
       - name: GitHub release
         shell: bash
         env:

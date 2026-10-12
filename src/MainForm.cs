@@ -113,7 +113,7 @@ public class MainForm : Form
 #if DEBUG
         return false; // dev builds never auto-update (they would close and replace the installed copy)
 #endif
-        if (!_core.Settings.CheckForUpdatesOnLaunch) return false;
+        if (Updater.IsStoreVersion || !_core.Settings.CheckForUpdatesOnLaunch) return false;
         try
         {
             using var cts = new CancellationTokenSource(TimeSpan.FromSeconds(6));
