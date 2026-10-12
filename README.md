@@ -61,6 +61,24 @@ Watch the console, see who's online and run your server, without ever launching 
 
 ---
 
+## 🆕 What's new
+
+Recent additions, newest ideas first:
+
+* 💬 **Chat as yourself.** Set a name, Steam ID and colour in **Settings → Chat** and your messages show in-game with your name and Steam picture instead of SERVER (needs the small [BunkerChat plugin](plugins/BunkerChat.cs)). The console box has a **Command / Chat** switch, and asks "say this in chat?" before sending ordinary words as a command.
+* 🎨 **Chat looks like the game.** Coloured player names, a green **[TEAM]** tag, plugin prefixes such as **[ADMIN]** (colour set in Settings → Chat), and no more repeated names when a chat plugin adds its own.
+* 🙈 **Hide console noise.** Hide a whole plugin (`[Economics]`, `[Steam Groups]`) or any line containing words you choose, from **Console → Filter** or by right-clicking a line.
+* 🔎 **Item search with pictures.** Type "wood" in **Give items** (or the player menu) and get *Wood* with its picture. The list comes from the game's own files and updates itself when Rust does.
+* 📋 **Plugin lists as a table.** Carbon and Oxide plugin lists show as a sortable table (versions, hook time, memory, uptime) with failed plugins listed underneath. Click a row to fill in the plugin name.
+* ⭐ **Favourite widgets.** Click the star next to a widget in the WIDGETS menu and it moves to the top. Right-click to **hide** a widget from the menu (it stays in Layout).
+* 🔄 **Widget updates.** **Settings → Updates** now lists newer versions of your community widgets, and an orange dot marks them in the menu.
+* 🖱️ **One right-click menu everywhere.** The Players page, the Dashboard and the **Player database** share the same menu: copy, Steam profile, kick, ban, mute, teleport, give item and notes.
+* 📥 **Import servers from RustAdmin** (Settings → Servers → Import).
+* 🧩 **A clearer split.** **Core** (Dashboard, Console, Players, Layout, Settings) and **Widgets** (everything optional) have their own headings in the sidebar.
+* 🛡️ **Update checks no longer hit GitHub's rate limit**, and the app starts, connects and recovers more gracefully.
+
+---
+
 ## ✨ Features
 
 Bunker is split in two so it is always clear what is part of the app and what is an add-on.
@@ -69,25 +87,25 @@ Bunker is split in two so it is always clear what is part of the app and what is
 
 | | |
 | --- | --- |
-| 🖥️ **Console** | The heart of Bunker. Colour-coded live output and a command box that runs **any** console command. Command history with ↑/↓, **search and filters** (hide chat, warnings, errors, **a whole plugin such as [Economics], or any line containing words you choose**), auto-scroll, and your choice of **font and size**. |
+| 🖥️ **Console** | The heart of Bunker. Colour-coded live output and a command box that runs **any** console command. Command history with ↑/↓, **search and filters** (hide chat, warnings, errors, **a whole plugin such as [Economics], or any line containing words you choose**), auto-scroll, and your choice of **font and size**. Chat appears the way it does in the game, and a **Command / Chat** switch lets you talk from the same box. |
 | 📊 **Dashboard** | Live players, FPS, entities, uptime, memory and map, with the player list and console in one glance. |
-| 👥 **Players** | Who's online with ping, time played and health. Right-click for copy, Steam profile, kick, ban, mute, teleport, give an item, or a private note. |
+| 👥 **Players** | Who's online with ping, time played and health. Right-click for copy, Steam profile, kick, ban, mute, teleport, give an item (with picture search), or a private note. The same menu works in the Dashboard and the Player database. |
 | 🪟 **Layout** | Pick 1, 2 or 4 sections and put a core panel *or any widget* in each. Go **fullscreen** for a wall-display control room. |
-| 💬 **Chat** | Switch the console box between running commands and chatting. Send chat from Bunker with your own name, colour and Steam picture instead of SERVER. Needs the small [BunkerChat plugin](plugins/BunkerChat.cs) on the server (Carbon or Oxide); without it Bunker falls back to the plain `say` command. |
-| ⚙️ **Settings** | Several saved servers (passwords encrypted for your Windows account), **import from RustAdmin**, dark and light themes, console font, startup options and updates that *ask first*. |
+| 💬 **Chat** | Send chat from Bunker with your own name, colour and Steam picture instead of SERVER (**Settings → Chat**). It needs the small [BunkerChat plugin](plugins/BunkerChat.cs) on the server (Carbon or Oxide); without it Bunker falls back to the plain `say` command with your name in the text. Messages from players show with their name colour, **[TEAM]** and plugin prefixes such as **[ADMIN]**. |
+| ⚙️ **Settings** | Several saved servers (passwords encrypted for your Windows account), **import from RustAdmin**, dark and light themes, console font, your chat name and colours, startup options, and updates for both Bunker and your widgets that *ask first*. |
 
 ### 🧩 Widgets: optional add-ons
 
-Every widget is listed under the **WIDGETS** heading in the sidebar. Click one to open it, with a live console beside it so you see the server's reply. A tag marks it **Built-in** or **Community** (community ones also have a green dot). **Add to Layout** puts any widget into a Layout section in one click. Right-click a widget to hide it from the menu; it stays available in the Layout picker, and a "hidden" row at the bottom brings it back.
+Every widget is listed under the **WIDGETS** heading in the sidebar. Click one to open it, with a live console beside it so you see the server's reply. A tag marks it **Built-in** or **Community** (community ones also have a green dot). **Add to Layout** puts any widget into a Layout section in one click. Click the **star** next to a widget to make it a favourite (favourites are listed first). Right-click a widget to hide it from the menu; it stays available in the Layout picker, and a "hidden" row at the bottom brings it back. An orange dot means a newer version of a community widget is available (see **Settings → Updates**).
 
 | | |
 | --- | --- |
 | **Built-in** · Announce, Quick actions, Moderation, Teleport, Shortcuts, Give items | One-click helpers for the things you do most. **Give items** has a searchable list of every current Rust item with its picture, kept up to date automatically when Rust updates. |
 | **Built-in** · 📈 Server health | Live charts of FPS, players, entities and memory over 5 minutes to 2 hours. Spot lag spikes and restarts at a glance. |
 | **Built-in** · ⏰ Scheduler | Recurring announcements, a daily world save, restart warning sequences with `wait` steps. |
-| **Built-in** · 🗂️ Player database and Join/leave feed | Everyone who has joined, with **your own notes**, plus a live feed. |
+| **Built-in** · 🗂️ Player database and Join/leave feed | Everyone who has joined, with **your own notes**, plus a live feed. Right-click anyone for the full player menu, even if they have left. |
 | **Built-in** · 💬 Chat monitor | Watch-words that highlight messages and flash the taskbar, with mute, kick and ban from a message. |
-| **Community** | Install widgets other people made. They can show live stats, command replies and run timed sequences, and are reviewed command by command first. [Write your own →](docs/WIDGETS.md) |
+| **Community** | Install widgets other people made. They can show live stats, command replies (plugin lists become a **sortable table**) and run timed sequences, and are reviewed command by command first. [Write your own →](docs/WIDGETS.md) |
 
 ---
 
@@ -109,6 +127,10 @@ Every widget is listed under the **WIDGETS** heading in the sidebar. Click one t
   <tr>
     <td width="50%"><img src="docs/screenshots/community-widget.png" alt="Community widget"><br><sub><b>🧩 Community widget</b>: live stats and replies, here the Server Report</sub></td>
     <td width="50%"><img src="docs/screenshots/light-theme.png" alt="Light theme"><br><sub><b>☀️ Light theme</b>: one switch in Settings</sub></td>
+  </tr>
+  <tr>
+    <td width="50%"><img src="docs/screenshots/plugin-table.png" alt="Carbon plugin table"><br><sub><b>📋 Plugin table</b>: sortable, with failed plugins listed underneath</sub></td>
+    <td width="50%"><img src="docs/screenshots/item-search.png" alt="Item search with pictures"><br><sub><b>🔎 Item search</b>: type "wood", pick it by picture</sub></td>
   </tr>
 </table>
 
@@ -139,13 +161,17 @@ Start Bunker. The welcome screen asks for:
 
 Press **Test & connect**. Bunker checks the connection before saving anything. Offline right now? Choose **Save without testing**.
 
-### 3. Explore
+### 3. Optional: chat as yourself
+
+To send chat with your own name and Steam picture, copy **BunkerChat.cs** (a button in **Settings → Chat**, or [from here](plugins/BunkerChat.cs)) into your server's `carbon/plugins` (Carbon) or `oxide/plugins` (Oxide) folder. It adds one admin-only command, `bunker.say`, and loads by itself. Bunker works fine without it.
+
+### 4. Explore
 
 * **Core** (Dashboard, Console, Players) is the app itself. The **Console** is where you read the server and run any command.
 * **Widgets** holds the optional add-ons: announcements, moderation, charts, the scheduler and anything you install. **Layout** lets you build your own screen from core panels and widgets.
 * Click the server name in the sidebar to switch servers. **Settings** has themes, fonts, startup options and updates.
 
-> ⌨️ **Tips:** `↑`/`↓` recall previous commands · `Esc` or `F11` leaves fullscreen · right-click a player for quick actions · hover long names for a tooltip.
+> ⌨️ **Tips:** `↑`/`↓` recall previous commands · `Esc` or `F11` leaves fullscreen · right-click a player for quick actions · right-click a console line to hide that plugin · star the widgets you use most · hover long names for a tooltip.
 
 ---
 
@@ -174,7 +200,7 @@ A **widget** is a small `.json` file, **never a program**. It describes some fie
 * 🔍 **Reviewed before install.** Bunker lists *every* command a widget can send, and marks risky ones (kick, ban, restart, give-to-everyone…) with `!`.
 * 🚫 **Hard limits.** Widgets can't touch RCON settings or admin rights, can't run scripts and can't reach the network.
 * 🧼 **Cleaned inputs.** Text typed into a widget has quotes, semicolons and control characters removed before it's used.
-* ⚡ **More than buttons.** Widgets can show **live server stats**, display the server's **replies** in a panel, and run **timed sequences** with a Stop button, such as countdowns.
+* ⚡ **More than buttons.** Widgets can show **live server stats**, display the server's **replies** in a panel (a Carbon or Oxide plugin list becomes a **sortable table**), and run **timed sequences** with a Stop button, such as countdowns.
 * 📚 **Try the starters** in [`widgets/`](widgets): *Welcome Packs*, *Broadcast Presets*, *Resource Drop*, *Event Countdown*, *Server Report*, *Ban Manager*, *Oxide Plugin Control* and *Carbon Plugin Control*. Install them from **Widgets → Get more widgets → Browse library**.
 
 Want to make one? Read the **[widget guide](docs/WIDGETS.md)** and open a pull request. 💜
@@ -184,8 +210,8 @@ Want to make one? Read the **[widget guide](docs/WIDGETS.md)** and open a pull r
 ## 🔒 Safety & privacy
 
 * 🔐 **RCON passwords are encrypted** with Windows DPAPI, so only your Windows account can read them.
-* 📡 Bunker talks to **your server** and to **GitHub** (to check for updates, the Rust item list and pictures, and, if you open it, the widget library). The Rust item list and pictures come from [bobosneefdev/rust-items-json](https://github.com/bobosneefdev/rust-items-json) on GitHub, at most once a day, and can be switched off in **Settings → General**. Nothing else, and no analytics.
-* 🙋 **Updates always ask first.** Nothing installs without your OK.
+* 📡 Bunker talks to **your server** and to **GitHub** (to check for updates to Bunker and your widgets, the Rust item list and pictures, and, if you open it, the widget library). The Rust item list and pictures come from [bobosneefdev/rust-items-json](https://github.com/bobosneefdev/rust-items-json) on GitHub, at most once a day, and can be switched off in **Settings → General**. Nothing else, and no analytics.
+* 🙋 **Updates always ask first.** Nothing installs without your OK, and a widget update shows you everything it can do before it replaces the old one.
 * 🧪 The widget safety rules have **automated tests** that run on every release.
 
 ---
@@ -195,11 +221,12 @@ Want to make one? Read the **[widget guide](docs/WIDGETS.md)** and open a pull r
 | Feature | Commands |
 | --- | --- |
 | Live data | `serverinfo`, `playerlist` |
-| Chat & announcements | `say` |
+| Chat & announcements | `say`, and `bunker.say` (from the optional [BunkerChat plugin](plugins/BunkerChat.cs)) |
 | Quick actions | `server.save`, `env.time`, `restart` |
 | Moderation | `kick`, `banid`, `unban`, `mute`, `unmute`, `server.writecfg` |
 | Teleport | `teleport` |
 | Give items | `inventory.giveto`, `inventory.giveall` |
+| Plugin control (widgets) | Carbon: `c.plugins`, `c.reload`, `c.load`, `c.unload` · Oxide: `oxide.plugins`, `oxide.reload`, `oxide.load`, `oxide.unload` |
 
 > ℹ️ Command syntax follows public Rust admin references and can differ between server versions or plugins. The server's reply always appears in the console, so you can see exactly what happened.
 
@@ -228,7 +255,8 @@ Bunker/
 │   ├── *Page.cs            Dashboard, Console, Players, Widgets, Layout, Settings
 │   ├── *View.cs            panels and widgets: console, players, charts, scheduler, player database, chat monitor, admin helpers
 │   └── CommunityWidgets.cs the safe widget format, rules and store
-├── tests/Bunker.Tests/   xUnit tests (widget rules and bundled widgets)
+├── tests/Bunker.Tests/   xUnit tests (widget rules, plugin lists, chat, item search, filters)
+├── plugins/              BunkerChat.cs, the optional server plugin for chat as yourself
 ├── widgets/              starter community widgets
 ├── docs/                 widget guide and screenshots
 ├── installer/            Inno Setup script and wizard artwork
@@ -245,8 +273,8 @@ Pushing a tag such as `v1.0.0` runs the pipeline:
 
 1. 🧪 run the tests
 2. 🏗️ publish a self-contained Windows build
-3. 📦 build the Inno Setup installer
-4. 🚀 publish a GitHub Release
+3. 📦 build the Inno Setup installer and a Microsoft Store package
+4. 🚀 publish a GitHub Release and upload the installer to the download site
 
 </details>
 
@@ -261,9 +289,14 @@ Pushing a tag such as `v1.0.0` runs the pipeline:
 - [x] Dark and light themes, console font and size
 - [x] Community widgets with safe, reviewable commands, live stats, replies and timed steps
 - [x] Server health charts, scheduler, player database and chat monitor
-- [x] Console search and filters
+- [x] Console search and filters, and hiding plugins or words
+- [x] Import servers from RustAdmin
+- [x] Searchable Rust item list with pictures, kept current automatically
+- [x] Chat as yourself, and chat that looks like the game
+- [x] Plugin lists (Carbon and Oxide) as a sortable table
+- [x] Favourite and hidden widgets, and widget updates
 - [ ] Auto-reconnect when the connection drops mid-session
-- [ ] Ban list and plugin list as proper tables (once the servers' reply formats are confirmed)
+- [ ] Ban list as a proper table (once the server's reply format is confirmed)
 - [ ] Widget library submissions through the app
 - [ ] Microsoft Store listing (submitted, waiting for review)
 
