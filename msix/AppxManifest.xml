@@ -9,7 +9,7 @@
   <Identity Name="{{IDENTITY_NAME}}" Publisher="{{PUBLISHER}}" Version="{{VERSION}}" ProcessorArchitecture="x64" />
 
   <Properties>
-    <DisplayName>Bunker</DisplayName>
+    <DisplayName>Bunker RCON</DisplayName>
     <PublisherDisplayName>{{PUBLISHER_DISPLAY_NAME}}</PublisherDisplayName>
     <Logo>Assets\StoreLogo.png</Logo>
   </Properties>
@@ -25,7 +25,7 @@
   <Applications>
     <Application Id="Bunker" Executable="Bunker.exe" EntryPoint="Windows.FullTrustApplication">
       <uap:VisualElements
-        DisplayName="Bunker"
+        DisplayName="Bunker RCON"
         Description="Admin console for Rust game servers"
         BackgroundColor="#171311"
         Square150x150Logo="Assets\Square150x150Logo.png"
