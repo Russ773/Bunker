@@ -1,6 +1,6 @@
-; Build with: iscc /DAppVersion=0.0.3 /DSourceDir=..\publish installer\Bunker.iss
+; Build with: iscc /DAppVersion=0.0.4 /DSourceDir=..\publish installer\Bunker.iss
 #ifndef AppVersion
-  #define AppVersion "0.0.3"
+  #define AppVersion "0.0.4"
 #endif
 #ifndef SourceDir
   #define SourceDir "..\publish"
