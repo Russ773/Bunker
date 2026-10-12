@@ -37,7 +37,7 @@ public class Sidebar : Panel
 
         // Main navigation (top) and the less-used items (just above the server block)
         var nav = new Panel { Dock = DockStyle.Fill, BackColor = Theme.Panel, Padding = new Padding(0, 6, 0, 0) };
-        AddItems(nav, ("dashboard", "", "Dashboard"), ("console", "", "Console"), ("players", "", "Players"));
+        AddItems(nav, ("dashboard", "", "Dashboard"), ("console", "", "Console"), ("players", "", "Players"), ("tools", "", "Tools"));
 
         var lower = new Panel { Dock = DockStyle.Bottom, Height = 104, BackColor = Theme.Panel, Padding = new Padding(0, 8, 0, 6) };
         AddItems(lower, ("layout", "", "Layout"), ("settings", "", "Settings"));

@@ -4,7 +4,7 @@ using System.Drawing;
 namespace Bunker;
 
 /// <summary>Settings with a vertical submenu: Servers, General, Updates, About.</summary>
-public partial class SettingsPage : Panel
+public partial class SettingsPage : Panel, ISectionPage
 {
     private readonly Core _core;
     private readonly Dictionary<string, (TabButton Button, Control Panel)> _sections = new();

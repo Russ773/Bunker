@@ -24,6 +24,7 @@ public class MainForm : Form
         _pages["console"] = Pages.Console(_core);
         _pages["players"] = Pages.Players(_core);
         _pages["layout"] = new LayoutPage(_core);
+        _pages["tools"] = new ToolsPage(_core);
         _pages["settings"] = new SettingsPage(_core);
         foreach (var page in _pages.Values)
         {
@@ -56,7 +57,7 @@ public class MainForm : Form
     private void Navigate(string key)
     {
         var section = key.Contains(':') ? key[(key.IndexOf(':') + 1)..] : null;
-        if (section is not null) { key = key[..key.IndexOf(':')]; (_pages["settings"] as SettingsPage)?.ShowSection(section); }
+        if (section is not null) { key = key[..key.IndexOf(':')]; (_pages[key] as ISectionPage)?.ShowSection(section); }
         foreach (var (k, page) in _pages) page.Visible = k == key;
         _sidebar.Select(key);
     }
