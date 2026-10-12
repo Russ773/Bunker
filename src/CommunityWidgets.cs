@@ -24,6 +24,10 @@ public class WidgetControl
     public string? Output { get; set; }
     /// <summary>For a "stat" control: which live value to show (players, maxplayers, fps, entities, memory, uptime, queued, joining, map).</summary>
     public string? Source { get; set; }
+    /// <summary>For an "output" control: how to show replies. "text" (the default) or "plugins" (a sortable table when the reply is a Carbon or Oxide plugin list).</summary>
+    public string? Format { get; set; }
+    /// <summary>For an "output" control with format "plugins": the id of a text control that is filled with the plugin name when a row is clicked.</summary>
+    public string? Pick { get; set; }
     /// <summary>For an "output" control: its height in pixels.</summary>
     public int? Height { get; set; }
 }
@@ -118,7 +122,12 @@ public static class WidgetRules
             if (c.Type == "number" && c.Min is { } min && c.Max is { } max && min > max) errors.Add($"The number \"{c.Id}\" has min greater than max.");
             if (c.Type == "stat" && (c.Source is null || !StatSources.Contains(c.Source))) errors.Add($"A stat needs a \"source\" of: {string.Join(", ", StatSources)}.");
             if (c.Type == "output" && c.Height is { } h && (h < 60 || h > 600)) errors.Add($"The output \"{c.Id}\" height must be 60-600.");
+            if (c.Type == "output" && c.Format is not null && c.Format is not ("text" or "plugins")) errors.Add($"The output \"{c.Id}\" format must be \"text\" or \"plugins\".");
         }
+
+        foreach (var o in d.Controls.Where(c => c.Type == "output" && c.Pick is not null))
+            if (o.Format != "plugins" || !ids.TryGetValue(o.Pick!, out var pickType) || pickType != "text")
+                errors.Add($"The output \"{o.Id}\" can only pick into a text control, and only with the \"plugins\" format.");
 
         foreach (var b in d.Controls.Where(c => c.Type == "button"))
         {

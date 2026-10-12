@@ -198,3 +198,22 @@ public class ReplyCleaningTests
     [Fact]
     public void An_empty_reply_stays_empty() => Assert.Equal("", CustomWidgetView.CleanReply("  \n \n"));
 }
+
+public class PluginFormatRuleTests
+{
+    private static string Widget(string controls) => $"{{ \"id\": \"test-widget\", \"name\": \"Test\", \"controls\": [ {controls} ] }}";
+    private static List<string> Errors(string json) { WidgetRules.Parse(json, out var errors); return errors; }
+
+    [Fact]
+    public void The_plugins_format_can_pick_into_a_text_field()
+    {
+        var json = Widget("{ \"type\": \"output\", \"id\": \"out\", \"format\": \"plugins\", \"pick\": \"name\" }, { \"type\": \"text\", \"id\": \"name\" }");
+        Assert.Empty(Errors(json));
+    }
+
+    [Theory]
+    [InlineData("{ \"type\": \"output\", \"id\": \"out\", \"format\": \"html\" }")]
+    [InlineData("{ \"type\": \"output\", \"id\": \"out\", \"format\": \"plugins\", \"pick\": \"missing\" }")]
+    [InlineData("{ \"type\": \"output\", \"id\": \"out\", \"pick\": \"name\" }, { \"type\": \"text\", \"id\": \"name\" }")]
+    public void Unknown_formats_and_bad_picks_are_refused(string controls) => Assert.NotEmpty(Errors(Widget(controls)));
+}

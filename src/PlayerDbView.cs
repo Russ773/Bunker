@@ -120,7 +120,7 @@ public class PlayerDbView : Panel
         foreach (var r in rows)
         {
             var online = _core.Tracker.IsOnline(r.SteamId);
-            var i = _grid.Rows.Add(online ? "Online" : Ago(r.LastSeenUtc), r.Name, r.SteamId, r.FirstSeenUtc.ToLocalTime().ToString("d MMM yyyy"),
+            var i = _grid.Rows.Add(online ? "Online" : "Left " + Ago(r.LastSeenUtc), r.Name, r.SteamId, r.FirstSeenUtc.ToLocalTime().ToString("d MMM yyyy"),
                 PlayersView.Duration((long)r.TotalSeconds), r.Sessions, r.Note.Replace('\n', ' '));
             _grid.Rows[i].Tag = r;
             _grid.Rows[i].Cells[0].Style.ForeColor = online ? Theme.Ok : Theme.Muted;

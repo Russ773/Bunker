@@ -313,7 +313,7 @@ public class WidgetLibraryForm : Form
                     var def = WidgetRules.Parse(json, out _);
                     if (def is not null && _manager.IsUpToDate(def)) { already++; continue; } // installed already: nothing to offer
                     _items.Add((name, url, json, def));
-                    _list.Items.Add(def is null ? name + "  (not valid)" : _manager.IsUpdate(def) ? def.Name + "  (update)" : def.Name);
+                    _list.Items.Add(def is null ? name + "  (not valid)" : _manager.IsUpdate(def) ? def.Name + "  -  Update Available" : def.Name);
                 }
                 catch { /* skip files that cannot be fetched */ }
             }

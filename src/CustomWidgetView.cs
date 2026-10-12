@@ -10,7 +10,8 @@ public class CustomWidgetView : ActionPanel
     private readonly Dictionary<string, Func<string?>> _values = new();
     private readonly Dictionary<string, Func<string?>> _names = new();
     private readonly Dictionary<string, WidgetControl> _byId = new();
-    private readonly Dictionary<string, RichTextBox> _outputs = new();
+    private readonly Dictionary<string, IReplyTarget> _outputs = new();
+    private readonly List<(PluginTableView View, string? PickField)> _picks = new();
     private readonly List<(string Source, Label Value)> _stats = new();
     private readonly List<Button> _buttons = new();
     private CancellationTokenSource? _running;
@@ -112,6 +113,8 @@ public class CustomWidgetView : ActionPanel
             }
         }
         Flush();
+        foreach (var (view, field) in _picks)
+            if (field is not null && _setters.TryGetValue(field, out var set)) view.Picked = set;
         Add(Status);
         if (_stats.Count > 0) { Core.Monitor.Updated += RefreshStats; RefreshStats(); }
 #if DEBUG
@@ -174,29 +177,16 @@ public class CustomWidgetView : ActionPanel
 
     private Control BuildOutput(WidgetControl c)
     {
-        var box = new RichTextBox
+        IReplyTarget target;
+        if (c.Format == "plugins")
         {
-            ReadOnly = true, BackColor = Theme.Bg, ForeColor = Theme.Text, BorderStyle = BorderStyle.None, Font = Core.ConsoleFont,
-            DetectUrls = false, Height = c.Height ?? 160, HideSelection = false, Margin = new Padding(0, 10, 0, 0),
-            // Replies such as plugin tables are wide. Wrapping them splits every row in two, so lines stay whole and scroll sideways instead.
-            WordWrap = false, ScrollBars = RichTextBoxScrollBars.Both,
-        };
-        DarkScroll.Apply(box);
-
-        var menu = new ContextMenuStrip { BackColor = Theme.Input, ForeColor = Theme.Text, Renderer = new DarkMenuRenderer(), ShowImageMargin = false };
-        var copy = new ToolStripMenuItem("Copy all") { BackColor = Theme.Input, ForeColor = Theme.Text };
-        copy.Click += (_, _) => { if (box.TextLength > 0) try { Clipboard.SetText(box.Text); } catch { } };
-        var clear = new ToolStripMenuItem("Clear") { BackColor = Theme.Input, ForeColor = Theme.Text };
-        clear.Click += (_, _) => box.Clear();
-        menu.Items.Add(copy);
-        menu.Items.Add(clear);
-        box.ContextMenuStrip = menu;
-        _outputs[c.Id!] = box;
-        var host = new Panel { Height = (c.Height ?? 160) + 22, BackColor = Theme.Bg, Padding = new Padding(10, 8, 6, 6), Margin = new Padding(0, 10, 0, 0) };
-        box.Dock = DockStyle.Fill;
-        box.Margin = new Padding(0);
-        host.Controls.Add(box);
-        return host;
+            var view = new PluginTableView(Core, c.Height ?? 300);
+            _picks.Add((view, c.Pick));
+            target = view;
+        }
+        else target = new TextReplyBox(Core, c.Height ?? 160);
+        _outputs[c.Id!] = target;
+        return target.Host;
     }
 
     private static readonly System.Text.RegularExpressions.Regex Markup =
@@ -230,15 +220,6 @@ public class CustomWidgetView : ActionPanel
             else sb.Append(ch);
         }
         return sb.ToString();
-    }
-
-    private static void Append(RichTextBox box, string text, Color color)
-    {
-        box.SelectionStart = box.TextLength;
-        box.SelectionLength = 0;
-        box.SelectionColor = color;
-        box.AppendText(text + Environment.NewLine);
-        box.ScrollToCaret();
     }
 
     // ------------------------------------------------------------------ running buttons
@@ -292,7 +273,7 @@ public class CustomWidgetView : ActionPanel
         if (!string.IsNullOrWhiteSpace(button.Confirm) &&
             !Confirm(WidgetRules.Expand(button.Confirm, values, names), _def.Name)) return;
 
-        var output = button.Output is { } outId && _outputs.TryGetValue(outId, out var box) ? box : null;
+        var output = button.Output is { } outId && _outputs.TryGetValue(outId, out var target) ? target : null;
         var originalText = visual.Text;
         var hasWaits = commands.Any(CommandRunner.TryWaitOnly);
         _running = new CancellationTokenSource();
@@ -320,11 +301,11 @@ public class CustomWidgetView : ActionPanel
                 if (output is not null)
                 {
                     Core.Log.Add("> " + command, LogKind.Command);
-                    Append(output, "> " + command, Theme.Accent);
+                    output.AppendCommand(command);
                     string reply;
                     try { reply = await Core.Rcon.QueryAsync(command, 8000); }
                     catch (OperationCanceledException) when (!token.IsCancellationRequested) { reply = "(no reply from the server)"; }
-                    Append(output, CleanReply(reply), Theme.Text);
+                    output.AppendReply(reply);
                 }
                 else await Core.SendCommandAsync(command);
                 sent++;

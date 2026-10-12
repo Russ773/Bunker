@@ -1,0 +1,23 @@
+#  package                                                                          author                                           version  hook time  hook fires  hook memory  hook lag  hook exceptions  compile time     uptime
+1  Carbon Community (1)
+   Core                                                                             Carbon Community                                 v1.0.0              646         69.2mb                                                   11h50m31s
+2  Scripts (105)
+   AFK API                                                                          2CHEVSKII                                        v1.0.1   23ms       12,301      40.0kb                                  737ms [424ms]    11h50m30s
+   Admin Panel                                                                      Lewis Pickles                                    v1.5.13  267ms      223,472     264.0kb                                 537ms [123ms]    11h50m30s
+   Auto Doors                                                                       Wulf/lukespragg/Arainrr/James/Bushhy             v3.3.12  146ms      468,708     192.0kb                                 141ms [21ms]     11h50m30s
+   Better Chat                                                                      LaserHydra                                       v5.2.15  36ms       513         1.3mb                                   124ms [22ms]     11h50m29s
+   ChaosUpdateChecker                                                               k1lly0u                                          v2.0.2              2           40.0kb                                  24ms [8ms]       11h50m28s
+   Console Spam Cleaner                                                             Khan                                             v2.1.4              1                                                   80ms [5ms]       11h50m28s
+   Neutral NPCs                                                                     0x89A                                            v2.0.2   73790ms    81,155,193  3.3mb                                   24ms [5ms]       11h50m23s
+   TruePVE                                                                          nivex                                            v2.4.6   34804ms    86,873,708  428.0mb                                 423ms [581ms]    11h50m19s
+   Steam Groups                                                                     Wulf/lukespragg                                  v0.4.1   2ms        2           80.0kb                                  82ms [20ms]      1m45s
+3  Zip Scripts
+4  Chaos - k1lly0u (Oxide Extension) (2)
+   Chaos Commands                                                                   k1lly0u                                          v1.0.65             4                                                                    11h50m31s
+   Chaos Plugin Interface                                                           k1lly0u                                          v1.0.65             393                                                                  11h50m31s
+*  unloaded plugins (1)
+   PurgeFX.cs
+*  failed plugins (1)  line     stacktrace
+   AutoRestart.cs      16:17    The type or namespace name 'CrashExtensions' does not exist in the namespace 'Oxide.Ext' (are you missing an assembly reference?)
+   AutoRestart.cs      8036:43  The type or namespace name 'UIDocument' could not be found (are you missing a using directive or an assembly reference?)
+   AutoRestart.cs      3595:42  The name 'CUIControls' does not exist in the current context

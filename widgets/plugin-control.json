@@ -2,10 +2,10 @@
   "id": "plugin-control",
   "name": "Oxide Plugin Control",
   "author": "Bunker",
-  "version": "1.0.2",
+  "version": "1.0.3",
   "description": "List your Oxide/uMod plugins and reload, unload or load one by name. Needs Oxide (uMod) installed on the server. For Carbon servers use Carbon Plugin Control instead.",
   "controls": [
-    { "type": "output", "id": "plugins", "height": 240 },
+    { "type": "output", "id": "plugins", "format": "plugins", "pick": "plugin", "height": 380 },
     { "type": "button", "text": "List plugins", "output": "plugins", "commands": [ "oxide.plugins" ] },
     { "type": "separator" },
     { "type": "text", "id": "plugin", "label": "Plugin name", "placeholder": "Welcomer" },

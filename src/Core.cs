@@ -6,7 +6,7 @@ namespace Bunker;
 public enum LogKind { Info, Normal, Chat, Warning, Error, Command }
 
 /// <summary>One console line. For chat, UserId/UserName/Message say who said what.</summary>
-public record LogEntry(DateTime Time, string Text, LogKind Kind, string? UserId = null, string? UserName = null, string? Message = null);
+public record LogEntry(DateTime Time, string Text, LogKind Kind, string? UserId = null, string? UserName = null, string? Message = null, string? Color = null, int Channel = 0);
 
 /// <summary>Everything the console has shown, shared by every console/chat view so they stay in sync.</summary>
 public class ConsoleLog
@@ -18,9 +18,9 @@ public class ConsoleLog
     public event Action<LogEntry>? Added;
     public event Action? Cleared;
 
-    public void Add(string text, LogKind kind = LogKind.Normal, string? userId = null, string? userName = null, string? message = null)
+    public void Add(string text, LogKind kind = LogKind.Normal, string? userId = null, string? userName = null, string? message = null, string? color = null, int channel = 0)
     {
-        var e = new LogEntry(DateTime.Now, text, kind, userId, userName, message);
+        var e = new LogEntry(DateTime.Now, text, kind, userId, userName, message, color, channel);
         _entries.Add(e);
         if (_entries.Count > MaxEntries) _entries.RemoveRange(0, _entries.Count - MaxEntries);
         Added?.Invoke(e);
@@ -287,16 +287,19 @@ public class Core
         var type = m.Type.ToLowerInvariant();
         if (type == "chat")
         {
-            var (text, userId, name, message) = ParseChat(m.Message);
-            Log.Add(text, LogKind.Chat, userId, name, message);
+            var (text, userId, name, message, color, channel) = ParseChat(m.Message);
+            Log.Add(text, LogKind.Chat, userId, name, message, color, channel);
             return;
         }
         var kind = type switch { "warning" => LogKind.Warning, "error" => LogKind.Error, _ => LogKind.Normal };
         Log.Add(m.Message.TrimEnd('\n'), kind);
     }
 
-    /// <summary>Newer Rust versions send chat as JSON (with the player's Steam ID); turn it into "Name: message".</summary>
-    internal static (string Text, string? UserId, string? Name, string? Message) ParseChat(string raw)
+    /// <summary>
+    /// Newer Rust versions send chat as JSON: who said it (name, Steam ID and the name colour the game shows), the message, and the
+    /// channel (0 = global, 1 = team). Turn it into "Name: message" plus those details.
+    /// </summary>
+    internal static (string Text, string? UserId, string? Name, string? Message, string? Color, int Channel) ParseChat(string raw)
     {
         try
         {
@@ -305,11 +308,13 @@ public class Core
             if (r.TryGetProperty("Username", out var u) && r.TryGetProperty("Message", out var msg))
             {
                 var id = r.TryGetProperty("UserId", out var uid) ? (uid.ValueKind == JsonValueKind.String ? uid.GetString() : uid.GetRawText()) : null;
-                return ($"{u.GetString()}: {msg.GetString()}", id, u.GetString(), msg.GetString());
+                var color = r.TryGetProperty("Color", out var col) && col.ValueKind == JsonValueKind.String ? col.GetString() : null;
+                var channel = r.TryGetProperty("Channel", out var ch) && ch.ValueKind == JsonValueKind.Number && ch.TryGetInt32(out var n) ? n : 0;
+                return ($"{u.GetString()}: {msg.GetString()}", id, u.GetString(), msg.GetString(), color, channel);
             }
         }
         catch { }
         var plain = raw.TrimEnd('\n');
-        return (plain, null, null, plain);
+        return (plain, null, null, plain, null, 0);
     }
 }

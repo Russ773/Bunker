@@ -63,7 +63,7 @@ Installed widgets appear in the **WIDGETS** list in the sidebar (with a green do
 | `choice` | `id`, `label`, `options` | A drop-down list (1–50 options). |
 | `player` | `id`, `label` | A drop-down of the players online right now. |
 | `button` | `text`, `commands`, `style`, `confirm`, `output` | Runs 1–20 commands. `style` is `primary` (default) or `ghost`. `confirm` asks first. `output` sends the server's replies to an `output` control. |
-| `output` | `id`, `height` | A read-only panel that shows what the server answered (60–600 px high, default 160). Buttons point at it with `"output": "<id>"`. |
+| `output` | `id`, `height`, `format`, `pick` | A read-only panel that shows what the server answered (60–600 px high, default 160). Buttons point at it with `"output": "<id>"`. Long lines are kept whole and scroll sideways. `format` is `text` (default) or `plugins`; see below. |
 | `stat` | `label`, `source` | A live number from the server. `source` is one of `players`, `maxplayers`, `fps`, `entities`, `memory`, `uptime`, `queued`, `joining`, `map`. |
 
 Consecutive buttons are placed side by side.
@@ -107,6 +107,18 @@ Inside a button's `commands` (and `confirm`) text, `{id}` is replaced by what th
 * Text is cleaned first: quotes, semicolons, backslashes and control characters are removed, and it is cut to 200 characters.
 * Numbers are checked against `min`/`max`; a `choice` must be one of its `options`.
 * If a field is empty, the button refuses to run and tells the user which field to fill in.
+
+### Plugin lists as a table
+
+Set `"format": "plugins"` on an `output` control and a Carbon (`c.plugins`) or Oxide (`oxide.plugins`) plugin list is shown as a sortable table: click a heading to sort, and failed or unloaded plugins are listed underneath. Add `"pick": "<id of a text control>"` and clicking a row fills that field with the plugin name. Anything that is not a plugin list is shown as plain text, and **Show raw reply** is always one click away.
+
+```json
+{ "type": "output", "id": "plugins", "format": "plugins", "pick": "plugin", "height": 380 },
+{ "type": "text", "id": "plugin", "label": "Plugin name" },
+{ "type": "button", "text": "List plugins", "output": "plugins", "commands": [ "c.plugins" ] }
+```
+
+Carbon's layout was checked against a real server reply. Oxide's is the commonly documented one and has not been checked on a live server.
 
 ## What widgets can not do
 

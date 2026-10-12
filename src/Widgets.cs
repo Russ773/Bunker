@@ -212,9 +212,30 @@ public class ConsoleView : Panel
         _box.SelectionLength = 0;
         _box.SelectionColor = Theme.Dim;
         _box.AppendText(e.Time.ToString("HH:mm:ss") + "  ");
-        _box.SelectionColor = ColorOf(e.Kind);
-        _box.AppendText(e.Text + Environment.NewLine);
+
+        if (e.Kind == LogKind.Chat && e.UserName is { Length: > 0 } who && e.Message is not null)
+        {
+            // Chat looks the way it does in the game: [TEAM] tag, the player's name in their own colour, then the message in plain text.
+            if (e.Channel == 1) AppendPart("[TEAM] ", Theme.Ok, bold: true);
+            AppendPart(who, Theme.Readable(Theme.ParseHex(e.Color) ?? Theme.Chat), bold: true);
+            AppendPart(": ", Theme.Muted, bold: false);
+            AppendPart(e.Message + Environment.NewLine, Theme.Text, bold: false);
+        }
+        else
+        {
+            _box.SelectionColor = ColorOf(e.Kind);
+            _box.AppendText(e.Text + Environment.NewLine);
+        }
         if (_autoScroll.Checked) _box.ScrollToCaret();
+    }
+
+    private void AppendPart(string text, Color colour, bool bold)
+    {
+        _box.SelectionStart = _box.TextLength;
+        _box.SelectionLength = 0;
+        _box.SelectionColor = colour;
+        _box.SelectionFont = bold ? new Font(_box.Font, FontStyle.Bold) : _box.Font;
+        _box.AppendText(text);
     }
 }
 

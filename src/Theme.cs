@@ -60,6 +60,41 @@ public static class Theme
         DisabledFore = Color.FromArgb(142, 149, 160);
     }
 
+    /// <summary>Reads a colour such as "#5af", "#55aaff" or "55aaff". Returns null if it is not one.</summary>
+    public static Color? ParseHex(string? text)
+    {
+        if (string.IsNullOrWhiteSpace(text)) return null;
+        var h = text.Trim().TrimStart('#');
+        try
+        {
+            if (h.Length == 3) h = string.Concat(h.Select(c => new string(c, 2)));
+            if (h.Length >= 6 && h.Take(6).All(Uri.IsHexDigit))
+                return Color.FromArgb(Convert.ToInt32(h[..2], 16), Convert.ToInt32(h[2..4], 16), Convert.ToInt32(h[4..6], 16));
+        }
+        catch (FormatException) { }
+        return null;
+    }
+
+    /// <summary>
+    /// Adjusts a colour made for the game's dark chat so it can be read on the current theme: dark colours are lightened on the
+    /// dark theme and bright colours darkened on the light theme. Colours that already read well are left alone.
+    /// </summary>
+    public static Color Readable(Color c)
+    {
+        var luminance = (0.2126 * c.R + 0.7152 * c.G + 0.0722 * c.B) / 255.0;
+        if (!IsLight && luminance < 0.45)
+        {
+            var k = (0.55 - luminance) / (1 - luminance);
+            return Color.FromArgb((int)(c.R + (255 - c.R) * k), (int)(c.G + (255 - c.G) * k), (int)(c.B + (255 - c.B) * k));
+        }
+        if (IsLight && luminance > 0.5)
+        {
+            var k = 0.42 / luminance;
+            return Color.FromArgb((int)(c.R * k), (int)(c.G * k), (int)(c.B * k));
+        }
+        return c;
+    }
+
     public static readonly Font UI = new("Segoe UI", 10f);
     public static readonly Font Small = new("Segoe UI", 9f);
     public static readonly Font Semibold = new("Segoe UI Semibold", 10.5f);
