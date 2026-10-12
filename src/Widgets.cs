@@ -258,8 +258,8 @@ public class ServerInfoView : Panel
         for (var i = 0; i < Captions.Length; i++)
         {
             var tile = new Panel { Dock = DockStyle.Top, Height = 70, BackColor = Theme.Input, Margin = new Padding(0, 0, 8, 6), Padding = new Padding(14, 10, 8, 6) };
-            var value = new Label { Text = "-", Font = new Font("Segoe UI Semibold", 14f), ForeColor = Theme.Text, AutoSize = true, Location = new Point(12, 21) };
-            var sub = new Label { Text = "", Font = Theme.Small, ForeColor = Theme.Muted, AutoSize = true, Location = new Point(14, 47) };
+            var value = new Label { Text = "-", Font = new Font("Segoe UI Semibold", 14f), ForeColor = Theme.Text, AutoSize = false, AutoEllipsis = true, Size = new Size(120, 26), Anchor = AnchorStyles.Top | AnchorStyles.Left | AnchorStyles.Right, Location = new Point(12, 21) };
+            var sub = new Label { Text = "", Font = Theme.Small, ForeColor = Theme.Muted, AutoSize = false, AutoEllipsis = true, Size = new Size(120, 18), Anchor = AnchorStyles.Top | AnchorStyles.Left | AnchorStyles.Right, Location = new Point(14, 47) };
             tile.Controls.Add(sub);
             tile.Controls.Add(value);
             tile.Controls.Add(new Label { Text = Captions[i], Font = new Font("Segoe UI Semibold", 8f), ForeColor = Theme.Muted, AutoSize = true, Location = new Point(14, 8) });
@@ -299,6 +299,7 @@ public class ServerInfoView : Panel
         _tiles[4].Sub.Text = "in use";
         _tiles[5].Value.Text = string.IsNullOrEmpty(i.Map) ? "-" : i.Map;
         _tiles[5].Sub.Text = i.Hostname;
+        foreach (var (v, s) in _tiles) { Tips.Set(v, v.Text); Tips.Set(s, s.Text); }
     }
 }
 

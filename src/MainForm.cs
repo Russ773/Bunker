@@ -58,7 +58,25 @@ public class MainForm : Form
     {
         if (await AutoUpdateAsync()) return;
         if (_core.Settings.Server is null) RunOnboarding();
-        if (_core.Settings.Server is not null) await _core.ConnectAsync();
+        if (_core.Settings.Server is not null) await AutoConnectAsync();
+    }
+
+    private bool _autoConnectCancelled;
+
+    /// <summary>Waits a few seconds after launch (the network and the window may still be settling), then connects, retrying a couple of times.</summary>
+    private async Task AutoConnectAsync()
+    {
+        const int attempts = 3;
+        _core.Log.Add("Connecting in 3 seconds...", LogKind.Info);
+        await Task.Delay(3000);
+        for (var i = 1; i <= attempts; i++)
+        {
+            if (_autoConnectCancelled || _core.State != ConnState.Disconnected) return;
+            await _core.ConnectAsync();
+            if (_core.State == ConnState.Connected || i == attempts) return;
+            _core.Log.Add($"Retrying in 5 seconds (attempt {i + 1} of {attempts})...", LogKind.Info);
+            await Task.Delay(5000);
+        }
     }
 
     private bool RunOnboarding()
@@ -71,6 +89,7 @@ public class MainForm : Form
 
     private async Task ToggleConnectionAsync()
     {
+        _autoConnectCancelled = true; // the user took over, so stop any automatic retries
         if (_core.State == ConnState.Connected) { await _core.DisconnectAsync(); return; }
         if (_core.Settings.Server is null && !RunOnboarding()) return;
         await _core.ConnectAsync();

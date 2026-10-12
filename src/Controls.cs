@@ -200,3 +200,29 @@ public class DarkMenuRenderer : ToolStripProfessionalRenderer
         public override Color CheckPressedBackground => Color.FromArgb(52, 38, 32);
     }
 }
+
+/// <summary>One dark tooltip used everywhere, so long (truncated) names can be read in full on hover.</summary>
+public static class Tips
+{
+    private static readonly ToolTip Tip = Create();
+
+    private static ToolTip Create()
+    {
+        var t = new ToolTip { OwnerDraw = true, InitialDelay = 350, ReshowDelay = 100, AutoPopDelay = 12000 };
+        t.Popup += (_, e) =>
+        {
+            var size = TextRenderer.MeasureText(t.GetToolTip(e.AssociatedControl), Theme.UI, new Size(520, 0), TextFormatFlags.WordBreak);
+            e.ToolTipSize = new Size(size.Width + 20, size.Height + 14);
+        };
+        t.Draw += (_, e) =>
+        {
+            using (var bg = new SolidBrush(Theme.Input)) e.Graphics.FillRectangle(bg, e.Bounds);
+            using (var pen = new Pen(Theme.Accent)) e.Graphics.DrawRectangle(pen, 0, 0, e.Bounds.Width - 1, e.Bounds.Height - 1);
+            TextRenderer.DrawText(e.Graphics, e.ToolTipText, Theme.UI, new Rectangle(10, 7, e.Bounds.Width - 20, e.Bounds.Height - 14),
+                Theme.Text, TextFormatFlags.WordBreak | TextFormatFlags.Left);
+        };
+        return t;
+    }
+
+    public static void Set(Control c, string? text) => Tip.SetToolTip(c, string.IsNullOrWhiteSpace(text) ? null : text);
+}

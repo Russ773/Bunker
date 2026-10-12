@@ -19,11 +19,12 @@ public static class Pages
         row.Controls.Add(consoleCard, 1, 0);
 
         var stats = Card.Titled("Server", new ServerInfoView(core, 6));
-        stats.Dock = DockStyle.Top;
-        stats.Height = 150;
+        stats.Dock = DockStyle.Fill;
+        var statsHost = new Panel { Dock = DockStyle.Top, Height = 156, BackColor = Theme.Bg, Padding = new Padding(6, 0, 6, 0) };
+        statsHost.Controls.Add(stats);
 
         body.Controls.Add(row);
-        body.Controls.Add(stats);
+        body.Controls.Add(statsHost);
         return new Page("Dashboard", "A live overview of your server", body);
     }
 
@@ -43,7 +44,7 @@ public static class Pages
 
     private static Control WrapCard(Card card)
     {
-        var p = new Panel { BackColor = Theme.Bg };
+        var p = new Panel { BackColor = Theme.Bg, Padding = new Padding(6) };
         card.Dock = DockStyle.Fill;
         p.Controls.Add(card);
         return p;
@@ -144,7 +145,7 @@ public class LayoutPage : Panel
 public class SettingsPage : Panel
 {
     private readonly Core _core;
-    private readonly Label _serverInfo = new() { AutoSize = true, ForeColor = Theme.Text, Location = new Point(0, 6) };
+    private readonly Label _serverInfo = new() { AutoSize = false, AutoEllipsis = true, Size = new Size(500, 24), ForeColor = Theme.Text, Location = new Point(0, 6) };
     private readonly Button _editServer = Theme.GhostButton("Edit server");
     private readonly CheckBox _autoUpdate = new() { Text = "Check for updates when Bunker starts (you are asked before anything installs)", AutoSize = true, ForeColor = Theme.Text, Cursor = Cursors.Hand, Location = new Point(0, 40) };
     private readonly Button _check = Theme.PrimaryButton("Check for updates");
@@ -212,6 +213,7 @@ public class SettingsPage : Panel
         var s = _core.Settings.Server;
         _serverInfo.Text = s is null ? "No server configured yet." : $"{s.DisplayName}   -   {s.Host}:{s.Port}";
         _editServer.Text = s is null ? "Add server" : "Edit server";
+        Tips.Set(_serverInfo, _serverInfo.Text);
     }
 
     private async Task CheckAsync()

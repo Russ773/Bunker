@@ -7,8 +7,8 @@ public class Sidebar : Panel
 {
     private readonly Core _core;
     private readonly Dictionary<string, NavButton> _items = new();
-    private readonly Label _serverName = new() { Font = Theme.Semibold, ForeColor = Theme.Text, AutoSize = false, Height = 22, Dock = DockStyle.Top };
-    private readonly Label _serverAddr = new() { Font = Theme.Small, ForeColor = Theme.Muted, AutoSize = false, Height = 20, Dock = DockStyle.Top };
+    private readonly Label _serverName = new() { Font = Theme.Semibold, ForeColor = Theme.Text, AutoSize = false, AutoEllipsis = true, Height = 22, Dock = DockStyle.Top };
+    private readonly Label _serverAddr = new() { Font = Theme.Small, ForeColor = Theme.Muted, AutoSize = false, AutoEllipsis = true, Height = 20, Dock = DockStyle.Top };
     private readonly Label _status = new() { Font = Theme.Small, AutoSize = false, Height = 26, Dock = DockStyle.Top, Padding = new Padding(0, 4, 0, 0) };
     private readonly Button _connect = Theme.PrimaryButton("Connect");
 
@@ -83,6 +83,8 @@ public class Sidebar : Panel
             ConnState.Connecting => Theme.Warn,
             _ => Theme.Muted,
         };
+        Tips.Set(_serverName, _serverName.Text);
+        Tips.Set(_serverAddr, _serverAddr.Text);
         _connect.Text = _core.State == ConnState.Connected ? "Disconnect" : "Connect";
         _connect.Enabled = _core.State != ConnState.Connecting;
     }
