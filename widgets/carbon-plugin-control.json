@@ -1,0 +1,17 @@
+{
+  "id": "carbon-plugin-control",
+  "name": "Carbon Plugin Control",
+  "author": "Bunker",
+  "version": "1.0.0",
+  "description": "List your Carbon plugins and reload, unload or load one by name. Needs Carbon installed on the server. For Oxide/uMod servers use Oxide Plugin Control instead.",
+  "controls": [
+    { "type": "output", "id": "plugins", "height": 200 },
+    { "type": "button", "text": "List plugins", "output": "plugins", "commands": [ "c.plugins" ] },
+    { "type": "separator" },
+    { "type": "label", "text": "Plugin names are case sensitive, exactly as the list shows them." },
+    { "type": "text", "id": "plugin", "label": "Plugin name", "placeholder": "Welcomer" },
+    { "type": "button", "style": "ghost", "text": "Reload", "output": "plugins", "commands": [ "c.reload {plugin}" ] },
+    { "type": "button", "style": "ghost", "text": "Load", "output": "plugins", "commands": [ "c.load {plugin}" ] },
+    { "type": "button", "style": "ghost", "text": "Unload", "output": "plugins", "confirm": "Unload the plugin {plugin}?", "commands": [ "c.unload {plugin}" ] }
+  ]
+}

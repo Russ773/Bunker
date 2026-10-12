@@ -174,7 +174,7 @@ A **widget** is a small `.json` file, **never a program**. It describes some fie
 * 🚫 **Hard limits.** Widgets can't touch RCON settings or admin rights, can't run scripts and can't reach the network.
 * 🧼 **Cleaned inputs.** Text typed into a widget has quotes, semicolons and control characters removed before it's used.
 * ⚡ **More than buttons.** Widgets can show **live server stats**, display the server's **replies** in a panel, and run **timed sequences** with a Stop button, such as countdowns.
-* 📚 **Try the starters** in [`widgets/`](widgets): *Welcome Packs*, *Broadcast Presets*, *Resource Drop*, *Event Countdown*, *Server Report*, *Ban Manager* and *Oxide Plugin Control*. Install them from **Widgets → Get more widgets → Browse library**.
+* 📚 **Try the starters** in [`widgets/`](widgets): *Welcome Packs*, *Broadcast Presets*, *Resource Drop*, *Event Countdown*, *Server Report*, *Ban Manager*, *Oxide Plugin Control* and *Carbon Plugin Control*. Install them from **Widgets → Get more widgets → Browse library**.
 
 Want to make one? Read the **[widget guide](docs/WIDGETS.md)** and open a pull request. 💜
 

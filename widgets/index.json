@@ -2,6 +2,7 @@
   "widgets": [
     "ban-manager.json",
     "broadcast-presets.json",
+    "carbon-plugin-control.json",
     "event-countdown.json",
     "plugin-control.json",
     "resource-drop.json",

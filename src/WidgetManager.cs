@@ -68,6 +68,15 @@ public class WidgetManagerView : Panel
         base.Dispose(disposing);
     }
 
+    /// <summary>True if this widget is already installed and the offered copy is not a newer version.</summary>
+    public bool IsUpToDate(WidgetDef def) => _core.Widgets.Get(def.Id) is { } have && !IsNewer(def.Version, have.Version);
+
+    /// <summary>True if this widget is installed but the offered copy is a newer version.</summary>
+    public bool IsUpdate(WidgetDef def) => _core.Widgets.Get(def.Id) is { } have && IsNewer(def.Version, have.Version);
+
+    private static bool IsNewer(string? offered, string? installed) =>
+        Version.TryParse(offered, out var a) && Version.TryParse(installed, out var b) && a > b;
+
     private WidgetDef? Selected() => _grid.SelectedRows.Count == 1 ? _grid.SelectedRows[0].Tag as WidgetDef : null;
 
     private void UpdateButtons() => _details.Enabled = _remove.Enabled = Selected() is not null;
@@ -295,18 +304,22 @@ public class WidgetLibraryForm : Form
                 .Where(n => System.Text.RegularExpressions.Regex.IsMatch(n, @"^[a-z0-9][a-z0-9_-]*\.json$"))
                 .Select(n => (Name: n, Url: baseUrl + n)).ToList();
 
+            var already = 0;
             foreach (var (name, url) in files)
             {
                 try
                 {
                     var json = await WidgetNet.GetAsync(url);
                     var def = WidgetRules.Parse(json, out _);
+                    if (def is not null && _manager.IsUpToDate(def)) { already++; continue; } // installed already: nothing to offer
                     _items.Add((name, url, json, def));
-                    _list.Items.Add(def is null ? name + "  (not valid)" : def.Name);
+                    _list.Items.Add(def is null ? name + "  (not valid)" : _manager.IsUpdate(def) ? def.Name + "  (update)" : def.Name);
                 }
                 catch { /* skip files that cannot be fetched */ }
             }
-            _status.Text = _items.Count == 0 ? "The library is empty right now." : $"{_items.Count} widget{(_items.Count == 1 ? "" : "s")} available.";
+            _status.Text = _items.Count == 0
+                ? (already > 0 ? "You already have every widget in the library." : "The library is empty right now.")
+                : $"{_items.Count} widget{(_items.Count == 1 ? "" : "s")} available" + (already > 0 ? $" ({already} you already have are not shown)." : ".");
             if (_items.Count > 0) _list.SelectedIndex = 0;
         }
         catch (Exception e) { _status.Text = "Could not load the library: " + e.Message; }
