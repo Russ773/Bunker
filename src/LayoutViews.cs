@@ -99,7 +99,7 @@ public class LayoutPage : Panel
         BackColor = Theme.Bg;
         _grid = new LayoutGrid(core, editable: true);
 
-        var fullscreen = Theme.GhostButton("   Fullscreen");
+        var fullscreen = Theme.GhostButton("Fullscreen");
         fullscreen.Font = new Font("Segoe UI Semibold", 10f);
         fullscreen.Height = 34;
         fullscreen.Width = 140;

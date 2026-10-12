@@ -285,7 +285,11 @@ public class ServerInfoView : Panel
 /// <summary>Builds a widget (title, content, header actions) for a WidgetKind.</summary>
 public static class Widgets
 {
-    public static readonly WidgetKind[] All = { WidgetKind.Console, WidgetKind.Chat, WidgetKind.Players, WidgetKind.ServerInfo, WidgetKind.GiveItems };
+    public static readonly WidgetKind[] All =
+    {
+        WidgetKind.Console, WidgetKind.Chat, WidgetKind.Players, WidgetKind.ServerInfo, WidgetKind.GiveItems,
+        WidgetKind.Announce, WidgetKind.QuickActions, WidgetKind.Moderation, WidgetKind.Teleport, WidgetKind.Shortcuts,
+    };
 
     public static string Name(WidgetKind k) => k switch
     {
@@ -293,6 +297,11 @@ public static class Widgets
         WidgetKind.Chat => "Chat",
         WidgetKind.Players => "Players",
         WidgetKind.GiveItems => "Give items",
+        WidgetKind.Announce => "Announce",
+        WidgetKind.QuickActions => "Quick actions",
+        WidgetKind.Moderation => "Moderation",
+        WidgetKind.Teleport => "Teleport",
+        WidgetKind.Shortcuts => "Shortcuts",
         _ => "Server info",
     };
 
@@ -305,6 +314,11 @@ public static class Widgets
             case WidgetKind.Players: { var v = new PlayersView(core); return (v, v.HeaderActions); }
             case WidgetKind.ServerInfo: return (new ServerInfoView(core, infoColumns), Array.Empty<Control>());
             case WidgetKind.GiveItems: return (new GiveItemsView(core), Array.Empty<Control>());
+            case WidgetKind.Announce: return (new AnnounceView(core), Array.Empty<Control>());
+            case WidgetKind.QuickActions: return (new QuickActionsView(core), Array.Empty<Control>());
+            case WidgetKind.Moderation: return (new ModerationView(core), Array.Empty<Control>());
+            case WidgetKind.Teleport: return (new TeleportView(core), Array.Empty<Control>());
+            case WidgetKind.Shortcuts: return (new ShortcutsView(core), Array.Empty<Control>());
             default: { var v = new ConsoleView(core); return (v, v.HeaderActions); }
         }
     }

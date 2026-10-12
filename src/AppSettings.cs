@@ -34,7 +34,7 @@ public class ServerProfile
 }
 
 [JsonConverter(typeof(JsonStringEnumConverter))]
-public enum WidgetKind { Console, Chat, Players, ServerInfo, GiveItems }
+public enum WidgetKind { Console, Chat, Players, ServerInfo, GiveItems, Announce, QuickActions, Moderation, Teleport, Shortcuts }
 
 [JsonConverter(typeof(JsonStringEnumConverter))]
 public enum LayoutPreset { Single, TwoColumns, TwoRows, ThreeLeftBig, FourGrid }
@@ -57,6 +57,14 @@ public class LayoutConfig
     public WidgetKind SlotAt(int i) => Slots is { Length: > 0 } && i < Slots.Length ? Slots[i] : WidgetKind.Console;
 }
 
+/// <summary>A user-defined button that runs a console command.</summary>
+public class CommandShortcut
+{
+    public string Label { get; set; } = "";
+    public string Command { get; set; } = "";
+    public bool Confirm { get; set; }
+}
+
 public class AppSettings
 {
     public bool CheckForUpdatesOnLaunch { get; set; } = true;
@@ -65,6 +73,8 @@ public class AppSettings
     public List<ServerProfile> Servers { get; set; } = new();
     public string? ActiveServerId { get; set; }
     public LayoutConfig Layout { get; set; } = new();
+    public List<string> SavedAnnouncements { get; set; } = new();
+    public List<CommandShortcut> Shortcuts { get; set; } = new();
 
     /// <summary>The single server saved by older versions. Moved into Servers the first time settings load.</summary>
     [JsonPropertyName("Server")]
