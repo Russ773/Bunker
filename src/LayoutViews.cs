@@ -158,10 +158,18 @@ public class FullscreenForm : Form
 #endif
 
         var bar = new Panel { Dock = DockStyle.Top, Height = 44, BackColor = Theme.Bg, Padding = new Padding(16, 7, 16, 7) };
-        var exit = Theme.GhostButton("Exit fullscreen   Esc");
-        exit.Height = 30;
-        exit.Dock = DockStyle.Right;
+        var exit = new Button
+        {
+            Text = "", Font = new Font("Segoe MDL2 Assets", 11f), FlatStyle = FlatStyle.Flat, ForeColor = Theme.Muted,
+            BackColor = Theme.Bg, Cursor = Cursors.Hand, Width = 38, Dock = DockStyle.Right, TabStop = false, UseVisualStyleBackColor = false,
+        };
+        exit.FlatAppearance.BorderSize = 0;
+        exit.FlatAppearance.MouseOverBackColor = Theme.Err;
+        exit.FlatAppearance.MouseDownBackColor = Theme.Err;
+        exit.MouseEnter += (_, _) => exit.ForeColor = Color.White;
+        exit.MouseLeave += (_, _) => exit.ForeColor = Theme.Muted;
         exit.Click += (_, _) => Close();
+        Tips.Set(exit, "Exit fullscreen (Esc)");
         bar.Controls.Add(new Label { Text = "BUNKER", Font = Theme.Brand, ForeColor = Theme.Accent, AutoSize = true, Location = new Point(16, 11) });
         _status.Location = new Point(110, 15);
         bar.Controls.Add(_status);
@@ -189,7 +197,7 @@ public class FullscreenForm : Form
 
     private void RefreshStatus()
     {
-        var s = _core.Settings.Server;
+        var s = _core.Settings.ActiveServer;
         _status.Text = (s?.DisplayName ?? "No server") + "   -   " + _core.StatusText;
         _status.ForeColor = _core.State == ConnState.Connected ? Theme.Ok : Theme.Muted;
     }

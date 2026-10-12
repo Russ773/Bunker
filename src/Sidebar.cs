@@ -2,7 +2,7 @@ using System.Drawing;
 
 namespace Bunker;
 
-/// <summary>Left-hand navigation plus the connection status and Connect/Disconnect button.</summary>
+/// <summary>Left-hand navigation plus the server, its status and the Connect/Disconnect button.</summary>
 public class Sidebar : Panel
 {
     private readonly Core _core;
@@ -14,6 +14,7 @@ public class Sidebar : Panel
 
     public event Action<string>? Navigated;
     public event Action? ConnectClicked;
+    public event Action<string>? ServerSwitchRequested;
 
     public Sidebar(Core core)
     {
@@ -23,7 +24,7 @@ public class Sidebar : Panel
         BackColor = Theme.Panel;
         Paint += (_, e) => { using var p = new Pen(Theme.Border); e.Graphics.DrawLine(p, Width - 1, 0, Width - 1, Height); };
 
-        // Connection block (bottom). Docked-top children stack with the last added on top, so add in reverse.
+        // Server + connection block (very bottom). Docked-top children stack with the last added on top, so add in reverse.
         var conn = new Panel { Dock = DockStyle.Bottom, Height = 150, Padding = new Padding(20, 14, 20, 16), BackColor = Theme.Panel };
         _connect.Dock = DockStyle.Bottom;
         _connect.Height = 38;
@@ -32,22 +33,15 @@ public class Sidebar : Panel
         conn.Controls.Add(_serverAddr);
         conn.Controls.Add(_serverName);
         conn.Paint += (_, e) => { using var p = new Pen(Theme.Border); e.Graphics.DrawLine(p, 14, 0, conn.Width - 14, 0); };
+        foreach (var l in new[] { _serverName, _serverAddr }) { l.Click += (_, _) => ShowServerMenu(); }
 
-        // Nav items
+        // Main navigation (top) and the less-used items (just above the server block)
         var nav = new Panel { Dock = DockStyle.Fill, BackColor = Theme.Panel, Padding = new Padding(0, 6, 0, 0) };
-        var defs = new (string Key, string Glyph, string Text)[]
-        {
-            ("dashboard", "", "Dashboard"), ("console", "", "Console"), ("players", "", "Players"),
-            ("layout", "", "Layout"), ("settings", "", "Settings"),
-        };
-        foreach (var d in defs.Reverse())
-        {
-            var b = new NavButton(d.Glyph, d.Text);
-            var key = d.Key;
-            b.Click += (_, _) => Navigated?.Invoke(key);
-            _items[key] = b;
-            nav.Controls.Add(b);
-        }
+        AddItems(nav, ("dashboard", "", "Dashboard"), ("console", "", "Console"), ("players", "", "Players"));
+
+        var lower = new Panel { Dock = DockStyle.Bottom, Height = 104, BackColor = Theme.Panel, Padding = new Padding(0, 8, 0, 6) };
+        AddItems(lower, ("layout", "", "Layout"), ("settings", "", "Settings"));
+        lower.Paint += (_, e) => { using var p = new Pen(Theme.Border); e.Graphics.DrawLine(p, 14, 0, lower.Width - 14, 0); };
 
         // Brand (top)
         var brand = new Panel { Dock = DockStyle.Top, Height = 78, BackColor = Theme.Panel };
@@ -58,6 +52,7 @@ public class Sidebar : Panel
 
         Controls.Add(nav);
         Controls.Add(brand);
+        Controls.Add(lower);
         Controls.Add(conn);
 
         _connect.Click += (_, _) => ConnectClicked?.Invoke();
@@ -66,16 +61,50 @@ public class Sidebar : Panel
         RefreshState();
     }
 
+    /// <summary>Adds nav buttons in the given order (Top-docked children stack last-added-first, so add reversed).</summary>
+    private void AddItems(Panel host, params (string Key, string Glyph, string Text)[] defs)
+    {
+        foreach (var d in defs.Reverse())
+        {
+            var b = new NavButton(d.Glyph, d.Text);
+            var key = d.Key;
+            b.Click += (_, _) => Navigated?.Invoke(key);
+            _items[key] = b;
+            host.Controls.Add(b);
+        }
+    }
+
     public void Select(string key)
     {
         foreach (var (k, b) in _items) b.Selected = k == key;
     }
 
+    private void ShowServerMenu()
+    {
+        var servers = _core.Settings.Servers;
+        if (servers.Count == 0) return;
+        var menu = new ContextMenuStrip { BackColor = Theme.Input, ForeColor = Theme.Text, Renderer = new DarkMenuRenderer(), ShowImageMargin = false };
+        foreach (var s in servers)
+        {
+            var id = s.Id;
+            var item = new ToolStripMenuItem(s.DisplayName) { Checked = id == _core.Settings.ActiveServer?.Id, BackColor = Theme.Input, ForeColor = Theme.Text };
+            item.Click += (_, _) => { if (id != _core.Settings.ActiveServer?.Id) ServerSwitchRequested?.Invoke(id); };
+            menu.Items.Add(item);
+        }
+        menu.Items.Add(new ToolStripSeparator());
+        var manage = new ToolStripMenuItem("Manage servers...") { BackColor = Theme.Input, ForeColor = Theme.Muted };
+        manage.Click += (_, _) => Navigated?.Invoke("settings:servers");
+        menu.Items.Add(manage);
+        menu.Show(_serverName, new Point(0, _serverName.Height));
+    }
+
     private void RefreshState()
     {
-        var s = _core.Settings.Server;
-        _serverName.Text = s?.DisplayName ?? "No server yet";
+        var s = _core.Settings.ActiveServer;
+        var many = _core.Settings.Servers.Count > 1;
+        _serverName.Text = s is null ? "No server yet" : s.DisplayName + (many ? "  ▾" : "");
         _serverAddr.Text = s is null ? "Click Connect to add one" : $"{s.Host}:{s.Port}";
+        _serverName.Cursor = _serverAddr.Cursor = _core.Settings.Servers.Count > 0 ? Cursors.Hand : Cursors.Default;
         _status.Text = "●  " + _core.StatusText;
         _status.ForeColor = _core.State switch
         {
@@ -83,7 +112,7 @@ public class Sidebar : Panel
             ConnState.Connecting => Theme.Warn,
             _ => Theme.Muted,
         };
-        Tips.Set(_serverName, _serverName.Text);
+        Tips.Set(_serverName, s?.DisplayName + (many ? "\nClick to switch server" : ""));
         Tips.Set(_serverAddr, _serverAddr.Text);
         _connect.Text = _core.State == ConnState.Connected ? "Disconnect" : "Connect";
         _connect.Enabled = _core.State != ConnState.Connecting;

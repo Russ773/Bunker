@@ -135,7 +135,7 @@ public class ConsoleView : Panel
 public class PlayersView : Panel
 {
     private readonly Core _core;
-    private readonly DataGridView _grid = new();
+    private readonly DataGridView _grid = new DarkGrid();
     private readonly Label _count = new() { AutoSize = true, ForeColor = Theme.Muted, Font = Theme.Small, Margin = new Padding(0, 6, 0, 0) };
 
     public Control[] HeaderActions => new Control[] { _count };
@@ -146,30 +146,6 @@ public class PlayersView : Panel
         BackColor = Theme.Panel;
 
         _grid.Dock = DockStyle.Fill;
-        _grid.ReadOnly = true;
-        _grid.AllowUserToAddRows = _grid.AllowUserToDeleteRows = _grid.AllowUserToResizeRows = false;
-        _grid.RowHeadersVisible = false;
-        _grid.SelectionMode = DataGridViewSelectionMode.FullRowSelect;
-        _grid.MultiSelect = false;
-        _grid.BorderStyle = BorderStyle.None;
-        _grid.CellBorderStyle = DataGridViewCellBorderStyle.SingleHorizontal;
-        _grid.EnableHeadersVisualStyles = false;
-        _grid.BackgroundColor = Theme.Panel;
-        _grid.GridColor = Color.FromArgb(36, 40, 48);
-        _grid.RowTemplate.Height = 32;
-        _grid.ColumnHeadersHeight = 34;
-        _grid.ColumnHeadersBorderStyle = DataGridViewHeaderBorderStyle.None;
-        _grid.ColumnHeadersDefaultCellStyle = new DataGridViewCellStyle
-        {
-            BackColor = Theme.Panel, ForeColor = Theme.Muted, Font = Theme.Small, SelectionBackColor = Theme.Panel, SelectionForeColor = Theme.Muted,
-        };
-        _grid.DefaultCellStyle = new DataGridViewCellStyle
-        {
-            BackColor = Theme.Panel, ForeColor = Theme.Text, SelectionBackColor = Color.FromArgb(52, 38, 32), SelectionForeColor = Theme.Text,
-            Padding = new Padding(4, 0, 4, 0),
-        };
-        _grid.AutoSizeColumnsMode = DataGridViewAutoSizeColumnsMode.Fill;
-        DarkScroll.Apply(_grid);
         _grid.Columns.Add("Name", "Name");
         _grid.Columns.Add("SteamId", "Steam ID");
         _grid.Columns.Add("Ping", "Ping");
@@ -309,13 +285,14 @@ public class ServerInfoView : Panel
 /// <summary>Builds a widget (title, content, header actions) for a WidgetKind.</summary>
 public static class Widgets
 {
-    public static readonly WidgetKind[] All = { WidgetKind.Console, WidgetKind.Chat, WidgetKind.Players, WidgetKind.ServerInfo };
+    public static readonly WidgetKind[] All = { WidgetKind.Console, WidgetKind.Chat, WidgetKind.Players, WidgetKind.ServerInfo, WidgetKind.GiveItems };
 
     public static string Name(WidgetKind k) => k switch
     {
         WidgetKind.Console => "Console",
         WidgetKind.Chat => "Chat",
         WidgetKind.Players => "Players",
+        WidgetKind.GiveItems => "Give items",
         _ => "Server info",
     };
 
@@ -327,6 +304,7 @@ public static class Widgets
             case WidgetKind.Chat: { var v = new ConsoleView(core, chat: true); return (v, v.HeaderActions); }
             case WidgetKind.Players: { var v = new PlayersView(core); return (v, v.HeaderActions); }
             case WidgetKind.ServerInfo: return (new ServerInfoView(core, infoColumns), Array.Empty<Control>());
+            case WidgetKind.GiveItems: return (new GiveItemsView(core), Array.Empty<Control>());
             default: { var v = new ConsoleView(core); return (v, v.HeaderActions); }
         }
     }

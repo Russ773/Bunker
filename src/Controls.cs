@@ -226,3 +226,35 @@ public static class Tips
 
     public static void Set(Control c, string? text) => Tip.SetToolTip(c, string.IsNullOrWhiteSpace(text) ? null : text);
 }
+
+/// <summary>A read-only, dark-themed table (used for players and servers).</summary>
+public class DarkGrid : DataGridView
+{
+    public DarkGrid()
+    {
+        ReadOnly = true;
+        AllowUserToAddRows = AllowUserToDeleteRows = AllowUserToResizeRows = false;
+        RowHeadersVisible = false;
+        SelectionMode = DataGridViewSelectionMode.FullRowSelect;
+        MultiSelect = false;
+        BorderStyle = BorderStyle.None;
+        CellBorderStyle = DataGridViewCellBorderStyle.SingleHorizontal;
+        EnableHeadersVisualStyles = false;
+        BackgroundColor = Theme.Panel;
+        GridColor = Color.FromArgb(36, 40, 48);
+        RowTemplate.Height = 32;
+        ColumnHeadersHeight = 34;
+        ColumnHeadersBorderStyle = DataGridViewHeaderBorderStyle.None;
+        ColumnHeadersDefaultCellStyle = new DataGridViewCellStyle
+        {
+            BackColor = Theme.Panel, ForeColor = Theme.Muted, Font = Theme.Small, SelectionBackColor = Theme.Panel, SelectionForeColor = Theme.Muted,
+        };
+        DefaultCellStyle = new DataGridViewCellStyle
+        {
+            BackColor = Theme.Panel, ForeColor = Theme.Text, SelectionBackColor = Color.FromArgb(52, 38, 32), SelectionForeColor = Theme.Text,
+            Padding = new Padding(4, 0, 4, 0),
+        };
+        AutoSizeColumnsMode = DataGridViewAutoSizeColumnsMode.Fill;
+        DarkScroll.Apply(this);
+    }
+}

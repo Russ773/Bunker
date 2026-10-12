@@ -142,16 +142,40 @@ public class Core
         }, null);
     }
 
-    public void SetServer(ServerProfile? server)
+    /// <summary>Adds or updates a saved server. A brand-new server becomes the active one only if none was active.</summary>
+    public void SaveServer(ServerProfile server, bool makeActive = false)
     {
-        Settings.Server = server;
+        Settings.AddOrUpdateServer(server, makeActive);
         Settings.Save();
         ServerChanged?.Invoke();
     }
 
+    /// <summary>Removes a saved server (and disconnects first if it is the one in use).</summary>
+    public async Task DeleteServerAsync(string id)
+    {
+        var wasActive = Settings.ActiveServer?.Id == id;
+        if (wasActive && State != ConnState.Disconnected) await DisconnectAsync();
+        Settings.RemoveServer(id);
+        Settings.Save();
+        ServerChanged?.Invoke();
+    }
+
+    /// <summary>Makes a saved server the active one and connects to it.</summary>
+    public async Task SwitchServerAsync(string id)
+    {
+        if (Settings.Servers.All(s => s.Id != id)) return;
+        if (State != ConnState.Disconnected) await DisconnectAsync();
+        Settings.ActiveServerId = id;
+        Settings.Save();
+        Log.Clear();
+        ServerChanged?.Invoke();
+        await ConnectAsync();
+    }
+
+
     public async Task ConnectAsync()
     {
-        var s = Settings.Server;
+        var s = Settings.ActiveServer;
         if (s is null || State == ConnState.Connecting) return;
         SetState(ConnState.Connecting, "Connecting...");
         try

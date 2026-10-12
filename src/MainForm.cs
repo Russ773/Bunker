@@ -36,11 +36,12 @@ public class MainForm : Form
         Controls.Add(_sidebar);
 
         _sidebar.Navigated += Navigate;
+        _sidebar.ServerSwitchRequested += id => _ = _core.SwitchServerAsync(id);
         _sidebar.ConnectClicked += async () => await ToggleConnectionAsync();
         Navigate("dashboard");
 #if DEBUG
         // Test hooks (debug builds only): open on a given page, and keep the window off-screen.
-        if (Environment.GetEnvironmentVariable("BUNKER_START_PAGE") is { Length: > 0 } startPage && _pages.ContainsKey(startPage)) Navigate(startPage);
+        if (Environment.GetEnvironmentVariable("BUNKER_START_PAGE") is { Length: > 0 } startPage && _pages.ContainsKey(startPage.Split(':')[0])) Navigate(startPage);
         if (Environment.GetEnvironmentVariable("BUNKER_OFFSCREEN") == "1") { WindowState = FormWindowState.Normal; StartPosition = FormStartPosition.Manual; Location = new Point(-4000, 100); ShowInTaskbar = false; }
 #endif
 
@@ -54,6 +55,8 @@ public class MainForm : Form
 
     private void Navigate(string key)
     {
+        var section = key.Contains(':') ? key[(key.IndexOf(':') + 1)..] : null;
+        if (section is not null) { key = key[..key.IndexOf(':')]; (_pages["settings"] as SettingsPage)?.ShowSection(section); }
         foreach (var (k, page) in _pages) page.Visible = k == key;
         _sidebar.Select(key);
     }
@@ -61,8 +64,8 @@ public class MainForm : Form
     private async Task StartupAsync()
     {
         if (await AutoUpdateAsync()) return;
-        if (_core.Settings.Server is null) RunOnboarding();
-        if (_core.Settings.Server is not null) await AutoConnectAsync();
+        if (_core.Settings.ActiveServer is null) RunOnboarding();
+        if (_core.Settings.ActiveServer is not null && _core.Settings.AutoConnect) await AutoConnectAsync();
     }
 
     private bool _autoConnectCancelled;
@@ -85,9 +88,9 @@ public class MainForm : Form
 
     private bool RunOnboarding()
     {
-        using var f = new OnboardingForm(_core.Settings.Server, firstRun: _core.Settings.Server is null);
+        using var f = new OnboardingForm(null, firstRun: _core.Settings.ActiveServer is null);
         if (f.ShowDialog(this) != DialogResult.OK) return false;
-        _core.SetServer(f.Result);
+        _core.SaveServer(f.Result!, makeActive: true);
         return true;
     }
 
@@ -95,7 +98,7 @@ public class MainForm : Form
     {
         _autoConnectCancelled = true; // the user took over, so stop any automatic retries
         if (_core.State == ConnState.Connected) { await _core.DisconnectAsync(); return; }
-        if (_core.Settings.Server is null && !RunOnboarding()) return;
+        if (_core.Settings.ActiveServer is null && !RunOnboarding()) return;
         await _core.ConnectAsync();
     }
 

@@ -11,18 +11,22 @@ public class OnboardingForm : Form
     private readonly ModernField _password = new();
     private readonly Button _go = Theme.PrimaryButton("Test && connect");
     private readonly Button _skip = Theme.GhostButton("Skip for now");
+    private readonly Button _saveAnyway = Theme.GhostButton("Save without testing");
     private readonly Label _status = new() { AutoSize = true, MaximumSize = new Size(400, 0), Font = Theme.Small, Margin = new Padding(0, 14, 0, 0) };
+
+    private readonly string? _existingId;
 
     public ServerProfile? Result { get; private set; }
 
     public OnboardingForm(ServerProfile? existing, bool firstRun)
     {
         Theme.Apply(this);
+        _existingId = existing?.Id;
         Text = firstRun ? "Welcome to Bunker" : "Server details";
         FormBorderStyle = FormBorderStyle.FixedDialog;
         MaximizeBox = MinimizeBox = false;
         StartPosition = FormStartPosition.CenterScreen;
-        ClientSize = new Size(480, 650);
+        ClientSize = new Size(480, 700);
 
         var flow = new FlowLayoutPanel
         {
@@ -79,6 +83,8 @@ public class OnboardingForm : Form
 
         _go.Width = 400; _go.Height = 42; _go.Margin = new Padding(0, 20, 0, 0);
         flow.Controls.Add(_go);
+        _saveAnyway.Width = 400; _saveAnyway.Margin = new Padding(0, 10, 0, 0); _saveAnyway.Visible = false;
+        flow.Controls.Add(_saveAnyway);
         _skip.Width = 400; _skip.Margin = new Padding(0, 10, 0, 0);
         _skip.Text = firstRun ? "Skip for now" : "Cancel";
         flow.Controls.Add(_skip);
@@ -98,6 +104,7 @@ public class OnboardingForm : Form
         CancelButton = _skip;
         _go.Click += async (_, _) => await TestAndSaveAsync();
         _skip.Click += (_, _) => { DialogResult = DialogResult.Cancel; Close(); };
+        _saveAnyway.Click += (_, _) => SaveWithoutTesting();
         Shown += (_, _) => _host.Box.Focus();
     }
 
@@ -126,16 +133,18 @@ public class OnboardingForm : Form
             using var cts = new CancellationTokenSource(TimeSpan.FromSeconds(8));
             await rcon.ConnectAsync(host, port, _password.Text, cts.Token);
             await Task.Delay(700); // Rust drops the socket straight away if the password is wrong.
-            if (dropped) { Say("The server closed the connection. Check the RCON password.", Theme.Err); return; }
+            if (dropped) { Say("The server closed the connection. Check the RCON password.", Theme.Err); _saveAnyway.Visible = true; return; }
         }
         catch (OperationCanceledException)
         {
             Say($"Timed out reaching {host}:{port}. Check the address, port and firewall.", Theme.Err);
+            _saveAnyway.Visible = true;
             return;
         }
         catch (Exception e)
         {
             Say($"Couldn't connect to {host}:{port}. Is WebRCON enabled and the port open?\n({e.Message})", Theme.Err);
+            _saveAnyway.Visible = true;
             return;
         }
         finally
@@ -143,7 +152,22 @@ public class OnboardingForm : Form
             _go.Enabled = _skip.Enabled = true;
         }
 
-        Result = new ServerProfile { Name = _name.Text.Trim(), Host = host, Port = port, Password = _password.Text };
+        Accept(host, port);
+    }
+
+    /// <summary>For a server that is offline right now: keep the details without a successful test.</summary>
+    private void SaveWithoutTesting()
+    {
+        var host = _host.Text.Trim();
+        if (host.Length == 0) { Say("Enter your server's IP address or hostname.", Theme.Err); return; }
+        if (!int.TryParse(_port.Text.Trim(), out var port) || port is < 1 or > 65535)
+        { Say("The RCON port must be a number between 1 and 65535.", Theme.Err); return; }
+        Accept(host, port);
+    }
+
+    private void Accept(string host, int port)
+    {
+        Result = new ServerProfile { Id = _existingId ?? Guid.NewGuid().ToString("N"), Name = _name.Text.Trim(), Host = host, Port = port, Password = _password.Text };
         DialogResult = DialogResult.OK;
         Close();
     }
