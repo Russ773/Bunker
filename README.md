@@ -25,6 +25,7 @@ Watch the console, see who's online and run your server, without ever launching 
 ![Top language](https://img.shields.io/github/languages/top/Russ773/Bunker?style=flat-square&color=239120)
 ![Code size](https://img.shields.io/github/languages/code-size/Russ773/Bunker?style=flat-square&color=0078d6)
 ![Repo size](https://img.shields.io/github/repo-size/Russ773/Bunker?style=flat-square&color=8a63d2)
+![License: MIT](https://img.shields.io/github/license/Russ773/Bunker?style=flat-square&color=4cc38a)
 ![PRs welcome](https://img.shields.io/badge/PRs-welcome-4cc38a?style=flat-square)
 ![Not affiliated with Facepunch](https://img.shields.io/badge/not%20affiliated%20with-Facepunch-lightgrey?style=flat-square)
 
@@ -250,11 +251,13 @@ Have an idea? [Open an issue](https://github.com/Russ773/Bunker/issues) or build
 
 ## 🤝 Contributing
 
-Pull requests are welcome, especially **widgets** (add a `.json` file to [`widgets/`](widgets) and list it in `widgets/index.json`) and bug reports with the steps to reproduce them. Please run `dotnet test tests/Bunker.Tests` before you open a PR.
+Pull requests are welcome (under the [MIT License](LICENSE)), especially **widgets** (add a `.json` file to [`widgets/`](widgets) and list it in `widgets/index.json`) and bug reports with the steps to reproduce them. Please run `dotnet test tests/Bunker.Tests` before you open a PR.
 
 ---
 
 <div align="center">
+
+<sub>Released under the [MIT License](LICENSE).</sub>
 
 <sub>Bunker is an independent community tool. **Rust** is a trademark of Facepunch Studios; Bunker is not affiliated with or endorsed by Facepunch.</sub>
 
