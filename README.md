@@ -69,7 +69,7 @@ Bunker is split in two so it is always clear what is part of the app and what is
 
 | | |
 | --- | --- |
-| 🖥️ **Console** | The heart of Bunker. Colour-coded live output and a command box that runs **any** console command. Command history with ↑/↓, **search and filters** (hide chat, warnings, errors), auto-scroll, and your choice of **font and size**. |
+| 🖥️ **Console** | The heart of Bunker. Colour-coded live output and a command box that runs **any** console command. Command history with ↑/↓, **search and filters** (hide chat, warnings, errors, **a whole plugin such as [Economics], or any line containing words you choose**), auto-scroll, and your choice of **font and size**. |
 | 📊 **Dashboard** | Live players, FPS, entities, uptime, memory and map, with the player list and console in one glance. |
 | 👥 **Players** | Who's online with ping, time played and health. Right-click for copy, Steam profile, kick, ban, mute, teleport, give an item, or a private note. |
 | 🪟 **Layout** | Pick 1, 2 or 4 sections and put a core panel *or any widget* in each. Go **fullscreen** for a wall-display control room. |

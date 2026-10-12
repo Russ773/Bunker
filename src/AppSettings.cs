@@ -98,6 +98,8 @@ public class AppSettings
     public string ChatColor { get; set; } = "#af5";
     /// <summary>Send chat through the Bunker Chat plugin on the server (shows your name and avatar). Falls back to the plain say command if it is not installed.</summary>
     public bool ChatUsePlugin { get; set; } = true;
+    /// <summary>Rules for console lines to hide: a whole plugin, or any line containing some words.</summary>
+    public List<HideRule> ConsoleHidden { get; set; } = new();
     public bool UseOnlineItemList { get; set; } = true;
     public bool LightTheme { get; set; }
     public string ConsoleFontName { get; set; } = "Consolas";

@@ -62,6 +62,14 @@ public class MainForm : Form
                     f.Shown += async (_, _) => { await Task.Delay(1200); using var bmp = new Bitmap(f.Width, f.Height); f.DrawToBitmap(bmp, new Rectangle(0, 0, f.Width, f.Height)); bmp.Save(picture); f.Close(); };
                 f.ShowDialog(this);
             };
+        if (Environment.GetEnvironmentVariable("BUNKER_TEST_HIDEFORM") is { Length: > 0 } hideShot)
+            Shown += async (_, _) =>
+            {
+                await Task.Delay(9000);
+                using var f = new HiddenMessagesForm(_core);
+                f.Shown += async (_, _) => { await Task.Delay(800); using var bmp = new Bitmap(f.Width, f.Height); f.DrawToBitmap(bmp, new Rectangle(0, 0, f.Width, f.Height)); bmp.Save(hideShot); f.Close(); };
+                f.ShowDialog(this);
+            };
         if (Environment.GetEnvironmentVariable("BUNKER_TEST_FULLSCREEN") == "1")
             Shown += async (_, _) => { await Task.Delay(6000); using var f = new FullscreenForm(_core, this); f.ShowDialog(this); };
 #endif

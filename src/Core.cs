@@ -6,7 +6,7 @@ namespace Bunker;
 public enum LogKind { Info, Normal, Chat, Warning, Error, Command }
 
 /// <summary>One console line. For chat, UserId/UserName/Message say who said what.</summary>
-public record LogEntry(DateTime Time, string Text, LogKind Kind, string? UserId = null, string? UserName = null, string? Message = null, string? Color = null, int Channel = 0);
+public record LogEntry(DateTime Time, string Text, LogKind Kind, string? UserId = null, string? UserName = null, string? Message = null, string? Color = null, int Channel = 0, string? Tags = null);
 
 /// <summary>Everything the console has shown, shared by every console/chat view so they stay in sync.</summary>
 public class ConsoleLog
@@ -18,9 +18,9 @@ public class ConsoleLog
     public event Action<LogEntry>? Added;
     public event Action? Cleared;
 
-    public void Add(string text, LogKind kind = LogKind.Normal, string? userId = null, string? userName = null, string? message = null, string? color = null, int channel = 0)
+    public void Add(string text, LogKind kind = LogKind.Normal, string? userId = null, string? userName = null, string? message = null, string? color = null, int channel = 0, string? tags = null)
     {
-        var e = new LogEntry(DateTime.Now, text, kind, userId, userName, message, color, channel);
+        var e = new LogEntry(DateTime.Now, text, kind, userId, userName, message, color, channel, tags);
         _entries.Add(e);
         if (_entries.Count > MaxEntries) _entries.RemoveRange(0, _entries.Count - MaxEntries);
         Added?.Invoke(e);
@@ -265,6 +265,10 @@ public class Core
         SetState(ConnState.Disconnected, "Disconnected");
     }
 
+    /// <summary>Raised when the list of hidden console messages changes, so every console redraws.</summary>
+    public event Action? ConsoleFilterChanged;
+    public void NotifyConsoleFilterChanged() => ConsoleFilterChanged?.Invoke();
+
     /// <summary>Raised when your chat name, Steam ID or colour is changed in Settings.</summary>
     public event Action? ChatIdentityChanged;
     public void NotifyChatIdentityChanged() => ChatIdentityChanged?.Invoke();
@@ -332,8 +336,8 @@ public class Core
         var type = m.Type.ToLowerInvariant();
         if (type == "chat")
         {
-            var (text, userId, name, message, color, channel) = ParseChat(m.Message);
-            Log.Add(text, LogKind.Chat, userId, name, message, color, channel);
+            var (text, userId, name, message, color, channel, tags) = ParseChat(m.Message);
+            Log.Add(text, LogKind.Chat, userId, name, message, color, channel, tags);
             return;
         }
         var kind = type switch { "warning" => LogKind.Warning, "error" => LogKind.Error, _ => LogKind.Normal };
@@ -344,7 +348,7 @@ public class Core
     /// Newer Rust versions send chat as JSON: who said it (name, Steam ID and the name colour the game shows), the message, and the
     /// channel (0 = global, 1 = team). Turn it into "Name: message" plus those details.
     /// </summary>
-    internal static (string Text, string? UserId, string? Name, string? Message, string? Color, int Channel) ParseChat(string raw)
+    internal static (string Text, string? UserId, string? Name, string? Message, string? Color, int Channel, string? Tags) ParseChat(string raw)
     {
         try
         {
@@ -355,11 +359,13 @@ public class Core
                 var id = r.TryGetProperty("UserId", out var uid) ? (uid.ValueKind == JsonValueKind.String ? uid.GetString() : uid.GetRawText()) : null;
                 var color = r.TryGetProperty("Color", out var col) && col.ValueKind == JsonValueKind.String ? col.GetString() : null;
                 var channel = r.TryGetProperty("Channel", out var ch) && ch.ValueKind == JsonValueKind.Number && ch.TryGetInt32(out var n) ? n : 0;
-                return ($"{u.GetString()}: {msg.GetString()}", id, u.GetString(), msg.GetString(), color, channel);
+                var who = ChatText.StripMarkup(u.GetString() ?? "");
+                var (tags, said) = ChatText.SplitTags(who, ChatText.StripMarkup(msg.GetString() ?? ""));
+                return ($"{(tags.Length > 0 ? tags + " " : "")}{who}: {said}", id, who, said, color, channel, tags.Length > 0 ? tags : null);
             }
         }
         catch { }
         var plain = raw.TrimEnd('\n');
-        return (plain, null, null, plain, null, 0);
+        return (plain, null, null, plain, null, 0, null);
     }
 }

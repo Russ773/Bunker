@@ -7,7 +7,7 @@ public class ChatTests
     [Fact]
     public void Chat_json_gives_name_message_colour_and_channel()
     {
-        var (text, userId, name, message, color, channel) = Core.ParseChat("{\"Channel\":1,\"Message\":\"on my way\",\"UserId\":\"76561198000000001\",\"Username\":\"Ironclad\",\"Color\":\"#5af\",\"Time\":1700000000}");
+        var (text, userId, name, message, color, channel, _) = Core.ParseChat("{\"Channel\":1,\"Message\":\"on my way\",\"UserId\":\"76561198000000001\",\"Username\":\"Ironclad\",\"Color\":\"#5af\",\"Time\":1700000000}");
         Assert.Equal("Ironclad: on my way", text);
         Assert.Equal("76561198000000001", userId);
         Assert.Equal("Ironclad", name);
@@ -19,7 +19,7 @@ public class ChatTests
     [Fact]
     public void Chat_without_colour_or_channel_still_works()
     {
-        var (_, _, name, _, color, channel) = Core.ParseChat("{\"Username\":\"SERVER\",\"Message\":\"hello\"}");
+        var (_, _, name, _, color, channel, _) = Core.ParseChat("{\"Username\":\"SERVER\",\"Message\":\"hello\"}");
         Assert.Equal("SERVER", name);
         Assert.Null(color);
         Assert.Equal(0, channel);
@@ -28,7 +28,7 @@ public class ChatTests
     [Fact]
     public void Plain_text_is_not_treated_as_chat()
     {
-        var (text, userId, name, _, _, _) = Core.ParseChat("just a line");
+        var (text, userId, name, _, _, _, _) = Core.ParseChat("just a line");
         Assert.Equal("just a line", text);
         Assert.Null(userId);
         Assert.Null(name);
@@ -74,4 +74,50 @@ public class UpdaterTests
     [InlineData("https://github.com/Russ773/Bunker/releases")]
     [InlineData("https://github.com/Russ773/Bunker/releases/tag/nightly")]
     public void Anything_else_is_not_a_version(string? address) => Assert.Null(Updater.VersionFromReleaseAddress(address));
+}
+
+public class ChatTidyTests
+{
+    [Fact]
+    public void A_plugins_prefix_and_repeated_name_are_split_out_of_the_message()
+    {
+        // Better Chat sends "[ADMIN] Russ: Testing" as the message while the name is also sent separately.
+        var (text, _, name, message, _, channel, tags) = Core.ParseChat("{\"Channel\":1,\"Message\":\"[ADMIN] Russ: Testing\",\"UserId\":\"76561197984187003\",\"Username\":\"Russ\",\"Color\":\"#af5\"}");
+        Assert.Equal("Russ", name);
+        Assert.Equal("Testing", message);
+        Assert.Equal("[ADMIN]", tags);
+        Assert.Equal("[ADMIN] Russ: Testing", text);
+        Assert.Equal(1, channel);
+    }
+
+    [Theory]
+    [InlineData("Russ", "[ADMIN] [VIP] Russ: hello", "[ADMIN] [VIP]", "hello")]
+    [InlineData("Russ", "[ADMIN] russ: hello", "[ADMIN]", "hello")]
+    [InlineData("Russ", "[Team] Russ: a: b", "[Team]", "a: b")]
+    public void Tags_before_the_players_own_name_are_separated(string user, string message, string tags, string rest)
+    {
+        var (gotTags, gotMessage) = ChatText.SplitTags(user, message);
+        Assert.Equal(tags, gotTags);
+        Assert.Equal(rest, gotMessage);
+    }
+
+    [Theory]
+    [InlineData("Russ", "Russ: hello")]                  // no [tag]: could be the player typing their own name
+    [InlineData("Russ", "[ADMIN] Someone: hello")]       // a different name
+    [InlineData("Russ", "just chatting [lol] Russ: hi")] // tags must come first
+    [InlineData("", "[ADMIN] Russ: hello")]
+    public void Anything_else_is_left_alone(string user, string message)
+    {
+        var (tags, rest) = ChatText.SplitTags(user, message);
+        Assert.Equal("", tags);
+        Assert.Equal(message, rest);
+    }
+
+    [Fact]
+    public void Colour_codes_and_control_characters_are_removed_from_chat()
+    {
+        Assert.Equal("[ADMIN] Russ: hi", ChatText.StripMarkup("<color=#af5>[ADMIN]</color> Russ: hi\u0007"));
+        var (_, _, _, message, _, _, _) = Core.ParseChat("{\"Username\":\"Russ\",\"Message\":\"<size=20>big</size>\"}");
+        Assert.Equal("big", message);
+    }
 }

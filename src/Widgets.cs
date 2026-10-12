@@ -24,6 +24,7 @@ public class ConsoleView : Panel
     // Search and filters (console mode only)
     private readonly ModernField _search = new();
     private bool _showChat = true, _showWarnings = true, _showErrors = true, _showCommands = true;
+    private bool _showHiddenNow; // reveals lines hidden by your rules, until you turn it off
 
     /// <summary>Controls the hosting Card should show on the right of its header.</summary>
     public Control[] HeaderActions => new Control[] { _autoScroll, _clear };
@@ -66,6 +67,12 @@ public class ConsoleView : Panel
         foreach (var e in _core.Log.Entries) Append(e);
         _core.Log.Added += OnAdded;
         _core.Log.Cleared += OnCleared;
+        if (!chat)
+        {
+            _core.ConsoleFilterChanged += RebuildView;
+            _box.ContextMenuStrip = new ContextMenuStrip(); // an empty one, so the built-in text-box menu does not appear next to ours
+            _box.MouseDown += OnBoxMouseDown;
+        }
         _core.StateChanged += ApplyEnabled;
         _clear.Click += (_, _) => _core.Log.Clear();
         _clear.MouseEnter += (_, _) => _clear.ForeColor = Theme.Accent;
@@ -78,6 +85,7 @@ public class ConsoleView : Panel
         {
             _core.Log.Added -= OnAdded;
             _core.Log.Cleared -= OnCleared;
+            _core.ConsoleFilterChanged -= RebuildView;
             _core.StateChanged -= ApplyEnabled;
             _core.ConsoleFontChanged -= ApplyFont;
             _core.ChatIdentityChanged -= RefreshChatPlaceholder;
@@ -115,9 +123,13 @@ public class ConsoleView : Panel
 
         void UpdateLabel()
         {
-            var hidden = new[] { _showChat, _showWarnings, _showErrors, _showCommands }.Count(on => !on);
+            var hidden = new[] { _showChat, _showWarnings, _showErrors, _showCommands }.Count(on => !on) + (_showHiddenNow ? 0 : _core.Settings.ConsoleHidden.Count);
             filter.Text = hidden == 0 ? "Filter   ▾" : $"Filter ({hidden} hidden)  ▾";
         }
+
+        _core.ConsoleFilterChanged += UpdateLabel;
+        filter.Disposed += (_, _) => _core.ConsoleFilterChanged -= UpdateLabel;
+        UpdateLabel();
 
         filter.Click += (_, _) =>
         {
@@ -132,6 +144,17 @@ public class ConsoleView : Panel
             Toggle("Show warnings", () => _showWarnings, v => _showWarnings = v);
             Toggle("Show errors", () => _showErrors, v => _showErrors = v);
             Toggle("Show command lines", () => _showCommands, v => _showCommands = v);
+            menu.Items.Add(new ToolStripSeparator());
+            var count = _core.Settings.ConsoleHidden.Count;
+            var manage = new ToolStripMenuItem(count == 0 ? "Hide a plugin or words..." : $"Hide a plugin or words ({count} hidden)...") { BackColor = Theme.Input, ForeColor = Theme.Text };
+            manage.Click += (_, _) => { menu.Close(); ManageHidden(); UpdateLabel(); };
+            menu.Items.Add(manage);
+            if (count > 0)
+            {
+                var reveal = new ToolStripMenuItem("Show hidden messages for now") { Checked = _showHiddenNow, CheckOnClick = true, BackColor = Theme.Input, ForeColor = Theme.Text };
+                reveal.Click += (_, _) => { _showHiddenNow = reveal.Checked; UpdateLabel(); RebuildView(); };
+                menu.Items.Add(reveal);
+            }
             // Keep the menu open while several items are toggled.
             menu.Closing += (_, e) => { if (e.CloseReason == ToolStripDropDownCloseReason.ItemClicked) e.Cancel = true; };
             menu.Show(filter, new Point(filter.Width - menu.PreferredSize.Width, filter.Height));
@@ -154,12 +177,64 @@ public class ConsoleView : Panel
     private bool Passes(LogEntry e)
     {
         if (_chat) return e.Kind == LogKind.Chat;
+        if (!_showHiddenNow && ConsoleFilter.IsHidden(_core.Settings.ConsoleHidden, e)) return false;
         if (e.Kind == LogKind.Chat && !_showChat) return false;
         if (e.Kind == LogKind.Warning && !_showWarnings) return false;
         if (e.Kind == LogKind.Error && !_showErrors) return false;
         if (e.Kind is LogKind.Command or LogKind.Info && !_showCommands) return false;
         var q = _search.Text.Trim();
         return q.Length == 0 || e.Text.Contains(q, StringComparison.OrdinalIgnoreCase);
+    }
+
+    // ---------------------------------------------------------------- hiding messages
+
+    /// <summary>Right-click on a console line: hide messages like it, or manage the hidden ones.</summary>
+    private void OnBoxMouseDown(object? sender, MouseEventArgs e)
+    {
+        if (e.Button != MouseButtons.Right) return;
+        var line = "";
+        var index = _box.GetCharIndexFromPosition(e.Location);
+        var lineNo = _box.GetLineFromCharIndex(index);
+        if (lineNo >= 0 && lineNo < _box.Lines.Length) line = ConsoleFilter.WithoutTime(_box.Lines[lineNo]);
+
+        var menu = new ContextMenuStrip { BackColor = Theme.Input, ForeColor = Theme.Text, Renderer = new DarkMenuRenderer(), ShowImageMargin = false };
+        ToolStripMenuItem Item(string text, Action click, bool enabled = true)
+        {
+            var item = new ToolStripMenuItem(text) { BackColor = Theme.Input, ForeColor = Theme.Text, Enabled = enabled };
+            item.Click += (_, _) => click();
+            menu.Items.Add(item);
+            return item;
+        }
+
+        if (line.Length > 0)
+        {
+            if (ConsoleFilter.PluginOf(line) is { } plugin)
+                Item($"Hide the plugin [{plugin}]", () => AddHidden(HideRule.PluginKind, plugin));
+            Item("Hide messages containing...", () => HideContaining(line));
+        }
+        Item(_core.Settings.ConsoleHidden.Count == 0 ? "Hide a plugin or words..." : $"Hide a plugin or words ({_core.Settings.ConsoleHidden.Count} hidden)...", ManageHidden);
+        menu.Items.Add(new ToolStripSeparator());
+        Item("Copy", () => { if (_box.SelectionLength > 0) try { Clipboard.SetText(_box.SelectedText); } catch { } }, _box.SelectionLength > 0);
+        menu.Show(_box, e.Location);
+    }
+
+    private void AddHidden(string kind, string value)
+    {
+        if (ConsoleFilter.Add(_core.Settings, kind, value)) _core.NotifyConsoleFilterChanged();
+    }
+
+    /// <summary>Asks what to hide, starting from some text (for example the line that was clicked).</summary>
+    private void HideContaining(string start)
+    {
+        var asked = PromptForm.Ask(FindForm(), "Hide messages", "Console lines containing this text will be hidden. You can show them again under Filter → Hide console messages.", "Hide",
+            new PromptField("Words to hide", start.Length > ConsoleFilter.MaxLength ? start[..ConsoleFilter.MaxLength] : start));
+        if (asked is not null) AddHidden(HideRule.WordsKind, asked[0]);
+    }
+
+    private void ManageHidden()
+    {
+        using var form = new HiddenMessagesForm(_core);
+        form.ShowDialog(FindForm());
     }
 
     /// <summary>Redraws everything that matches the current search and filters.</summary>
@@ -224,8 +299,10 @@ public class ConsoleView : Panel
         if (e.Kind == LogKind.Chat && e.UserName is { Length: > 0 } who && e.Message is not null)
         {
             // Chat looks the way it does in the game: [TEAM] tag, the player's name in their own colour, then the message in plain text.
+            var tint = Theme.Readable(Theme.ParseHex(e.Color) ?? Theme.Chat);
             if (e.Channel == 1) AppendPart("[TEAM] ", Theme.Ok, bold: true);
-            AppendPart(who, Theme.Readable(Theme.ParseHex(e.Color) ?? Theme.Chat), bold: true);
+            if (e.Tags is { Length: > 0 }) AppendPart(e.Tags + " ", tint, bold: true); // a chat plugin's own prefix, such as [ADMIN]
+            AppendPart(who, tint, bold: true);
             AppendPart(": ", Theme.Muted, bold: false);
             AppendPart(e.Message + Environment.NewLine, Theme.Text, bold: false);
         }
