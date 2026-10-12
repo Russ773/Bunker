@@ -1,0 +1,16 @@
+{
+  "id": "plugin-control",
+  "name": "Oxide Plugin Control",
+  "author": "Bunker",
+  "version": "1.0.0",
+  "description": "List your Oxide/uMod plugins and reload, unload or load one by name. Needs Oxide (uMod) installed on the server.",
+  "controls": [
+    { "type": "output", "id": "plugins", "height": 200 },
+    { "type": "button", "text": "List plugins", "output": "plugins", "commands": [ "oxide.plugins" ] },
+    { "type": "separator" },
+    { "type": "text", "id": "plugin", "label": "Plugin name", "placeholder": "Welcomer" },
+    { "type": "button", "style": "ghost", "text": "Reload", "output": "plugins", "commands": [ "oxide.reload {plugin}" ] },
+    { "type": "button", "style": "ghost", "text": "Load", "output": "plugins", "commands": [ "oxide.load {plugin}" ] },
+    { "type": "button", "style": "ghost", "text": "Unload", "output": "plugins", "confirm": "Unload the plugin {plugin}?", "commands": [ "oxide.unload {plugin}" ] }
+  ]
+}

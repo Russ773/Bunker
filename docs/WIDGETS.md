@@ -62,9 +62,42 @@ Installed widgets get their own tab on the Tools page and appear in the widget p
 | `number` | `id`, `label`, `default`, `min`, `max` | A number box. The value is checked against `min` and `max`. |
 | `choice` | `id`, `label`, `options` | A drop-down list (1–50 options). |
 | `player` | `id`, `label` | A drop-down of the players online right now. |
-| `button` | `text`, `commands`, `style`, `confirm` | Runs 1–10 commands. `style` is `primary` (default) or `ghost`. `confirm` asks first. |
+| `button` | `text`, `commands`, `style`, `confirm`, `output` | Runs 1–20 commands. `style` is `primary` (default) or `ghost`. `confirm` asks first. `output` sends the server's replies to an `output` control. |
+| `output` | `id`, `height` | A read-only panel that shows what the server answered (60–600 px high, default 160). Buttons point at it with `"output": "<id>"`. |
+| `stat` | `label`, `source` | A live number from the server. `source` is one of `players`, `maxplayers`, `fps`, `entities`, `memory`, `uptime`, `queued`, `joining`, `map`. |
 
 Consecutive buttons are placed side by side.
+
+### Timed steps
+
+A command that is just `wait N` pauses for N seconds before the next command, and is **not** sent to the server. Use it for countdowns and staged announcements:
+
+```json
+{
+  "type": "button",
+  "text": "1 minute countdown",
+  "commands": [
+    "say \"Event starts in 1 minute!\"",
+    "wait 30",
+    "say \"30 seconds!\"",
+    "wait 30",
+    "say \"Go!\""
+  ]
+}
+```
+
+While a button has timed steps running it turns into **Stop**, and pressing it cancels the rest. One wait can be at most 3600 seconds, and all the waits in one button together at most 900 seconds (15 minutes).
+
+### Showing the server's replies
+
+Add an `output` control and point buttons at it. Bunker shows each command and the server's reply there, in addition to the normal console:
+
+```json
+{ "type": "output", "id": "report", "height": 200 },
+{ "type": "button", "text": "Status", "output": "report", "commands": [ "status" ] }
+```
+
+Bunker never tries to interpret a reply. It shows the text exactly as the server sent it.
 
 ### Placeholders
 

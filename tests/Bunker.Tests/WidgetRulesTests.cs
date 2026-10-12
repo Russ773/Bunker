@@ -113,3 +113,63 @@ public class WidgetLibraryIndexTests
         Assert.Equal(onDisk, listed);
     }
 }
+
+public class WidgetV2Tests
+{
+    private static string Widget(string controls) => $"{{ \"id\": \"test-widget\", \"name\": \"Test\", \"controls\": [ {controls} ] }}";
+    private static List<string> Errors(string json) { WidgetRules.Parse(json, out var errors); return errors; }
+
+    [Fact]
+    public void Buttons_can_send_replies_to_an_output_control()
+    {
+        var def = WidgetRules.Parse(Widget("{ \"type\": \"output\", \"id\": \"out\" }, { \"type\": \"button\", \"text\": \"Go\", \"output\": \"out\", \"commands\": [ \"status\" ] }"), out var errors);
+        Assert.NotNull(def);
+        Assert.Empty(errors);
+    }
+
+    [Fact]
+    public void A_button_cannot_point_at_a_missing_or_wrong_output()
+    {
+        Assert.Contains(Errors(Widget("{ \"type\": \"button\", \"text\": \"Go\", \"output\": \"nope\", \"commands\": [ \"status\" ] }")), e => e.Contains("not an output control"));
+        Assert.Contains(Errors(Widget("{ \"type\": \"text\", \"id\": \"box\" }, { \"type\": \"button\", \"text\": \"Go\", \"output\": \"box\", \"commands\": [ \"status\" ] }")), e => e.Contains("not an output control"));
+    }
+
+    [Theory]
+    [InlineData("wait 5", true)]
+    [InlineData("WAIT 30", true)]
+    [InlineData("wait", false)]
+    [InlineData("wait soon", false)]
+    [InlineData("wait 99999", false)]
+    public void Wait_steps_are_checked(string step, bool valid)
+    {
+        var errors = Errors(Widget($"{{ \"type\": \"button\", \"text\": \"Go\", \"commands\": [ \"say hi\", \"{step}\", \"say bye\" ] }}"));
+        Assert.Equal(valid, errors.Count == 0);
+    }
+
+    [Fact]
+    public void Total_waiting_is_limited()
+    {
+        var steps = string.Join(", ", Enumerable.Repeat("\"wait 300\"", 4).Prepend("\"say hi\""));
+        Assert.Contains(Errors(Widget($"{{ \"type\": \"button\", \"text\": \"Go\", \"commands\": [ {steps} ] }}")), e => e.Contains("waits"));
+    }
+
+    [Fact]
+    public void Wait_steps_are_not_treated_as_server_commands()
+    {
+        Assert.Equal(CommandRisk.Normal, WidgetRules.RiskOf("wait 10"));
+        Assert.True(CommandRunner.TryWait("wait 10", out var s) && s == 10);
+        Assert.False(CommandRunner.TryWait("say wait 10", out _));
+    }
+
+    [Theory]
+    [InlineData("players", true)]
+    [InlineData("fps", true)]
+    [InlineData("uptime", true)]
+    [InlineData("password", false)]
+    [InlineData("", false)]
+    public void Stats_only_show_known_live_values(string source, bool valid)
+    {
+        var errors = Errors(Widget($"{{ \"type\": \"stat\", \"label\": \"x\", \"source\": \"{source}\" }}"));
+        Assert.Equal(valid, errors.Count == 0);
+    }
+}

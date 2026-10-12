@@ -20,6 +20,12 @@ public class WidgetControl
     public double? Default { get; set; }
     public List<string>? Options { get; set; }
     public List<string>? Commands { get; set; }
+    /// <summary>For a button: the id of an "output" control that shows the server's replies.</summary>
+    public string? Output { get; set; }
+    /// <summary>For a "stat" control: which live value to show (players, maxplayers, fps, entities, memory, uptime, queued, joining, map).</summary>
+    public string? Source { get; set; }
+    /// <summary>For an "output" control: its height in pixels.</summary>
+    public int? Height { get; set; }
 }
 
 public class WidgetDef
@@ -43,7 +49,9 @@ public static class WidgetRules
     private static readonly Regex IdPattern = new(@"^[a-z0-9][a-z0-9_-]{1,40}$", RegexOptions.Compiled);
     private static readonly Regex ControlIdPattern = new(@"^[A-Za-z][A-Za-z0-9_]{0,30}$", RegexOptions.Compiled);
     private static readonly Regex PlaceholderPattern = new(@"\{([A-Za-z][A-Za-z0-9_]{0,30})(\.name)?\}", RegexOptions.Compiled);
-    private static readonly string[] Types = { "label", "separator", "text", "number", "choice", "player", "button" };
+    private static readonly string[] Types = { "label", "separator", "text", "number", "choice", "player", "button", "output", "stat" };
+    public static readonly string[] StatSources = { "players", "maxplayers", "fps", "entities", "memory", "uptime", "queued", "joining", "map" };
+    private const int MaxTotalWaitSeconds = 900;
 
     // Commands that change who is an admin or how RCON itself is secured are never allowed from a shared widget.
     private static readonly string[] BlockedNames = { "ownerid", "moderatorid", "removeowner", "removemoderator", "global.ownerid", "global.moderatorid", "global.removeowner", "global.removemoderator" };
@@ -100,7 +108,7 @@ public static class WidgetRules
         foreach (var c in d.Controls)
         {
             if (!Types.Contains(c.Type)) { errors.Add($"Unknown control type \"{c.Type}\"."); continue; }
-            if (c.Type is "text" or "number" or "choice" or "player")
+            if (c.Type is "text" or "number" or "choice" or "player" or "output")
             {
                 if (c.Id is null || !ControlIdPattern.IsMatch(c.Id)) { errors.Add($"A {c.Type} control needs an \"id\" (letters, numbers, _)."); continue; }
                 if (!ids.TryAdd(c.Id, c.Type)) errors.Add($"The id \"{c.Id}\" is used twice.");
@@ -108,15 +116,29 @@ public static class WidgetRules
             if (c.Type == "choice" && (c.Options is null || c.Options.Count == 0 || c.Options.Count > 50 || c.Options.Any(o => string.IsNullOrWhiteSpace(o) || o.Length > 60)))
                 errors.Add($"The choice \"{c.Id}\" needs 1-50 options.");
             if (c.Type == "number" && c.Min is { } min && c.Max is { } max && min > max) errors.Add($"The number \"{c.Id}\" has min greater than max.");
+            if (c.Type == "stat" && (c.Source is null || !StatSources.Contains(c.Source))) errors.Add($"A stat needs a \"source\" of: {string.Join(", ", StatSources)}.");
+            if (c.Type == "output" && c.Height is { } h && (h < 60 || h > 600)) errors.Add($"The output \"{c.Id}\" height must be 60-600.");
         }
 
         foreach (var b in d.Controls.Where(c => c.Type == "button"))
         {
             if (string.IsNullOrWhiteSpace(b.Text)) errors.Add("Every button needs \"text\".");
-            if (b.Commands is null || b.Commands.Count == 0 || b.Commands.Count > 10) { errors.Add($"The button \"{b.Text}\" needs 1-10 commands."); continue; }
+            if (b.Output is not null && (!ids.TryGetValue(b.Output, out var outType) || outType != "output"))
+                errors.Add($"The button \"{b.Text}\" sends its replies to \"{b.Output}\", which is not an output control.");
+            if (b.Commands is null || b.Commands.Count == 0 || b.Commands.Count > 20) { errors.Add($"The button \"{b.Text}\" needs 1-20 commands."); continue; }
+
+            var waited = 0;
             foreach (var cmd in b.Commands)
             {
                 if (string.IsNullOrWhiteSpace(cmd) || cmd.Length > MaxCommandLength) { errors.Add($"A command on \"{b.Text}\" is empty or too long."); continue; }
+                if (cmd.Trim().StartsWith("wait", StringComparison.OrdinalIgnoreCase) && CommandName(cmd) == "wait")
+                {
+                    // "wait N" pauses between commands; it is not sent to the server.
+                    if (!CommandRunner.TryWait(cmd, out var seconds)) errors.Add($"\"{cmd}\" is not valid. Use \"wait 5\" with a number of seconds.");
+                    else if (int.TryParse(cmd.Trim().Split(' ', StringSplitOptions.RemoveEmptyEntries)[1], out var asked) && asked > 3600) errors.Add("A single wait can be at most 3600 seconds.");
+                    else waited += seconds;
+                    continue;
+                }
                 if (RiskOf(cmd) == CommandRisk.Blocked) errors.Add($"The command \"{CommandName(cmd)}\" is not allowed in shared widgets.");
                 foreach (Match m in PlaceholderPattern.Matches(cmd))
                 {
@@ -125,6 +147,7 @@ public static class WidgetRules
                     else if (m.Groups[2].Success && type != "player") errors.Add($"\"{{{id}.name}}\" only works for player fields.");
                 }
             }
+            if (waited > MaxTotalWaitSeconds) errors.Add($"The button \"{b.Text}\" waits {waited} seconds in total; the limit is {MaxTotalWaitSeconds}.");
         }
         return errors;
     }

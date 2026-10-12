@@ -1,0 +1,21 @@
+{
+  "id": "ban-manager",
+  "name": "Ban Manager",
+  "author": "Bunker",
+  "version": "1.0.0",
+  "description": "See the server's ban list and unban a player by Steam ID. The reply appears in the widget.",
+  "controls": [
+    { "type": "output", "id": "bans", "height": 220 },
+    { "type": "button", "text": "Show ban list", "output": "bans", "commands": [ "banlistex" ] },
+    { "type": "separator" },
+    { "type": "text", "id": "steamid", "label": "Steam ID to unban", "placeholder": "76561198000000000" },
+    {
+      "type": "button",
+      "style": "ghost",
+      "text": "Unban",
+      "output": "bans",
+      "confirm": "Unban {steamid}?",
+      "commands": [ "unban {steamid}", "server.writecfg" ]
+    }
+  ]
+}

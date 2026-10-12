@@ -95,36 +95,40 @@ public class ConsoleView : Panel
     private void OnAdded(LogEntry e) => Append(e);
     private void OnCleared() => _box.Clear();
 
-    /// <summary>A search box and on/off chips that hide chat, warnings, errors or Bunker's own command lines.</summary>
+    /// <summary>A search box and a Filter menu that can hide chat, warnings, errors or Bunker's own command lines.</summary>
     private Panel BuildFilterBar()
     {
         var bar = new Panel { Dock = DockStyle.Top, Height = 46, BackColor = Theme.Panel, Padding = new Padding(0, 0, 0, 8) };
 
-        var chips = new FlowLayoutPanel { Dock = DockStyle.Right, AutoSize = true, WrapContents = false, BackColor = Theme.Panel, Padding = new Padding(8, 3, 0, 0) };
-        void Chip(string text, Func<bool> get, Action<bool> set)
+        var filter = Theme.GhostButton("Filter   ▾");
+        filter.Dock = DockStyle.Right;
+        filter.Width = 150;
+        filter.Height = 36;
+        var gap = new Panel { Dock = DockStyle.Right, Width = 8, BackColor = Theme.Panel };
+
+        void UpdateLabel()
         {
-            var b = Theme.GhostButton(text);
-            b.Height = 32;
-            b.Width = TextRenderer.MeasureText(text, Theme.Semibold).Width + 24;
-            b.Margin = new Padding(0, 0, 6, 0);
-            void Style()
-            {
-                var on = get();
-                var t = (ThemedButton)b;
-                t.BackColor = on ? Theme.Selection : Theme.Panel;
-                t.ForeColor = on ? Theme.Text : Theme.Muted;
-                t.HoverBack = Theme.Input;
-                t.BorderColor = on ? Theme.Accent : Theme.Border;
-                t.Invalidate();
-            }
-            b.Click += (_, _) => { set(!get()); Style(); RebuildView(); };
-            Style();
-            chips.Controls.Add(b);
+            var hidden = new[] { _showChat, _showWarnings, _showErrors, _showCommands }.Count(on => !on);
+            filter.Text = hidden == 0 ? "Filter   ▾" : $"Filter ({hidden} hidden)  ▾";
         }
-        Chip("Chat", () => _showChat, v => _showChat = v);
-        Chip("Warnings", () => _showWarnings, v => _showWarnings = v);
-        Chip("Errors", () => _showErrors, v => _showErrors = v);
-        Chip("Commands", () => _showCommands, v => _showCommands = v);
+
+        filter.Click += (_, _) =>
+        {
+            var menu = new ContextMenuStrip { BackColor = Theme.Input, ForeColor = Theme.Text, Renderer = new DarkMenuRenderer(), ShowImageMargin = false, ShowCheckMargin = true };
+            void Toggle(string text, Func<bool> get, Action<bool> set)
+            {
+                var item = new ToolStripMenuItem(text) { Checked = get(), CheckOnClick = true, BackColor = Theme.Input, ForeColor = Theme.Text };
+                item.Click += (_, _) => { set(item.Checked); UpdateLabel(); RebuildView(); };
+                menu.Items.Add(item);
+            }
+            Toggle("Show chat", () => _showChat, v => _showChat = v);
+            Toggle("Show warnings", () => _showWarnings, v => _showWarnings = v);
+            Toggle("Show errors", () => _showErrors, v => _showErrors = v);
+            Toggle("Show command lines", () => _showCommands, v => _showCommands = v);
+            // Keep the menu open while several items are toggled.
+            menu.Closing += (_, e) => { if (e.CloseReason == ToolStripDropDownCloseReason.ItemClicked) e.Cancel = true; };
+            menu.Show(filter, new Point(filter.Width - menu.PreferredSize.Width, filter.Height));
+        };
 
         _search.Dock = DockStyle.Fill;
         _search.Box.PlaceholderText = "Search the console";
@@ -135,7 +139,8 @@ public class ConsoleView : Panel
         var host = new Panel { Dock = DockStyle.Fill, BackColor = Theme.Panel, Padding = new Padding(0, 3, 0, 0) };
         host.Controls.Add(_search);
         bar.Controls.Add(host);
-        bar.Controls.Add(chips);
+        bar.Controls.Add(gap);
+        bar.Controls.Add(filter);
         return bar;
     }
 

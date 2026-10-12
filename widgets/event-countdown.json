@@ -1,0 +1,43 @@
+{
+  "id": "event-countdown",
+  "name": "Event Countdown",
+  "author": "Bunker",
+  "version": "1.0.0",
+  "description": "Announce an event with an automatic countdown and timed reminders in chat. Press the button again to stop it part-way.",
+  "controls": [
+    { "type": "text", "id": "event", "label": "Event name", "placeholder": "Cargo ship hunt" },
+    { "type": "label", "text": "Reminders are sent at 5 minutes, 3 minutes, 1 minute, 30 seconds and 10 seconds. While a countdown is running its button becomes Stop." },
+    {
+      "type": "button",
+      "text": "Start 5 minute countdown",
+      "confirm": "Announce a 5 minute countdown for {event}?",
+      "commands": [
+        "say \"{event} starts in 5 minutes!\"",
+        "wait 120",
+        "say \"{event} starts in 3 minutes!\"",
+        "wait 120",
+        "say \"{event} starts in 1 minute!\"",
+        "wait 30",
+        "say \"{event} starts in 30 seconds!\"",
+        "wait 20",
+        "say \"{event} starts in 10 seconds!\"",
+        "wait 10",
+        "say \"{event} has started. Good luck!\""
+      ]
+    },
+    {
+      "type": "button",
+      "style": "ghost",
+      "text": "Start 1 minute countdown",
+      "commands": [
+        "say \"{event} starts in 1 minute!\"",
+        "wait 30",
+        "say \"{event} starts in 30 seconds!\"",
+        "wait 20",
+        "say \"{event} starts in 10 seconds!\"",
+        "wait 10",
+        "say \"{event} has started. Good luck!\""
+      ]
+    }
+  ]
+}

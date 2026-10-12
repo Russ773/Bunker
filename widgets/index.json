@@ -1,7 +1,11 @@
 {
   "widgets": [
+    "ban-manager.json",
     "broadcast-presets.json",
+    "event-countdown.json",
+    "plugin-control.json",
     "resource-drop.json",
+    "server-report.json",
     "welcome-packs.json"
   ]
 }
