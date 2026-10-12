@@ -6,10 +6,10 @@ namespace Bunker;
 /// <summary>Give an item to one online player (inventory.giveto) or to everyone (inventory.giveall).</summary>
 public class GiveItemsView : Panel
 {
-    private static readonly Regex SafeItem = new(@"^[A-Za-z0-9._-]{1,64}$", RegexOptions.Compiled);
+    internal static readonly Regex SafeItem = new(@"^[A-Za-z0-9._-]{1,64}$", RegexOptions.Compiled);
 
     /// <summary>Common item shortnames for auto-complete. Any valid Rust shortname can still be typed.</summary>
-    private static readonly string[] Items =
+    internal static readonly string[] Items =
     {
         "wood", "stones", "metal.ore", "metal.fragments", "metal.refined", "sulfur.ore", "sulfur", "charcoal", "gunpowder",
         "lowgradefuel", "cloth", "leather", "fat.animal", "scrap", "gears", "metalpipe", "metalspring", "rope", "sewingkit",

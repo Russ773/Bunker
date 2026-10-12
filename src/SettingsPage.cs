@@ -13,6 +13,7 @@ public partial class SettingsPage : Panel, ISectionPage
     // Servers
     private readonly DarkGrid _grid = new();
     private readonly Button _add = Theme.PrimaryButton("Add server");
+    private readonly Button _import = Theme.GhostButton("Import...");
     private readonly Button _edit = Theme.GhostButton("Edit");
     private readonly Button _remove = Theme.GhostButton("Remove");
     private readonly Button _use = Theme.GhostButton("Connect");
@@ -85,11 +86,11 @@ public partial class SettingsPage : Panel, ISectionPage
         _grid.Dock = DockStyle.Fill;
 
         var bar = new FlowLayoutPanel { Dock = DockStyle.Bottom, Height = 54, Padding = new Padding(0, 12, 0, 0), BackColor = Theme.Panel };
-        foreach (var b in new[] { _add, _edit, _remove, _use }) { b.Height = 34; b.Margin = new Padding(0, 0, 8, 0); bar.Controls.Add(b); }
+        foreach (var b in new[] { _add, _import, _edit, _remove, _use }) { b.Height = 34; b.Margin = new Padding(0, 0, 8, 0); bar.Controls.Add(b); }
 
         var hint = new Label
         {
-            Text = "Add as many servers as you like. Click the server name in the sidebar to switch between them.",
+            Text = "Add as many servers as you like, or import them from RustAdmin. Click the server name in the sidebar to switch between them.",
             Dock = DockStyle.Top, Height = 30, ForeColor = Theme.Muted, Font = Theme.Small, Padding = new Padding(0, 4, 0, 0),
         };
 
@@ -99,6 +100,7 @@ public partial class SettingsPage : Panel, ISectionPage
         inner.Controls.Add(hint);
 
         _add.Click += (_, _) => AddServer();
+        _import.Click += (_, _) => ImportServers();
         _edit.Click += (_, _) => EditServer();
         _remove.Click += async (_, _) => await RemoveServerAsync();
         _use.Click += async (_, _) => { if (SelectedServer() is { } p) await _core.SwitchServerAsync(p.Id); };
@@ -142,6 +144,13 @@ public partial class SettingsPage : Panel, ISectionPage
         using var f = new OnboardingForm(null, firstRun: false);
         if (f.ShowDialog(FindForm()) == DialogResult.OK)
             _core.SaveServer(f.Result!, makeActive: _core.Settings.Servers.Count == 0);
+    }
+
+    private void ImportServers()
+    {
+        using var f = new ImportServersForm(_core);
+        if (f.ShowDialog(FindForm()) != DialogResult.OK) return;
+        foreach (var server in f.Result) _core.SaveServer(server, makeActive: _core.Settings.Servers.Count == 0);
     }
 
     private void EditServer()

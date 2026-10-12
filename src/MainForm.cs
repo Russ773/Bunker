@@ -52,6 +52,16 @@ public class MainForm : Form
             Shown += async (_, _) => { await Task.Delay(5500); _core.Monitor.SeedForTest(); };
         if (Environment.GetEnvironmentVariable("BUNKER_TEST_REVIEW") is { Length: > 0 } reviewFile)
             Shown += async (_, _) => { await Task.Delay(4000); if (WidgetRules.Parse(File.ReadAllText(reviewFile), out _) is { } d) { using var f = new WidgetReviewForm(d, install: true); f.ShowDialog(this); } };
+        if (Environment.GetEnvironmentVariable("BUNKER_TEST_IMPORT") is { Length: > 0 } importFolder)
+            Shown += async (_, _) =>
+            {
+                await Task.Delay(3000);
+                using var f = new ImportServersForm(_core);
+                f.LoadRustAdmin(importFolder);
+                if (Environment.GetEnvironmentVariable("BUNKER_TEST_IMPORT_SHOT") is { Length: > 0 } picture)
+                    f.Shown += async (_, _) => { await Task.Delay(1200); using var bmp = new Bitmap(f.Width, f.Height); f.DrawToBitmap(bmp, new Rectangle(0, 0, f.Width, f.Height)); bmp.Save(picture); f.Close(); };
+                f.ShowDialog(this);
+            };
         if (Environment.GetEnvironmentVariable("BUNKER_TEST_FULLSCREEN") == "1")
             Shown += async (_, _) => { await Task.Delay(6000); using var f = new FullscreenForm(_core, this); f.ShowDialog(this); };
 #endif
@@ -60,10 +70,11 @@ public class MainForm : Form
 
     private void Navigate(string key)
     {
+        var full = key;
         var section = key.Contains(':') ? key[(key.IndexOf(':') + 1)..] : null;
         if (section is not null) { key = key[..key.IndexOf(':')]; (_pages[key] as ISectionPage)?.ShowSection(section); }
         foreach (var (k, page) in _pages) page.Visible = k == key;
-        _sidebar.Select(key);
+        _sidebar.Select(key == "widgets" ? full : key); // each widget has its own entry in the sidebar
     }
 
     private async Task StartupAsync()

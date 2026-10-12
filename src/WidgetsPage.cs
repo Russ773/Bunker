@@ -50,70 +50,19 @@ public class OriginPill : Control
     }
 }
 
-/// <summary>One row in the Widgets list: the widget's name and a one-line description.</summary>
-public class WidgetRailItem : Control
-{
-    private bool _hover;
-    private bool _selected;
-
-    [System.ComponentModel.DesignerSerializationVisibility(System.ComponentModel.DesignerSerializationVisibility.Hidden)]
-    public bool Selected { get => _selected; set { _selected = value; Invalidate(); } }
-
-    public string Blurb { get; }
-
-    public WidgetRailItem(string name, string blurb)
-    {
-        Text = name;
-        Blurb = blurb;
-        Height = 58;
-        Dock = DockStyle.Top;
-        Cursor = Cursors.Hand;
-        DoubleBuffered = true;
-        SetStyle(ControlStyles.Selectable, false);
-        Tips.Set(this, name + "\n" + blurb);
-    }
-
-    protected override void OnMouseEnter(EventArgs e) { _hover = true; Invalidate(); base.OnMouseEnter(e); }
-    protected override void OnMouseLeave(EventArgs e) { _hover = false; Invalidate(); base.OnMouseLeave(e); }
-
-    protected override void OnPaint(PaintEventArgs e)
-    {
-        var g = e.Graphics;
-        g.SmoothingMode = SmoothingMode.AntiAlias;
-        g.Clear(Theme.Panel);
-        var r = new Rectangle(8, 2, Width - 16, Height - 4);
-        if (_selected || _hover)
-        {
-            using var path = NavButton.Rounded(r, 8);
-            using var br = new SolidBrush(_selected ? Theme.Input : Theme.Hover);
-            g.FillPath(br, path);
-        }
-        if (_selected)
-        {
-            using var br = new SolidBrush(Theme.Accent);
-            g.FillRectangle(br, 0, 12, 3, Height - 24);
-        }
-        var flags = TextFormatFlags.Left | TextFormatFlags.EndEllipsis | TextFormatFlags.NoPadding | TextFormatFlags.SingleLine;
-        TextRenderer.DrawText(g, Text, Theme.Semibold, new Rectangle(20, 9, Width - 36, 22), _selected ? Theme.Text : Theme.Text, flags);
-        TextRenderer.DrawText(g, Blurb, Theme.Small, new Rectangle(20, 31, Width - 36, 18), Theme.Muted, flags);
-    }
-}
-
 /// <summary>
-/// The Widgets page: a list of every widget on the left (the ones that come with Bunker, then the ones you installed) and the
-/// chosen widget on the right. The core application (Dashboard, Console, Players) is not listed here.
+/// The Widgets page: shows the widget picked from the WIDGETS list in the sidebar, with a strip saying where it comes from.
+/// The core application (Dashboard, Console, Players) is not a widget and has its own entries above that list.
 /// </summary>
 public class WidgetsPage : Panel, ISectionPage
 {
-    private const string ManageKey = "manage";
+    public const string ManageKey = "manage";
 
     private readonly Core _core;
-    private readonly Panel _list = new() { Dock = DockStyle.Fill, BackColor = Theme.Panel, AutoScroll = true };
     private readonly Panel _info = new() { Dock = DockStyle.Top, Height = 54, BackColor = Theme.Bg };
     private readonly Panel _content = new() { Dock = DockStyle.Fill, BackColor = Theme.Bg };
-    private readonly Dictionary<string, (WidgetRailItem Item, Panel Host, WidgetInfo Info)> _sections = new();
-    private readonly HashSet<string> _built = new();
-    private readonly Button _manage = Theme.GhostButton("Get more widgets...");
+    private readonly Dictionary<string, Panel> _hosts = new();
+    private readonly Panel _manageHost = new() { Dock = DockStyle.Fill, BackColor = Theme.Bg, Visible = false };
     private string _current = WidgetCatalog.BuiltIn[0].Key;
 
     public WidgetsPage(Core core)
@@ -121,120 +70,61 @@ public class WidgetsPage : Panel, ISectionPage
         _core = core;
         BackColor = Theme.Bg;
 
-        // Left: the list of widgets with a button underneath for installing more.
-        var rail = new Panel { Dock = DockStyle.Left, Width = 268, BackColor = Theme.Panel };
-        rail.Paint += (_, e) => { using var p = new Pen(Theme.Border); e.Graphics.DrawRectangle(p, 0, 0, rail.Width - 1, rail.Height - 1); };
-        var footer = new Panel { Dock = DockStyle.Bottom, Height = 62, BackColor = Theme.Panel, Padding = new Padding(14, 12, 14, 12) };
-        footer.Paint += (_, e) => { using var p = new Pen(Theme.Border); e.Graphics.DrawLine(p, 0, 0, footer.Width, 0); };
-        _manage.Dock = DockStyle.Fill;
-        _manage.Click += (_, _) => ShowSection(ManageKey);
-        footer.Controls.Add(_manage);
-        rail.Controls.Add(_list);
-        rail.Controls.Add(footer);
-        DarkScroll.Apply(_list);
-
-        // Right: a strip saying what the widget is, then the widget itself.
-        var gap = new Panel { Dock = DockStyle.Left, Width = 12, BackColor = Theme.Bg };
-        var main = new Panel { Dock = DockStyle.Fill, BackColor = Theme.Bg };
         _content.Controls.Add(_manageHost);
-        main.Controls.Add(_content);
-        main.Controls.Add(_info);
-
         var body = new Panel { BackColor = Theme.Bg };
-        body.Controls.Add(main);
-        body.Controls.Add(gap);
-        body.Controls.Add(rail);
+        body.Controls.Add(_content);
+        body.Controls.Add(_info);
 
-        var page = new Page("Widgets", "Optional add-ons. Dashboard, Console and Players are part of Bunker itself, so they are not listed here", body);
+        var page = new Page("Widgets", "Optional add-ons. Pick one from the WIDGETS list in the menu on the left", body);
         page.Dock = DockStyle.Fill;
         Controls.Add(page);
 
-        _core.Widgets.Changed += () => BeginInvoke(RebuildList);
-        RebuildList();
-
-        // When the page appears, make sure the open widget is visible in the list.
-        VisibleChanged += (_, _) =>
-        {
-            if (Visible && _sections.TryGetValue(_current, out var s)) BeginInvoke(() => _list.ScrollControlIntoView(s.Item));
-        };
+        // A widget was installed or removed: drop everything that was built and show the current one again (or the first).
+        _core.Widgets.Changed += () => BeginInvoke(Reset);
+        ShowSection(_current);
     }
 
-    // ---------------------------------------------------------------- the list
-
-    /// <summary>(Re)creates the list, for example after a community widget was installed or removed.</summary>
-    private void RebuildList()
+    private void Reset()
     {
-        foreach (var s in _sections.Values) { _list.Controls.Remove(s.Item); s.Item.Dispose(); _content.Controls.Remove(s.Host); s.Host.Dispose(); }
-        foreach (var c in _list.Controls.OfType<Label>().ToList()) { _list.Controls.Remove(c); c.Dispose(); }
-        _sections.Clear();
-        _built.Clear();
-
-        var built = WidgetCatalog.BuiltIn;
-        var community = _core.Widgets.All.Select(WidgetCatalog.Community).ToList();
-
-        // Top-docked controls stack with the last one added on top, so everything is added in reverse.
-        var rows = new List<Control> { Header("BUILT-IN  ·  come with Bunker") };
-        rows.AddRange(built.Select(Add));
-        rows.Add(Header("COMMUNITY  ·  installed by you"));
-        if (community.Count == 0)
-            rows.Add(new Label
-            {
-                Text = "None installed yet. Use \"Get more widgets\" below to browse the library or add one from a file.",
-                Dock = DockStyle.Top, Height = 64, ForeColor = Theme.Muted, Font = Theme.Small, Padding = new Padding(16, 6, 14, 0),
-            });
-        else rows.AddRange(community.Select(Add));
-
-        foreach (var row in Enumerable.Reverse(rows)) _list.Controls.Add(row);
-
-        ShowSection(_sections.ContainsKey(_current) || _current == ManageKey ? _current : built[0].Key);
+        foreach (var host in _hosts.Values) { _content.Controls.Remove(host); host.Dispose(); }
+        _hosts.Clear();
+        ShowSection(_current);
     }
 
-    private static Label Header(string text) => new()
-    {
-        Text = text, Dock = DockStyle.Top, Height = 34, Font = new Font("Segoe UI Semibold", 8f), ForeColor = Theme.Muted,
-        Padding = new Padding(16, 14, 0, 0), BackColor = Theme.Panel,
-    };
-
-    private Control Add(WidgetInfo info)
-    {
-        var item = new WidgetRailItem(info.Name, info.Blurb);
-        var host = new Panel { Dock = DockStyle.Fill, BackColor = Theme.Bg, Visible = false };
-        _content.Controls.Add(host);
-        item.Click += (_, _) => ShowSection(info.Key);
-        _sections[info.Key] = (item, host, info);
-        return item;
-    }
+    private WidgetInfo? Find(string key) =>
+        WidgetCatalog.AllWidgets(_core).FirstOrDefault(i => i.Key == key);
 
     public void ShowSection(string key)
     {
-        if (key != ManageKey && !_sections.ContainsKey(key)) key = WidgetCatalog.BuiltIn[0].Key;
-        _current = key;
-        foreach (var (k, s) in _sections) { s.Host.Visible = k == key; s.Item.Selected = k == key; }
-        if (_sections.TryGetValue(key, out var chosen)) _list.ScrollControlIntoView(chosen.Item);
-        _manage.Font = new Font(Theme.UI, key == ManageKey ? FontStyle.Bold : FontStyle.Regular);
+        foreach (var h in _hosts.Values) h.Visible = false;
+        _manageHost.Visible = false;
 
         if (key == ManageKey)
         {
-            foreach (var s in _sections.Values) { s.Host.Visible = false; s.Item.Selected = false; }
+            _current = key;
             _manageHost.Visible = true;
             if (_manageHost.Controls.Count == 0)
             {
-                var wide = Card.Titled("Manage community widgets", new WidgetManagerView(_core));
-                wide.Dock = DockStyle.Fill;
-                _manageHost.Controls.Add(wide);
+                var manager = Card.Titled("Get more widgets", new WidgetManagerView(_core));
+                manager.Dock = DockStyle.Fill;
+                _manageHost.Controls.Add(manager);
             }
             ShowInfo(null);
             return;
         }
 
-        _manageHost.Visible = false;
-        var (_, host, info) = _sections[key];
+        var info = Find(key) ?? WidgetCatalog.BuiltIn[0];
+        _current = info.Key;
+        if (!_hosts.TryGetValue(info.Key, out var host))
+        {
+            host = new Panel { Dock = DockStyle.Fill, BackColor = Theme.Bg, Visible = false };
+            _content.Controls.Add(host);
+            _hosts[info.Key] = host;
+            Build(info.Key, host, info); // widgets are created the first time they are opened
+        }
         host.Visible = true;
-        if (_built.Add(key)) Build(key, host, info); // widgets are created the first time they are opened
         ShowInfo(info);
     }
-
-    private readonly Panel _manageHost = new() { Dock = DockStyle.Fill, BackColor = Theme.Bg, Visible = false };
 
     // ---------------------------------------------------------------- the strip above a widget
 
@@ -250,7 +140,7 @@ public class WidgetsPage : Panel, ISectionPage
         if (info is null)
         {
             text.Padding = new Padding(2, 12, 0, 0);
-            text.Text = "Whatever you install here appears in the list on the left and in the Layout picker.";
+            text.Text = "Install, review and remove community widgets. Whatever you install appears in the WIDGETS list and in the Layout picker.";
             return;
         }
 

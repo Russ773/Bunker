@@ -218,7 +218,7 @@ public class ConsoleView : Panel
     }
 }
 
-/// <summary>Live player table with right-click copy / kick / ban.</summary>
+/// <summary>Live player table. Right-click a player for the full menu (see PlayerMenu).</summary>
 public class PlayersView : Panel
 {
     private readonly Core _core;
@@ -245,11 +245,7 @@ public class PlayersView : Panel
         _grid.Columns[4].FillWeight = 66;
         Controls.Add(_grid);
 
-        var menu = new ContextMenuStrip();
-        menu.Items.Add("Copy Steam ID", null, (_, _) => { if (Selected() is { } p) Clipboard.SetText(p.SteamId); });
-        menu.Items.Add("Kick...", null, (_, _) => Act("kick", "Kick"));
-        menu.Items.Add("Ban...", null, (_, _) => Act("ban", "Ban"));
-        _grid.ContextMenuStrip = menu;
+        PlayerMenu.Attach(_grid, _core, Selected);
         _grid.CellMouseDown += (_, e) =>
         {
             if (e.Button == MouseButtons.Right && e.RowIndex >= 0) { _grid.ClearSelection(); _grid.Rows[e.RowIndex].Selected = true; }
@@ -257,6 +253,26 @@ public class PlayersView : Panel
 
         _core.Monitor.Updated += Refresh;
         Fill();
+#if DEBUG
+        // Test hook (debug builds only): open the right-click menu on the first player and save a picture of it.
+        if (Environment.GetEnvironmentVariable("BUNKER_TEST_PLAYERMENU") is { Length: > 0 } shot && Environment.GetEnvironmentVariable("BUNKER_START_PAGE") == "players")
+            HandleCreated += async (_, _) =>
+            {
+                try {
+                await Task.Delay(8000);
+                for (var wait = 0; wait < 60 && _grid.Rows.Count == 0; wait++) await Task.Delay(500);
+                if (_grid.Rows.Count == 0) return;
+                _grid.Rows[0].Selected = true;
+                var menu = _grid.ContextMenuStrip!;
+                menu.Show(_grid, new Point(120, 60));
+                Application.DoEvents();
+                using var bmp = new Bitmap(menu.Width, menu.Height);
+                menu.DrawToBitmap(bmp, new Rectangle(0, 0, menu.Width, menu.Height));
+                bmp.Save(shot);
+                menu.Close();
+                } catch (Exception ex) { File.WriteAllText(shot + ".err", ex.ToString()); }
+            };
+#endif
     }
 
     protected override void Dispose(bool disposing)
@@ -267,16 +283,6 @@ public class PlayersView : Panel
 
     private PlayerInfo? Selected() =>
         _grid.SelectedRows.Count == 1 ? _grid.SelectedRows[0].Tag as PlayerInfo : null;
-
-    private void Act(string verb, string label)
-    {
-        if (Selected() is not { } p) return;
-        var ok = MessageBox.Show(FindForm(), $"{label} {p.Name} ({p.SteamId})?", $"{label} player",
-            MessageBoxButtons.YesNo, MessageBoxIcon.Question);
-        if (ok != DialogResult.Yes) return;
-        var cmd = verb == "ban" ? $"banid {p.SteamId} \"{p.Name}\" \"Banned by admin\"" : $"kick {p.SteamId} \"Kicked by admin\"";
-        _ = _core.SendCommandAsync(cmd);
-    }
 
     private new void Refresh() => Fill();
 

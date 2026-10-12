@@ -38,7 +38,7 @@ public static class Pages
     public static Control Players(Core core)
     {
         var v = new PlayersView(core);
-        return new Page("Players", "Who is on the server right now. Right-click a player to copy their ID, kick or ban",
+        return new Page("Players", "Who is on the server right now. Right-click a player for copy, Steam profile, kick, ban, mute, teleport, give item and notes",
             WrapCard(Card.Titled("Players", v, v.HeaderActions)));
     }
 

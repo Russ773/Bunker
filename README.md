@@ -71,13 +71,13 @@ Bunker is split in two so it is always clear what is part of the app and what is
 | --- | --- |
 | 🖥️ **Console** | The heart of Bunker. Colour-coded live output and a command box that runs **any** console command. Command history with ↑/↓, **search and filters** (hide chat, warnings, errors), auto-scroll, and your choice of **font and size**. |
 | 📊 **Dashboard** | Live players, FPS, entities, uptime, memory and map, with the player list and console in one glance. |
-| 👥 **Players** | Who's online with ping, time played and health. Right-click to copy a Steam ID, kick or ban. |
+| 👥 **Players** | Who's online with ping, time played and health. Right-click for copy, Steam profile, kick, ban, mute, teleport, give an item, or a private note. |
 | 🪟 **Layout** | Pick 1, 2 or 4 sections and put a core panel *or any widget* in each. Go **fullscreen** for a wall-display control room. |
-| ⚙️ **Settings** | Several saved servers (passwords encrypted for your Windows account), dark and light themes, console font, startup options and updates that *ask first*. |
+| ⚙️ **Settings** | Several saved servers (passwords encrypted for your Windows account), **import from RustAdmin**, dark and light themes, console font, startup options and updates that *ask first*. |
 
 ### 🧩 Widgets: optional add-ons
 
-Open the **Widgets** page: every widget is listed on the left, marked **Built-in** or **Community**, with the widget on the right and a live console beside it so you see the server's reply. **Add to Layout** puts any widget into a Layout section in one click.
+Every widget is listed under the **WIDGETS** heading in the sidebar. Click one to open it, with a live console beside it so you see the server's reply. A tag marks it **Built-in** or **Community** (community ones also have a green dot). **Add to Layout** puts any widget into a Layout section in one click.
 
 | | |
 | --- | --- |
@@ -94,7 +94,7 @@ Open the **Widgets** page: every widget is listed on the left, marked **Built-in
 
 <table>
   <tr>
-    <td width="50%"><img src="docs/screenshots/widgets.png" alt="The Widgets page"><br><sub><b>🧩 Widgets</b>: built-in and community widgets in one list, away from the core app</sub></td>
+    <td width="50%"><img src="docs/screenshots/widgets.png" alt="The Widgets page"><br><sub><b>🧩 Widgets</b>: every widget under its own heading in the sidebar</sub></td>
     <td width="50%"><img src="docs/screenshots/layout.png" alt="Custom layout"><br><sub><b>🪟 Layout</b>: put core panels or any widget in each section</sub></td>
   </tr>
   <tr>

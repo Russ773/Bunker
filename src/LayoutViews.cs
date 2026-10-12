@@ -160,7 +160,7 @@ public class LayoutPage : Panel
         }
         Highlight();
 
-        var page = new Page("Layout", "Choose how many sections to show, then pick what goes in each: a core panel such as Console or Players, or any widget",
+        var page = new Page("Layout", "Choose how many sections to show, then pick what goes in each",
             _grid, headerControls.ToArray());
         page.Dock = DockStyle.Fill;
         Controls.Add(page);
