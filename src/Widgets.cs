@@ -18,6 +18,7 @@ public class ConsoleView : Panel
     private readonly CheckBox _autoScroll = new() { Text = "Auto-scroll", Checked = true, AutoSize = true, ForeColor = Theme.Muted, Cursor = Cursors.Hand, Margin = new Padding(0, 3, 12, 0) };
     private readonly Label _clear = new() { Text = "Clear", AutoSize = true, ForeColor = Theme.Muted, Cursor = Cursors.Hand, Margin = new Padding(0, 4, 4, 0) };
     private readonly List<string> _history = new();
+    private Panel? _bar;
     private int _historyIndex;
 
     /// <summary>Controls the hosting Card should show on the right of its header.</summary>
@@ -46,12 +47,15 @@ public class ConsoleView : Panel
             _send.Height = 36;
             bar.Controls.AddRange(new Control[] { _input, gap, _send });
             Controls.Add(bar);
+            _bar = bar;
             _send.Click += async (_, _) => await SendAsync();
             _input.Box.KeyDown += InputKeyDown;
             ApplyEnabled();
         }
 
         DarkScroll.Apply(_box);
+        ApplyFont();
+        _core.ConsoleFontChanged += ApplyFont;
         foreach (var e in _core.Log.Entries) Append(e);
         _core.Log.Added += OnAdded;
         _core.Log.Cleared += OnCleared;
@@ -68,8 +72,18 @@ public class ConsoleView : Panel
             _core.Log.Added -= OnAdded;
             _core.Log.Cleared -= OnCleared;
             _core.StateChanged -= ApplyEnabled;
+            _core.ConsoleFontChanged -= ApplyFont;
         }
         base.Dispose(disposing);
+    }
+
+    /// <summary>Uses the font chosen in Settings, and makes the command bar tall enough for it.</summary>
+    private void ApplyFont()
+    {
+        _box.Font = _core.ConsoleFont;
+        if (!_showInput) return;
+        _input.Box.Font = _core.ConsoleFont;
+        if (_bar is not null) _bar.Height = Math.Max(52, _input.Box.PreferredHeight + 42);
     }
 
     private void OnAdded(LogEntry e) => Append(e);
@@ -107,7 +121,7 @@ public class ConsoleView : Panel
         }
     }
 
-    private static Color ColorOf(LogKind k) => k switch
+    internal static Color ColorOf(LogKind k) => k switch
     {
         LogKind.Chat => Theme.Chat,
         LogKind.Warning => Theme.Warn,

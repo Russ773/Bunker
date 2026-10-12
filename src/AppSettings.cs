@@ -71,6 +71,8 @@ public class AppSettings
     public bool StartMaximised { get; set; } = true;
     public bool AutoConnect { get; set; } = true;
     public bool LightTheme { get; set; }
+    public string ConsoleFontName { get; set; } = "Consolas";
+    public float ConsoleFontSize { get; set; } = 10.5f;
     public List<ServerProfile> Servers { get; set; } = new();
     public string? ActiveServerId { get; set; }
     public LayoutConfig Layout { get; set; } = new();

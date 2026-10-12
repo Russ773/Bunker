@@ -129,6 +129,21 @@ public class Core
     public string StatusText { get; private set; } = "Disconnected";
     public event Action? StateChanged;
     public event Action? ServerChanged;
+    public event Action? ConsoleFontChanged;
+
+    private Font? _consoleFont;
+
+    /// <summary>The font used by the console and chat views (chosen in Settings).</summary>
+    public Font ConsoleFont => _consoleFont ??= new Font(Settings.ConsoleFontName, Math.Clamp(Settings.ConsoleFontSize, 7f, 32f));
+
+    public void SetConsoleFont(string name, float size)
+    {
+        Settings.ConsoleFontName = name;
+        Settings.ConsoleFontSize = Math.Clamp(size, 7f, 32f);
+        Settings.Save();
+        _consoleFont = null;
+        ConsoleFontChanged?.Invoke();
+    }
 
     public Core(AppSettings settings)
     {

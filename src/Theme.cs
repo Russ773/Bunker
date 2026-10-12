@@ -28,6 +28,8 @@ public static class Theme
     public static Color GridLine { get; private set; } = Color.FromArgb(36, 40, 48);
     public static Color Dim { get; private set; } = Color.FromArgb(90, 96, 108);
     public static Color SplashTop { get; private set; } = Color.FromArgb(24, 27, 33);
+    public static Color DisabledBack { get; private set; } = Color.FromArgb(52, 57, 66);
+    public static Color DisabledFore { get; private set; } = Color.FromArgb(132, 139, 150);
 
     /// <summary>Picks the palette. Must run before any window or control is created.</summary>
     public static void Init(bool light)
@@ -52,6 +54,8 @@ public static class Theme
         GridLine = Color.FromArgb(228, 231, 237);
         Dim = Color.FromArgb(150, 157, 168);
         SplashTop = Color.FromArgb(255, 255, 255);
+        DisabledBack = Color.FromArgb(222, 226, 232);
+        DisabledFore = Color.FromArgb(142, 149, 160);
     }
 
     public static readonly Font UI = new("Segoe UI", 10f);
@@ -89,12 +93,15 @@ public static class Theme
 
     private static Button Styled(string text, Color back, Color hover, Color fore, int border)
     {
-        var b = new Button
+        var b = new ThemedButton
         {
             Text = text, BackColor = back, ForeColor = fore, FlatStyle = FlatStyle.Flat,
             Cursor = Cursors.Hand, Height = 36, AutoSize = false, Font = Semibold,
             UseVisualStyleBackColor = false,
         };
+        b.BorderSize = border;
+        b.BorderColor = Border;
+        b.HoverBack = hover;
         b.FlatAppearance.BorderSize = border;
         b.FlatAppearance.BorderColor = Border;
         b.FlatAppearance.MouseOverBackColor = hover;
@@ -104,13 +111,14 @@ public static class Theme
     }
 }
 
+
 /// <summary>A flat dark text field with a border that lights up with the accent colour on focus.</summary>
 public class ModernField : Panel
 {
     public TextBox Box { get; } = new()
     {
         BorderStyle = BorderStyle.None, BackColor = Theme.Input, ForeColor = Theme.Text,
-        Font = Theme.UI, Dock = DockStyle.Fill,
+        Font = Theme.UI, AutoSize = false,
     };
 
     public override string? Text { get => Box.Text; set => Box.Text = value ?? ""; }
@@ -125,6 +133,7 @@ public class ModernField : Panel
         Box.Enter += (_, _) => Invalidate();
         Box.Leave += (_, _) => Invalidate();
         Box.EnabledChanged += (_, _) => Invalidate();
+        Box.FontChanged += (_, _) => PerformLayout();
     }
 
     /// <summary>Adds a control (e.g. a Show/Hide toggle) on the right edge, inside the border.</summary>
@@ -132,6 +141,16 @@ public class ModernField : Panel
     {
         c.Dock = DockStyle.Right;
         Controls.Add(c);
+    }
+
+    /// <summary>The text box is sized from its font (with room for descenders) and centred, so large fonts are never clipped.</summary>
+    protected override void OnLayout(LayoutEventArgs e)
+    {
+        base.OnLayout(e);
+        var right = Padding.Right;
+        foreach (Control c in Controls) if (c != Box && c.Dock == DockStyle.Right) right += c.Width;
+        var h = Box.PreferredHeight + 6;
+        Box.SetBounds(Padding.Left, Math.Max(0, (Height - h) / 2), Math.Max(10, Width - Padding.Left - right), h);
     }
 
     protected override void OnPaint(PaintEventArgs e)

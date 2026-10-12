@@ -301,3 +301,56 @@ public class TabButton : Control
         }
     }
 }
+
+/// <summary>A flat button painted by Bunker so disabled buttons show clearly in grey (the system look is almost invisible on a dark theme).</summary>
+public class ThemedButton : Button
+{
+    private bool _hover;
+    private bool _down;
+
+    [System.ComponentModel.DesignerSerializationVisibility(System.ComponentModel.DesignerSerializationVisibility.Hidden)]
+    public Color HoverBack { get; set; }
+    [System.ComponentModel.DesignerSerializationVisibility(System.ComponentModel.DesignerSerializationVisibility.Hidden)]
+    public Color BorderColor { get; set; }
+    [System.ComponentModel.DesignerSerializationVisibility(System.ComponentModel.DesignerSerializationVisibility.Hidden)]
+    public int BorderSize { get; set; }
+
+    public ThemedButton()
+    {
+        SetStyle(ControlStyles.UserPaint | ControlStyles.AllPaintingInWmPaint | ControlStyles.OptimizedDoubleBuffer | ControlStyles.ResizeRedraw, true);
+        FlatStyle = FlatStyle.Flat;
+        TextAlign = ContentAlignment.MiddleCenter;
+    }
+
+    protected override void OnMouseEnter(EventArgs e) { _hover = true; Invalidate(); base.OnMouseEnter(e); }
+    protected override void OnMouseLeave(EventArgs e) { _hover = false; _down = false; Invalidate(); base.OnMouseLeave(e); }
+    protected override void OnMouseDown(MouseEventArgs e) { _down = true; Invalidate(); base.OnMouseDown(e); }
+    protected override void OnMouseUp(MouseEventArgs e) { _down = false; Invalidate(); base.OnMouseUp(e); }
+    protected override void OnEnabledChanged(EventArgs e) { base.OnEnabledChanged(e); Cursor = Enabled ? Cursors.Hand : Cursors.Default; Invalidate(); }
+
+    protected override void OnPaint(PaintEventArgs e)
+    {
+        var g = e.Graphics;
+        var disabled = !Enabled;
+        var back = disabled ? Theme.DisabledBack : (_hover || _down) ? HoverBack : BackColor;
+        var fore = disabled ? Theme.DisabledFore : ForeColor;
+        g.Clear(back);
+
+        if (disabled || BorderSize > 0)
+        {
+            using var pen = new Pen(disabled ? Theme.Border : BorderColor);
+            g.DrawRectangle(pen, 0, 0, Width - 1, Height - 1);
+        }
+        else if (Focused && ShowFocusCues)
+        {
+            using var pen = new Pen(Theme.Text) { DashStyle = System.Drawing.Drawing2D.DashStyle.Dot };
+            g.DrawRectangle(pen, 2, 2, Width - 5, Height - 5);
+        }
+
+        var left = TextAlign is ContentAlignment.MiddleLeft or ContentAlignment.TopLeft or ContentAlignment.BottomLeft;
+        var flags = TextFormatFlags.VerticalCenter | TextFormatFlags.EndEllipsis | TextFormatFlags.SingleLine | TextFormatFlags.HidePrefix
+            | (left ? TextFormatFlags.Left : TextFormatFlags.HorizontalCenter);
+        var area = left ? new Rectangle(12, 0, Width - 20, Height) : new Rectangle(4, 0, Width - 8, Height);
+        TextRenderer.DrawText(g, Text, Font, area, fore, flags);
+    }
+}
