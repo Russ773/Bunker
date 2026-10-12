@@ -21,6 +21,10 @@ public class ConsoleView : Panel
     private Panel? _bar;
     private int _historyIndex;
 
+    // Search and filters (console mode only)
+    private readonly ModernField _search = new();
+    private bool _showChat = true, _showWarnings = true, _showErrors = true, _showCommands = true;
+
     /// <summary>Controls the hosting Card should show on the right of its header.</summary>
     public Control[] HeaderActions => new Control[] { _autoScroll, _clear };
 
@@ -34,6 +38,8 @@ public class ConsoleView : Panel
         var host = new Panel { Dock = DockStyle.Fill, BackColor = Theme.Bg, Padding = new Padding(10, 8, 6, 6) };
         host.Controls.Add(_box);
         Controls.Add(host);
+
+        if (!chat) Controls.Add(BuildFilterBar());
 
         if (showInput)
         {
@@ -89,6 +95,68 @@ public class ConsoleView : Panel
     private void OnAdded(LogEntry e) => Append(e);
     private void OnCleared() => _box.Clear();
 
+    /// <summary>A search box and on/off chips that hide chat, warnings, errors or Bunker's own command lines.</summary>
+    private Panel BuildFilterBar()
+    {
+        var bar = new Panel { Dock = DockStyle.Top, Height = 46, BackColor = Theme.Panel, Padding = new Padding(0, 0, 0, 8) };
+
+        var chips = new FlowLayoutPanel { Dock = DockStyle.Right, AutoSize = true, WrapContents = false, BackColor = Theme.Panel, Padding = new Padding(8, 3, 0, 0) };
+        void Chip(string text, Func<bool> get, Action<bool> set)
+        {
+            var b = Theme.GhostButton(text);
+            b.Height = 32;
+            b.Width = TextRenderer.MeasureText(text, Theme.Semibold).Width + 24;
+            b.Margin = new Padding(0, 0, 6, 0);
+            void Style()
+            {
+                var on = get();
+                var t = (ThemedButton)b;
+                t.BackColor = on ? Theme.Selection : Theme.Panel;
+                t.ForeColor = on ? Theme.Text : Theme.Muted;
+                t.HoverBack = Theme.Input;
+                t.BorderColor = on ? Theme.Accent : Theme.Border;
+                t.Invalidate();
+            }
+            b.Click += (_, _) => { set(!get()); Style(); RebuildView(); };
+            Style();
+            chips.Controls.Add(b);
+        }
+        Chip("Chat", () => _showChat, v => _showChat = v);
+        Chip("Warnings", () => _showWarnings, v => _showWarnings = v);
+        Chip("Errors", () => _showErrors, v => _showErrors = v);
+        Chip("Commands", () => _showCommands, v => _showCommands = v);
+
+        _search.Dock = DockStyle.Fill;
+        _search.Box.PlaceholderText = "Search the console";
+        _search.Box.TextChanged += (_, _) => RebuildView();
+#if DEBUG
+        if (Environment.GetEnvironmentVariable("BUNKER_TEST_CONSOLE_SEARCH") is { Length: > 0 } testQuery) _search.Text = testQuery;
+#endif
+        var host = new Panel { Dock = DockStyle.Fill, BackColor = Theme.Panel, Padding = new Padding(0, 3, 0, 0) };
+        host.Controls.Add(_search);
+        bar.Controls.Add(host);
+        bar.Controls.Add(chips);
+        return bar;
+    }
+
+    private bool Passes(LogEntry e)
+    {
+        if (_chat) return e.Kind == LogKind.Chat;
+        if (e.Kind == LogKind.Chat && !_showChat) return false;
+        if (e.Kind == LogKind.Warning && !_showWarnings) return false;
+        if (e.Kind == LogKind.Error && !_showErrors) return false;
+        if (e.Kind is LogKind.Command or LogKind.Info && !_showCommands) return false;
+        var q = _search.Text.Trim();
+        return q.Length == 0 || e.Text.Contains(q, StringComparison.OrdinalIgnoreCase);
+    }
+
+    /// <summary>Redraws everything that matches the current search and filters.</summary>
+    private void RebuildView()
+    {
+        _box.Clear();
+        foreach (var e in _core.Log.Entries) Append(e);
+    }
+
     private void ApplyEnabled()
     {
         if (!_showInput) return;
@@ -133,7 +201,7 @@ public class ConsoleView : Panel
 
     private void Append(LogEntry e)
     {
-        if (_chat && e.Kind != LogKind.Chat) return;
+        if (!Passes(e)) return;
         if (_box.TextLength > 400_000) { _box.Select(0, _box.TextLength / 2); _box.SelectedText = ""; }
         _box.SelectionStart = _box.TextLength;
         _box.SelectionLength = 0;
@@ -303,7 +371,7 @@ public static class Widgets
     {
         WidgetKind.Console, WidgetKind.Chat, WidgetKind.Players, WidgetKind.ServerInfo, WidgetKind.GiveItems,
         WidgetKind.Announce, WidgetKind.QuickActions, WidgetKind.Moderation, WidgetKind.Teleport, WidgetKind.Shortcuts,
-        WidgetKind.Health, WidgetKind.Scheduler,
+        WidgetKind.Health, WidgetKind.Scheduler, WidgetKind.PlayerDb, WidgetKind.Activity, WidgetKind.ChatMonitor,
     };
 
     public static string Name(WidgetKind k) => k switch
@@ -320,6 +388,9 @@ public static class Widgets
         WidgetKind.Custom => "Community widget",
         WidgetKind.Health => "Server health",
         WidgetKind.Scheduler => "Scheduler",
+        WidgetKind.PlayerDb => "Player database",
+        WidgetKind.Activity => "Join and leave feed",
+        WidgetKind.ChatMonitor => "Chat monitor",
         _ => "Server info",
     };
 
@@ -339,6 +410,9 @@ public static class Widgets
             case WidgetKind.Shortcuts: return (new ShortcutsView(core), Array.Empty<Control>());
             case WidgetKind.Health: return (new HealthView(core), Array.Empty<Control>());
             case WidgetKind.Scheduler: return (new SchedulerView(core), Array.Empty<Control>());
+            case WidgetKind.PlayerDb: return (new PlayerDbView(core), Array.Empty<Control>());
+            case WidgetKind.Activity: return (new ActivityView(core), Array.Empty<Control>());
+            case WidgetKind.ChatMonitor: return (new ChatMonitorView(core), Array.Empty<Control>());
             case WidgetKind.Custom:
                 return core.Widgets.Get(customId) is { } def
                     ? (new CustomWidgetView(core, def), Array.Empty<Control>())

@@ -23,6 +23,9 @@ public class ToolsPage : Panel, ISectionPage
         new("give", "", "Give items", WidgetKind.GiveItems),
         new("health", "", "Server health", WidgetKind.Health),
         new("scheduler", "", "Scheduler", WidgetKind.Scheduler),
+        new("playerdb", "", "Player database", WidgetKind.PlayerDb),
+        new("activity", "", "Activity", WidgetKind.Activity),
+        new("chatmon", "", "Chat monitor", WidgetKind.ChatMonitor),
     };
 
     private const string ManageKey = "widgets";
@@ -171,5 +174,5 @@ public class ToolsPage : Panel, ISectionPage
     }
 
     /// <summary>Tools that need the full width instead of a form column.</summary>
-    private static readonly HashSet<WidgetKind> FullWidth = new() { WidgetKind.Health, WidgetKind.Scheduler };
+    private static readonly HashSet<WidgetKind> FullWidth = new() { WidgetKind.Health, WidgetKind.Scheduler, WidgetKind.PlayerDb, WidgetKind.Activity, WidgetKind.ChatMonitor };
 }

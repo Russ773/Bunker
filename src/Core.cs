@@ -5,7 +5,8 @@ namespace Bunker;
 
 public enum LogKind { Info, Normal, Chat, Warning, Error, Command }
 
-public record LogEntry(DateTime Time, string Text, LogKind Kind);
+/// <summary>One console line. For chat, UserId/UserName/Message say who said what.</summary>
+public record LogEntry(DateTime Time, string Text, LogKind Kind, string? UserId = null, string? UserName = null, string? Message = null);
 
 /// <summary>Everything the console has shown, shared by every console/chat view so they stay in sync.</summary>
 public class ConsoleLog
@@ -17,9 +18,9 @@ public class ConsoleLog
     public event Action<LogEntry>? Added;
     public event Action? Cleared;
 
-    public void Add(string text, LogKind kind = LogKind.Normal)
+    public void Add(string text, LogKind kind = LogKind.Normal, string? userId = null, string? userName = null, string? message = null)
     {
-        var e = new LogEntry(DateTime.Now, text, kind);
+        var e = new LogEntry(DateTime.Now, text, kind, userId, userName, message);
         _entries.Add(e);
         if (_entries.Count > MaxEntries) _entries.RemoveRange(0, _entries.Count - MaxEntries);
         Added?.Invoke(e);
@@ -51,7 +52,18 @@ public class ServerMonitor : IDisposable
 
     /// <summary>Recent readings, oldest first.</summary>
     public IReadOnlyList<HealthSample> History => _history;
-    public void ClearHistory() { _history.Clear(); Updated?.Invoke(); }
+    public void ClearHistory() { _history.Clear(); RaiseUpdated(); }
+
+    /// <summary>Tells every listener, so one listener failing cannot stop the others (or the next poll). Failures are shown in debug builds.</summary>
+    private void RaiseUpdated()
+    {
+        if (Updated is null) return;
+        foreach (var listener in Updated.GetInvocationList().Cast<Action>())
+        {
+            try { listener(); }
+            catch (Exception e) { System.Diagnostics.Debug.WriteLine("Monitor listener failed: " + e); }
+        }
+    }
 
 #if DEBUG
     /// <summary>Test hook: fills the history with believable readings so charts can be checked without waiting.</summary>
@@ -66,7 +78,7 @@ public class ServerMonitor : IDisposable
             _history.Add(new HealthSample(t, (int)Math.Round(14 + wave * 6 + rnd.Next(-1, 2)), Math.Min(60, 57 + rnd.NextDouble() * 3 - (i is > 120 and < 135 ? 22 : 0)),
                 180_000 + i * 55 + rnd.Next(-300, 300), 6100 + i * 2 + rnd.Next(-20, 20), 40_000 + i * 5));
         }
-        Updated?.Invoke();
+        RaiseUpdated();
     }
 #endif
     public event Action? Updated;
@@ -84,7 +96,7 @@ public class ServerMonitor : IDisposable
         _timer.Stop();
         Info = null;
         Players = Array.Empty<PlayerInfo>();
-        Updated?.Invoke();
+        RaiseUpdated();
     }
 
     public async Task RefreshAsync()
@@ -102,7 +114,7 @@ public class ServerMonitor : IDisposable
                 if (_history.Count > MaxSamples) _history.RemoveRange(0, _history.Count - MaxSamples);
             }
             Players = players;
-            Updated?.Invoke();
+            RaiseUpdated();
         }
         catch { /* a missed poll is fine; the next tick tries again */ }
         finally { _busy = false; }
@@ -156,6 +168,7 @@ public class Core
     public RconClient Rcon { get; } = new();
     public WidgetStore Widgets { get; } = new();
     public Scheduler Scheduler { get; }
+    public PlayerTracker Tracker { get; }
     public ConsoleLog Log { get; } = new();
     public ServerMonitor Monitor { get; }
 
@@ -184,6 +197,7 @@ public class Core
         Settings = settings;
         Monitor = new ServerMonitor(Rcon);
         Scheduler = new Scheduler(this);
+        Tracker = new PlayerTracker(this);
         Rcon.MessageReceived += m => _ui.Post(_ => OnMessage(m), null);
         Rcon.Disconnected += reason => _ui.Post(_ =>
         {
@@ -269,22 +283,31 @@ public class Core
     private void OnMessage(RconMessage m)
     {
         var type = m.Type.ToLowerInvariant();
-        if (type == "chat") { Log.Add(FormatChat(m.Message), LogKind.Chat); return; }
+        if (type == "chat")
+        {
+            var (text, userId, name, message) = ParseChat(m.Message);
+            Log.Add(text, LogKind.Chat, userId, name, message);
+            return;
+        }
         var kind = type switch { "warning" => LogKind.Warning, "error" => LogKind.Error, _ => LogKind.Normal };
         Log.Add(m.Message.TrimEnd('\n'), kind);
     }
 
-    /// <summary>Newer Rust versions send chat as JSON; turn it into "Name: message".</summary>
-    private static string FormatChat(string raw)
+    /// <summary>Newer Rust versions send chat as JSON (with the player's Steam ID); turn it into "Name: message".</summary>
+    internal static (string Text, string? UserId, string? Name, string? Message) ParseChat(string raw)
     {
         try
         {
             using var doc = JsonDocument.Parse(raw);
             var r = doc.RootElement;
             if (r.TryGetProperty("Username", out var u) && r.TryGetProperty("Message", out var msg))
-                return $"{u.GetString()}: {msg.GetString()}";
+            {
+                var id = r.TryGetProperty("UserId", out var uid) ? (uid.ValueKind == JsonValueKind.String ? uid.GetString() : uid.GetRawText()) : null;
+                return ($"{u.GetString()}: {msg.GetString()}", id, u.GetString(), msg.GetString());
+            }
         }
         catch { }
-        return raw.TrimEnd('\n');
+        var plain = raw.TrimEnd('\n');
+        return (plain, null, null, plain);
     }
 }

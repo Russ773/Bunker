@@ -28,6 +28,7 @@ public static class Theme
     public static Color GridLine { get; private set; } = Color.FromArgb(36, 40, 48);
     public static Color Dim { get; private set; } = Color.FromArgb(90, 96, 108);
     public static Color SplashTop { get; private set; } = Color.FromArgb(24, 27, 33);
+    public static Color MatchBack { get; private set; } = Color.FromArgb(62, 50, 20);
     public static Color DisabledBack { get; private set; } = Color.FromArgb(52, 57, 66);
     public static Color DisabledFore { get; private set; } = Color.FromArgb(132, 139, 150);
 
@@ -54,6 +55,7 @@ public static class Theme
         GridLine = Color.FromArgb(228, 231, 237);
         Dim = Color.FromArgb(150, 157, 168);
         SplashTop = Color.FromArgb(255, 255, 255);
+        MatchBack = Color.FromArgb(255, 243, 208);
         DisabledBack = Color.FromArgb(222, 226, 232);
         DisabledFore = Color.FromArgb(142, 149, 160);
     }

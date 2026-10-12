@@ -256,6 +256,8 @@ public class DarkGrid : DataGridView
         };
         AutoSizeColumnsMode = DataGridViewAutoSizeColumnsMode.Fill;
         DarkScroll.Apply(this);
+        // A table's scrollbars are separate child controls, so they need the dark look applied individually.
+        HandleCreated += (_, _) => { foreach (var bar in Controls.OfType<ScrollBar>()) DarkScroll.Apply(bar); };
     }
 }
 

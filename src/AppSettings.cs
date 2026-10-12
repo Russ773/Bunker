@@ -34,7 +34,7 @@ public class ServerProfile
 }
 
 [JsonConverter(typeof(JsonStringEnumConverter))]
-public enum WidgetKind { Console, Chat, Players, ServerInfo, GiveItems, Announce, QuickActions, Moderation, Teleport, Shortcuts, Custom, Health, Scheduler }
+public enum WidgetKind { Console, Chat, Players, ServerInfo, GiveItems, Announce, QuickActions, Moderation, Teleport, Shortcuts, Custom, Health, Scheduler, PlayerDb, Activity, ChatMonitor }
 
 [JsonConverter(typeof(JsonStringEnumConverter))]
 public enum LayoutPreset { Single, TwoColumns, TwoRows, ThreeLeftBig, FourGrid }
@@ -98,6 +98,9 @@ public class AppSettings
     public List<string> SavedAnnouncements { get; set; } = new();
     public List<CommandShortcut> Shortcuts { get; set; } = new();
     public List<ScheduledTask> Schedules { get; set; } = new();
+    public string ChatWatchWords { get; set; } = "";
+    public bool ChatFlash { get; set; } = true;
+    public bool ChatSound { get; set; }
 
     /// <summary>The single server saved by older versions. Moved into Servers the first time settings load.</summary>
     [JsonPropertyName("Server")]
