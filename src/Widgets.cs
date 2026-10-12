@@ -303,6 +303,7 @@ public static class Widgets
     {
         WidgetKind.Console, WidgetKind.Chat, WidgetKind.Players, WidgetKind.ServerInfo, WidgetKind.GiveItems,
         WidgetKind.Announce, WidgetKind.QuickActions, WidgetKind.Moderation, WidgetKind.Teleport, WidgetKind.Shortcuts,
+        WidgetKind.Health, WidgetKind.Scheduler,
     };
 
     public static string Name(WidgetKind k) => k switch
@@ -317,6 +318,8 @@ public static class Widgets
         WidgetKind.Teleport => "Teleport",
         WidgetKind.Shortcuts => "Shortcuts",
         WidgetKind.Custom => "Community widget",
+        WidgetKind.Health => "Server health",
+        WidgetKind.Scheduler => "Scheduler",
         _ => "Server info",
     };
 
@@ -334,6 +337,8 @@ public static class Widgets
             case WidgetKind.Moderation: return (new ModerationView(core), Array.Empty<Control>());
             case WidgetKind.Teleport: return (new TeleportView(core), Array.Empty<Control>());
             case WidgetKind.Shortcuts: return (new ShortcutsView(core), Array.Empty<Control>());
+            case WidgetKind.Health: return (new HealthView(core), Array.Empty<Control>());
+            case WidgetKind.Scheduler: return (new SchedulerView(core), Array.Empty<Control>());
             case WidgetKind.Custom:
                 return core.Widgets.Get(customId) is { } def
                     ? (new CustomWidgetView(core, def), Array.Empty<Control>())

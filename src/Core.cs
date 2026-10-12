@@ -31,6 +31,9 @@ public class ConsoleLog
 public record ServerInfo(string Hostname, int Players, int MaxPlayers, int Queued, int Joining, int Entities,
     double Fps, long UptimeSeconds, long MemoryMb, string Map);
 
+/// <summary>One reading of the server taken by the monitor (used for the health charts).</summary>
+public record HealthSample(DateTime Time, int Players, double Fps, int Entities, long MemoryMb, long UptimeSeconds);
+
 public record PlayerInfo(string SteamId, string Name, int Ping, string Address, long ConnectedSeconds, double Health);
 
 /// <summary>Polls serverinfo and playerlist while connected and publishes the results.</summary>
@@ -42,6 +45,30 @@ public class ServerMonitor : IDisposable
 
     public ServerInfo? Info { get; private set; }
     public IReadOnlyList<PlayerInfo> Players { get; private set; } = Array.Empty<PlayerInfo>();
+
+    private readonly List<HealthSample> _history = new();
+    private const int MaxSamples = 1440; // two hours at one reading every 5 seconds
+
+    /// <summary>Recent readings, oldest first.</summary>
+    public IReadOnlyList<HealthSample> History => _history;
+    public void ClearHistory() { _history.Clear(); Updated?.Invoke(); }
+
+#if DEBUG
+    /// <summary>Test hook: fills the history with believable readings so charts can be checked without waiting.</summary>
+    public void SeedForTest()
+    {
+        var rnd = new Random(7);
+        _history.Clear();
+        for (var i = 0; i < 260; i++)
+        {
+            var t = DateTime.Now.AddSeconds(-(260 - i) * 5);
+            var wave = Math.Sin(i / 22.0);
+            _history.Add(new HealthSample(t, (int)Math.Round(14 + wave * 6 + rnd.Next(-1, 2)), Math.Min(60, 57 + rnd.NextDouble() * 3 - (i is > 120 and < 135 ? 22 : 0)),
+                180_000 + i * 55 + rnd.Next(-300, 300), 6100 + i * 2 + rnd.Next(-20, 20), 40_000 + i * 5));
+        }
+        Updated?.Invoke();
+    }
+#endif
     public event Action? Updated;
 
     public ServerMonitor(RconClient rcon)
@@ -68,7 +95,12 @@ public class ServerMonitor : IDisposable
         {
             var info = ParseInfo(await _rcon.QueryAsync("serverinfo"));
             var players = ParsePlayers(await _rcon.QueryAsync("playerlist"));
-            if (info is not null) Info = info;
+            if (info is not null)
+            {
+                Info = info;
+                _history.Add(new HealthSample(DateTime.Now, info.Players, info.Fps, info.Entities, info.MemoryMb, info.UptimeSeconds));
+                if (_history.Count > MaxSamples) _history.RemoveRange(0, _history.Count - MaxSamples);
+            }
             Players = players;
             Updated?.Invoke();
         }
@@ -123,6 +155,7 @@ public class Core
     public AppSettings Settings { get; }
     public RconClient Rcon { get; } = new();
     public WidgetStore Widgets { get; } = new();
+    public Scheduler Scheduler { get; }
     public ConsoleLog Log { get; } = new();
     public ServerMonitor Monitor { get; }
 
@@ -150,6 +183,7 @@ public class Core
     {
         Settings = settings;
         Monitor = new ServerMonitor(Rcon);
+        Scheduler = new Scheduler(this);
         Rcon.MessageReceived += m => _ui.Post(_ => OnMessage(m), null);
         Rcon.Disconnected += reason => _ui.Post(_ =>
         {
@@ -182,6 +216,7 @@ public class Core
         if (Settings.Servers.All(s => s.Id != id)) return;
         if (State != ConnState.Disconnected) await DisconnectAsync();
         Settings.ActiveServerId = id;
+        Monitor.ClearHistory();
         Settings.Save();
         Log.Clear();
         ServerChanged?.Invoke();
@@ -227,6 +262,7 @@ public class Core
         State = state;
         StatusText = text;
         if (state != ConnState.Connected) Monitor.Stop();
+        else Scheduler.OnConnected();
         StateChanged?.Invoke();
     }
 

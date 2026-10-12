@@ -10,6 +10,8 @@
     <Version>0.0.9</Version>
     <AssemblyName>Bunker</AssemblyName>
     <RootNamespace>Bunker</RootNamespace>
+    <!-- Our custom controls are never edited in the Visual Studio designer, so designer-serialization warnings do not apply. -->
+    <NoWarn>$(NoWarn);WFO1000</NoWarn>
   </PropertyGroup>
 
   <!-- Build number: CI passes -p:BuildNumber=<run number>. Local builds use the number of 10-minute

@@ -34,7 +34,7 @@ public class ServerProfile
 }
 
 [JsonConverter(typeof(JsonStringEnumConverter))]
-public enum WidgetKind { Console, Chat, Players, ServerInfo, GiveItems, Announce, QuickActions, Moderation, Teleport, Shortcuts, Custom }
+public enum WidgetKind { Console, Chat, Players, ServerInfo, GiveItems, Announce, QuickActions, Moderation, Teleport, Shortcuts, Custom, Health, Scheduler }
 
 [JsonConverter(typeof(JsonStringEnumConverter))]
 public enum LayoutPreset { Single, TwoColumns, TwoRows, ThreeLeftBig, FourGrid }
@@ -70,6 +70,20 @@ public class CommandShortcut
     public bool Confirm { get; set; }
 }
 
+/// <summary>A command (or list of commands) Bunker runs on a timer while connected.</summary>
+public class ScheduledTask
+{
+    public string Id { get; set; } = Guid.NewGuid().ToString("N");
+    public string Name { get; set; } = "";
+    public List<string> Commands { get; set; } = new();
+    /// <summary>"interval" (every N minutes) or "daily" (at a time of day).</summary>
+    public string Mode { get; set; } = "interval";
+    public int IntervalMinutes { get; set; } = 60;
+    public string TimeOfDay { get; set; } = "04:00";
+    public bool Enabled { get; set; } = true;
+    public DateTime? LastRunUtc { get; set; }
+}
+
 public class AppSettings
 {
     public bool CheckForUpdatesOnLaunch { get; set; } = true;
@@ -83,6 +97,7 @@ public class AppSettings
     public LayoutConfig Layout { get; set; } = new();
     public List<string> SavedAnnouncements { get; set; } = new();
     public List<CommandShortcut> Shortcuts { get; set; } = new();
+    public List<ScheduledTask> Schedules { get; set; } = new();
 
     /// <summary>The single server saved by older versions. Moved into Servers the first time settings load.</summary>
     [JsonPropertyName("Server")]

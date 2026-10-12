@@ -21,6 +21,8 @@ public class ToolsPage : Panel, ISectionPage
         new("teleport", "", "Teleport", WidgetKind.Teleport),
         new("shortcuts", "", "Shortcuts", WidgetKind.Shortcuts),
         new("give", "", "Give items", WidgetKind.GiveItems),
+        new("health", "", "Server health", WidgetKind.Health),
+        new("scheduler", "", "Scheduler", WidgetKind.Scheduler),
     };
 
     private const string ManageKey = "widgets";
@@ -138,25 +140,36 @@ public class ToolsPage : Panel, ISectionPage
     {
         var (_, host, tab) = _sections[key];
 
-        Control tool;
-        Control[] actions = Array.Empty<Control>();
-        var width = 600;
-        if (key == ManageKey)
+        if (key == ManageKey || FullWidth.Contains(tab.Kind))
         {
-            tool = new WidgetManagerView(_core);
-            width = 880;
+            // Wide tools (tables, charts, the widget manager) use the whole page.
+            Control wide;
+            Control[] wideActions = Array.Empty<Control>();
+            if (key == ManageKey) wide = new WidgetManagerView(_core);
+            else (wide, wideActions) = Widgets.Create(tab.Kind, _core, 2, tab.CustomId);
+            var wideCard = Card.Titled(tab.Title, wide, wideActions);
+            wideCard.Dock = DockStyle.Fill;
+            host.Controls.Add(wideCard);
+            return;
         }
-        else (tool, actions) = Widgets.Create(tab.Kind, _core, 2, tab.CustomId);
 
-        // Tools are laid out for a narrow column, so keep them at a readable width instead of stretching across the page.
-        var inner = new Panel { BackColor = Theme.Panel };
-        tool.Dock = DockStyle.Left;
-        tool.Width = width;
-        inner.Controls.Add(tool);
-
-        var card = Card.Titled(tab.Title, inner, actions);
+        // Form-style tools sit on the left at a comfortable width; the live console sits beside them so the
+        // server's reply to every button is visible straight away.
+        var (tool, actions) = Widgets.Create(tab.Kind, _core, 2, tab.CustomId);
+        var card = Card.Titled(tab.Title, tool, actions);
         card.Dock = DockStyle.Left;
-        card.Width = width + 80;
+        card.Width = 640;
+
+        var console = new ConsoleView(_core);
+        var consoleCard = Card.Titled("Server replies", console, console.HeaderActions);
+        consoleCard.Dock = DockStyle.Fill;
+
+        var gap = new Panel { Dock = DockStyle.Left, Width = 12, BackColor = Theme.Bg };
+        host.Controls.Add(consoleCard); // docked last: takes the space that is left
+        host.Controls.Add(gap);
         host.Controls.Add(card);
     }
+
+    /// <summary>Tools that need the full width instead of a form column.</summary>
+    private static readonly HashSet<WidgetKind> FullWidth = new() { WidgetKind.Health, WidgetKind.Scheduler };
 }
