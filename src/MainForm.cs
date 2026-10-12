@@ -48,6 +48,8 @@ public class MainForm : Form
 
         Shown += async (_, _) => await StartupAsync();
 #if DEBUG
+        if (Environment.GetEnvironmentVariable("BUNKER_TEST_REVIEW") is { Length: > 0 } reviewFile)
+            Shown += async (_, _) => { await Task.Delay(4000); if (WidgetRules.Parse(File.ReadAllText(reviewFile), out _) is { } d) { using var f = new WidgetReviewForm(d, install: true); f.ShowDialog(this); } };
         if (Environment.GetEnvironmentVariable("BUNKER_TEST_FULLSCREEN") == "1")
             Shown += async (_, _) => { await Task.Delay(6000); using var f = new FullscreenForm(_core, this); f.ShowDialog(this); };
 #endif

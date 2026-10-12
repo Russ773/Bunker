@@ -21,6 +21,9 @@ jobs:
         shell: bash
         run: echo "VERSION=${GITHUB_REF_NAME#v}" >> "$GITHUB_ENV"
 
+      - name: Test
+        run: dotnet test tests/Bunker.Tests -c Release
+
       - name: Publish
         run: dotnet publish src/Bunker.csproj -c Release -r win-x64 --self-contained -p:PublishSingleFile=true -p:Version=${{ env.VERSION }} -p:BuildNumber=${{ github.run_number }} -o publish
 

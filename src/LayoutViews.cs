@@ -26,6 +26,8 @@ public class LayoutGrid : Panel
             layout.Slots = fixedSlots;
         }
 
+        if (layout.CustomIds is not { Length: >= 4 }) layout.CustomIds = new string?[4];
+
         SuspendLayout();
         foreach (var c in Controls.Cast<Control>().ToList()) { Controls.Remove(c); c.Dispose(); }
 
@@ -53,36 +55,58 @@ public class LayoutGrid : Panel
 
     private Card MakeSlot(int index, int infoColumns)
     {
-        var kind = _core.Settings.Layout.SlotAt(index);
+        var layout = _core.Settings.Layout;
+        var kind = layout.SlotAt(index);
+        var customId = layout.CustomAt(index);
+        var title = kind == WidgetKind.Custom ? _core.Widgets.Get(customId)?.Name ?? "Missing widget" : Widgets.Name(kind);
+
         if (!_editable)
         {
-            var (plain, plainActions) = Widgets.Create(kind, _core, infoColumns);
-            return Card.Titled(Widgets.Name(kind), plain, plainActions);
+            var (plain, plainActions) = Widgets.Create(kind, _core, infoColumns, customId);
+            return Card.Titled(title, plain, plainActions);
         }
 
-        var picker = Theme.GhostButton(Widgets.Name(kind) + "   ▾");
-        picker.Width = 160;
+        var picker = Theme.GhostButton(title + "   ▾");
+        picker.Width = 190;
         picker.Height = 30;
         picker.Location = new Point(0, 6);
         picker.Font = Theme.Semibold;
+
+        void Choose(WidgetKind k, string? id)
+        {
+            layout.Slots[index] = k;
+            if (layout.CustomIds is not { Length: >= 4 }) layout.CustomIds = new string?[4];
+            layout.CustomIds[index] = id;
+            _core.Settings.Save();
+            BeginInvoke(Rebuild);
+        }
 
         var menu = new ContextMenuStrip { BackColor = Theme.Input, ForeColor = Theme.Text, Renderer = new DarkMenuRenderer(), ShowImageMargin = false };
         foreach (var k in Widgets.All)
         {
             var item = new ToolStripMenuItem(Widgets.Name(k)) { Checked = k == kind, BackColor = Theme.Input, ForeColor = Theme.Text };
-            item.Click += (_, _) =>
-            {
-                _core.Settings.Layout.Slots[index] = k;
-                _core.Settings.Save();
-                BeginInvoke(Rebuild);
-            };
+            item.Click += (_, _) => Choose(k, null);
             menu.Items.Add(item);
         }
+
+        var community = _core.Widgets.All;
+        if (community.Count > 0)
+        {
+            menu.Items.Add(new ToolStripSeparator());
+            menu.Items.Add(new ToolStripMenuItem("Community widgets") { Enabled = false, BackColor = Theme.Input, ForeColor = Theme.Muted });
+            foreach (var d in community)
+            {
+                var def = d;
+                var item = new ToolStripMenuItem(def.Name) { Checked = kind == WidgetKind.Custom && customId == def.Id, BackColor = Theme.Input, ForeColor = Theme.Text };
+                item.Click += (_, _) => Choose(WidgetKind.Custom, def.Id);
+                menu.Items.Add(item);
+            }
+        }
         picker.Click += (_, _) => menu.Show(picker, new Point(0, picker.Height));
-        var holder = new Panel { Width = 170, BackColor = Theme.Panel };
+        var holder = new Panel { Width = 200, BackColor = Theme.Panel };
         holder.Controls.Add(picker);
 
-        var (content, actions) = Widgets.Create(kind, _core, infoColumns);
+        var (content, actions) = Widgets.Create(kind, _core, infoColumns, customId);
         return new Card(holder, content, actions);
     }
 }

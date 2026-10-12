@@ -316,11 +316,12 @@ public static class Widgets
         WidgetKind.Moderation => "Moderation",
         WidgetKind.Teleport => "Teleport",
         WidgetKind.Shortcuts => "Shortcuts",
+        WidgetKind.Custom => "Community widget",
         _ => "Server info",
     };
 
     /// <summary>Returns the widget's content and the actions its card should show.</summary>
-    public static (Control Content, Control[] Actions) Create(WidgetKind kind, Core core, int infoColumns = 2)
+    public static (Control Content, Control[] Actions) Create(WidgetKind kind, Core core, int infoColumns = 2, string? customId = null)
     {
         switch (kind)
         {
@@ -333,6 +334,10 @@ public static class Widgets
             case WidgetKind.Moderation: return (new ModerationView(core), Array.Empty<Control>());
             case WidgetKind.Teleport: return (new TeleportView(core), Array.Empty<Control>());
             case WidgetKind.Shortcuts: return (new ShortcutsView(core), Array.Empty<Control>());
+            case WidgetKind.Custom:
+                return core.Widgets.Get(customId) is { } def
+                    ? (new CustomWidgetView(core, def), Array.Empty<Control>())
+                    : (new Label { Text = "This community widget is not installed any more. Pick another widget from the title menu, or add it again under Tools, Widgets.", ForeColor = Theme.Muted, Padding = new Padding(4, 14, 4, 0) }, Array.Empty<Control>());
             default: { var v = new ConsoleView(core); return (v, v.HeaderActions); }
         }
     }

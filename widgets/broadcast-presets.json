@@ -1,0 +1,16 @@
+{
+  "id": "broadcast-presets",
+  "name": "Broadcast Presets",
+  "author": "Bunker",
+  "version": "1.0.0",
+  "description": "One-click server messages for common announcements, plus a box for your own message.",
+  "controls": [
+    { "type": "label", "text": "Ready-made messages" },
+    { "type": "button", "text": "Wipe reminder", "commands": [ "say \"Reminder: the server wipes on the first Thursday of the month. Plan ahead!\"" ] },
+    { "type": "button", "text": "Rules reminder", "style": "ghost", "commands": [ "say \"Please keep chat friendly and read the rules on our website.\"" ] },
+    { "type": "button", "text": "Restart warning", "style": "ghost", "commands": [ "say \"The server will restart soon. Finish up what you are doing.\"" ] },
+    { "type": "separator" },
+    { "type": "text", "id": "message", "label": "Your own message", "placeholder": "Type a message for everyone" },
+    { "type": "button", "text": "Send message", "commands": [ "say \"{message}\"" ] }
+  ]
+}

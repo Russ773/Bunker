@@ -34,7 +34,7 @@ public class ServerProfile
 }
 
 [JsonConverter(typeof(JsonStringEnumConverter))]
-public enum WidgetKind { Console, Chat, Players, ServerInfo, GiveItems, Announce, QuickActions, Moderation, Teleport, Shortcuts }
+public enum WidgetKind { Console, Chat, Players, ServerInfo, GiveItems, Announce, QuickActions, Moderation, Teleport, Shortcuts, Custom }
 
 [JsonConverter(typeof(JsonStringEnumConverter))]
 public enum LayoutPreset { Single, TwoColumns, TwoRows, ThreeLeftBig, FourGrid }
@@ -53,6 +53,11 @@ public class LayoutConfig
         LayoutPreset.ThreeLeftBig => 3,
         _ => 4,
     };
+
+    /// <summary>Which community widget fills each slot whose kind is Custom.</summary>
+    public string?[] CustomIds { get; set; } = new string?[4];
+
+    public string? CustomAt(int i) => CustomIds is { Length: > 0 } && i < CustomIds.Length ? CustomIds[i] : null;
 
     public WidgetKind SlotAt(int i) => Slots is { Length: > 0 } && i < Slots.Length ? Slots[i] : WidgetKind.Console;
 }

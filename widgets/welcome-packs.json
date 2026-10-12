@@ -1,0 +1,46 @@
+{
+  "id": "welcome-packs",
+  "name": "Welcome Packs",
+  "author": "Bunker",
+  "version": "1.0.0",
+  "description": "Pick a player and hand them a starter, builder or fighter pack in one click.",
+  "controls": [
+    { "type": "label", "text": "Choose a player, then press a pack." },
+    { "type": "player", "id": "target", "label": "Select a player" },
+    {
+      "type": "button",
+      "text": "Starter pack",
+      "confirm": "Give {target.name} a starter pack?",
+      "commands": [
+        "inventory.giveto {target} wood 1000",
+        "inventory.giveto {target} stones 500",
+        "inventory.giveto {target} metal.fragments 200",
+        "inventory.giveto {target} cloth 100"
+      ]
+    },
+    {
+      "type": "button",
+      "text": "Builder pack",
+      "style": "ghost",
+      "confirm": "Give {target.name} a builder pack?",
+      "commands": [
+        "inventory.giveto {target} wood 5000",
+        "inventory.giveto {target} stones 3000",
+        "inventory.giveto {target} metal.fragments 1500",
+        "inventory.giveto {target} gears 20"
+      ]
+    },
+    {
+      "type": "button",
+      "text": "Fighter pack",
+      "style": "ghost",
+      "confirm": "Give {target.name} a fighter pack?",
+      "commands": [
+        "inventory.giveto {target} rifle.ak 1",
+        "inventory.giveto {target} ammo.rifle 200",
+        "inventory.giveto {target} syringe.medical 5",
+        "inventory.giveto {target} bandage 10"
+      ]
+    }
+  ]
+}

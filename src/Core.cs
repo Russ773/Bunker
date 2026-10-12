@@ -122,6 +122,7 @@ public class Core
 
     public AppSettings Settings { get; }
     public RconClient Rcon { get; } = new();
+    public WidgetStore Widgets { get; } = new();
     public ConsoleLog Log { get; } = new();
     public ServerMonitor Monitor { get; }
 
