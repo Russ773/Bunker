@@ -51,6 +51,7 @@ public class ConsoleView : Panel
             ApplyEnabled();
         }
 
+        DarkScroll.Apply(_box);
         foreach (var e in _core.Log.Entries) Append(e);
         _core.Log.Added += OnAdded;
         _core.Log.Cleared += OnCleared;
@@ -168,6 +169,7 @@ public class PlayersView : Panel
             Padding = new Padding(4, 0, 4, 0),
         };
         _grid.AutoSizeColumnsMode = DataGridViewAutoSizeColumnsMode.Fill;
+        DarkScroll.Apply(_grid);
         _grid.Columns.Add("Name", "Name");
         _grid.Columns.Add("SteamId", "Steam ID");
         _grid.Columns.Add("Ping", "Ping");
@@ -250,6 +252,7 @@ public class ServerInfoView : Panel
         _core = core;
         BackColor = Theme.Panel;
         AutoScroll = true;
+        DarkScroll.Apply(this);
 
         var table = new TableLayoutPanel { Dock = DockStyle.Top, AutoSize = true, ColumnCount = columns, BackColor = Theme.Panel };
         for (var c = 0; c < columns; c++) table.ColumnStyles.Add(new ColumnStyle(SizeType.Percent, 100f / columns));

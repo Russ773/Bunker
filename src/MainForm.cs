@@ -45,6 +45,10 @@ public class MainForm : Form
 #endif
 
         Shown += async (_, _) => await StartupAsync();
+#if DEBUG
+        if (Environment.GetEnvironmentVariable("BUNKER_TEST_FULLSCREEN") == "1")
+            Shown += async (_, _) => { await Task.Delay(6000); using var f = new FullscreenForm(_core, this); f.ShowDialog(this); };
+#endif
         FormClosing += (_, _) => _core.Rcon.Dispose();
     }
 
