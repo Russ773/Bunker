@@ -52,10 +52,54 @@ public static class Updater
     /// <summary>For display, e.g. "v0.0.3  -  build 57".</summary>
     public static string VersionText => $"v{CurrentVersion}  ·  build {BuildNumber}";
 
-    /// <summary>Returns the newer release, or null if already up to date. Throws on network/parse errors.</summary>
+    private static readonly HttpClient NoRedirect = CreateNoRedirectClient();
+
+    private static HttpClient CreateNoRedirectClient()
+    {
+        var c = new HttpClient(new HttpClientHandler { AllowAutoRedirect = false }) { Timeout = TimeSpan.FromSeconds(20) };
+        c.DefaultRequestHeaders.UserAgent.ParseAdd("Bunker-Updater");
+        return c;
+    }
+
+    /// <summary>
+    /// Returns the newer release, or null if already up to date. Throws on network/parse errors.
+    /// It first reads the release page GitHub redirects "latest" to, which is not limited the way GitHub's API is (60 requests an hour),
+    /// and only uses the API if that fails.
+    /// </summary>
     public static async Task<UpdateInfo?> CheckAsync(CancellationToken ct = default)
     {
-        var json = await Http.GetStringAsync($"https://api.github.com/repos/{Repo}/releases/latest", ct);
+        try { return await CheckViaReleasePageAsync(ct); }
+        catch (OperationCanceledException) { throw; }
+        catch { /* fall back to the API below */ }
+        return await CheckViaApiAsync(ct);
+    }
+
+    /// <summary>The version in the address GitHub redirects /releases/latest to (…/releases/tag/v1.0.5), or null.</summary>
+    public static Version? VersionFromReleaseAddress(string? address)
+    {
+        if (string.IsNullOrWhiteSpace(address) || !address.Contains("/releases/tag/", StringComparison.OrdinalIgnoreCase)) return null;
+        var tag = address[(address.LastIndexOf('/') + 1)..].TrimStart('v', 'V');
+        return Version.TryParse(tag, out var v) ? v : null;
+    }
+
+    private static async Task<UpdateInfo?> CheckViaReleasePageAsync(CancellationToken ct)
+    {
+        using var resp = await NoRedirect.GetAsync($"https://github.com/{Repo}/releases/latest", HttpCompletionOption.ResponseHeadersRead, ct);
+        var latest = VersionFromReleaseAddress(resp.Headers.Location?.ToString())
+            ?? throw new InvalidOperationException("The release page did not name a version.");
+        if (latest <= CurrentVersion) return null;
+        var tag = latest.ToString();
+        return new UpdateInfo(latest, $"https://github.com/{Repo}/releases/download/v{tag}/Bunker-Setup-{tag}.exe", "");
+    }
+
+    private static async Task<UpdateInfo?> CheckViaApiAsync(CancellationToken ct)
+    {
+        string json;
+        try { json = await Http.GetStringAsync($"https://api.github.com/repos/{Repo}/releases/latest", ct); }
+        catch (HttpRequestException e) when (e.StatusCode is System.Net.HttpStatusCode.Forbidden or System.Net.HttpStatusCode.TooManyRequests)
+        {
+            throw new InvalidOperationException("GitHub is limiting update checks from your internet connection for a while (up to an hour). Please try again later.");
+        }
         using var doc = JsonDocument.Parse(json);
         var root = doc.RootElement;
 

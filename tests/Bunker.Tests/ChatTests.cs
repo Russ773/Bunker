@@ -59,3 +59,19 @@ public class ChatTests
         Assert.Equal(Color.FromArgb(0x55, 0xAA, 0xFF).ToArgb(), Theme.Readable(Color.FromArgb(0x55, 0xAA, 0xFF)).ToArgb()); // already readable
     }
 }
+
+public class UpdaterTests
+{
+    [Theory]
+    [InlineData("https://github.com/Russ773/Bunker/releases/tag/v1.0.5", "1.0.5")]
+    [InlineData("https://github.com/Russ773/Bunker/releases/tag/V2.10.0", "2.10.0")]
+    public void The_version_is_read_from_the_release_address(string address, string expected) =>
+        Assert.Equal(Version.Parse(expected), Updater.VersionFromReleaseAddress(address));
+
+    [Theory]
+    [InlineData(null)]
+    [InlineData("")]
+    [InlineData("https://github.com/Russ773/Bunker/releases")]
+    [InlineData("https://github.com/Russ773/Bunker/releases/tag/nightly")]
+    public void Anything_else_is_not_a_version(string? address) => Assert.Null(Updater.VersionFromReleaseAddress(address));
+}
