@@ -77,7 +77,7 @@ Bunker is split in two so it is always clear what is part of the app and what is
 
 ### 🧩 Widgets: optional add-ons
 
-Every widget is listed under the **WIDGETS** heading in the sidebar. Click one to open it, with a live console beside it so you see the server's reply. A tag marks it **Built-in** or **Community** (community ones also have a green dot). **Add to Layout** puts any widget into a Layout section in one click.
+Every widget is listed under the **WIDGETS** heading in the sidebar. Click one to open it, with a live console beside it so you see the server's reply. A tag marks it **Built-in** or **Community** (community ones also have a green dot). **Add to Layout** puts any widget into a Layout section in one click. Right-click a widget to hide it from the menu; it stays available in the Layout picker, and a "hidden" row at the bottom brings it back.
 
 | | |
 | --- | --- |

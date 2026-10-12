@@ -90,6 +90,8 @@ public class AppSettings
     public bool StartMaximised { get; set; } = true;
     public bool AutoConnect { get; set; } = true;
     /// <summary>Download the Rust item list and pictures from GitHub (bobosneefdev/rust-items-json) so item search stays current.</summary>
+    /// <summary>Widgets hidden from the sidebar menu (by key). They stay available in the Layout picker.</summary>
+    public List<string> HiddenWidgets { get; set; } = new();
     public bool UseOnlineItemList { get; set; } = true;
     public bool LightTheme { get; set; }
     public string ConsoleFontName { get; set; } = "Consolas";

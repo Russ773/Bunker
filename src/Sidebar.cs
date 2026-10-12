@@ -103,25 +103,67 @@ public class Sidebar : Panel
     }
 
     /// <summary>(Re)creates the list under the WIDGETS heading: the built-in widgets, then installed community ones, then a way to get more.</summary>
+    private bool _showHidden;
+
     private void BuildWidgetList()
     {
         foreach (var w in _widgetItems) { _widgetList.Controls.Remove(w); w.Dispose(); }
         _widgetItems.Clear();
 
-        var entries = new List<WidgetNavItem>();
-        foreach (var info in WidgetCatalog.AllWidgets(_core))
-            entries.Add(new WidgetNavItem("widgets:" + info.Key, info.Name, info.Blurb, info.IsCommunity));
-        entries.Add(new WidgetNavItem("widgets:" + WidgetsPage.ManageKey, "Get more widgets...", "Browse the library, or add one from a file or link.", false, isAction: true));
+        var hiddenKeys = _core.Settings.HiddenWidgets;
+        var all = WidgetCatalog.AllWidgets(_core).ToList();
+        var shown = all.Where(i => !hiddenKeys.Contains(i.Key)).ToList();
+        var hidden = all.Where(i => hiddenKeys.Contains(i.Key)).ToList();
 
-        foreach (var e in entries)
+        var entries = new List<WidgetNavItem>();
+        foreach (var info in shown) entries.Add(MakeWidgetItem(info, dim: false));
+
+        // Widgets you hid are tucked behind one row; they stay in the Layout picker either way.
+        if (hidden.Count > 0)
         {
-            var key = e.Key;
-            e.Click += (_, _) => Navigated?.Invoke(key);
-            e.Selected = key == _selectedKey;
+            var toggle = new WidgetNavItem("toggle:hidden", _showHidden ? $"Hide the {hidden.Count} hidden" : $"{hidden.Count} hidden...",
+                "Widgets you hid from this menu. They are still available in the Layout picker. Right-click one to show it again.", false, isAction: true);
+            toggle.Click += (_, _) => { _showHidden = !_showHidden; BuildWidgetList(); };
+            entries.Add(toggle);
+            if (_showHidden) foreach (var info in hidden) entries.Add(MakeWidgetItem(info, dim: true));
         }
+
+        var more = new WidgetNavItem("widgets:" + WidgetsPage.ManageKey, "Get more widgets...", "Browse the library, or add one from a file or link.", false, isAction: true);
+        more.Click += (_, _) => Navigated?.Invoke("widgets:" + WidgetsPage.ManageKey);
+        entries.Add(more);
+
+        foreach (var e in entries) e.Selected = e.Key == _selectedKey;
         _widgetItems.AddRange(entries);
         // Top-docked controls stack last-added-first, so add in reverse.
         foreach (var e in Enumerable.Reverse(entries)) _widgetList.Controls.Add(e);
+    }
+
+    private WidgetNavItem MakeWidgetItem(WidgetInfo info, bool dim)
+    {
+        var key = "widgets:" + info.Key;
+        var hint = dim ? "Right-click to show it in this menu again." : "Right-click to hide it from this menu.";
+        var item = new WidgetNavItem(key, info.Name, info.Blurb + "\n\n" + hint, info.IsCommunity, dim: dim);
+        item.Click += (_, _) => Navigated?.Invoke(key);
+        item.MouseUp += (_, e) =>
+        {
+            if (e.Button != MouseButtons.Right) return;
+            var menu = new ContextMenuStrip { BackColor = Theme.Input, ForeColor = Theme.Text, Renderer = new DarkMenuRenderer(), ShowImageMargin = false };
+            var toggle = new ToolStripMenuItem(dim ? "Show in menu" : "Hide from menu") { BackColor = Theme.Input, ForeColor = Theme.Text };
+            toggle.Click += (_, _) => SetHidden(info.Key, hide: !dim);
+            menu.Items.Add(toggle);
+            menu.Items.Add(new ToolStripMenuItem("Still available in Layout") { Enabled = false, BackColor = Theme.Input, ForeColor = Theme.Muted });
+            menu.Show(item, e.Location);
+        };
+        return item;
+    }
+
+    private void SetHidden(string widgetKey, bool hide)
+    {
+        var list = _core.Settings.HiddenWidgets;
+        if (hide && !list.Contains(widgetKey)) list.Add(widgetKey);
+        if (!hide) list.Remove(widgetKey);
+        _core.Settings.Save();
+        BeginInvoke(BuildWidgetList);
     }
 
     private void ShowServerMenu()
@@ -171,14 +213,16 @@ public class WidgetNavItem : Control
     private bool _selected;
     private readonly bool _community;
     private readonly bool _action;
+    private readonly bool _dim;
 
     public string Key { get; }
 
     [System.ComponentModel.DesignerSerializationVisibility(System.ComponentModel.DesignerSerializationVisibility.Hidden)]
     public bool Selected { get => _selected; set { _selected = value; Invalidate(); } }
 
-    public WidgetNavItem(string key, string name, string blurb, bool community, bool isAction = false)
+    public WidgetNavItem(string key, string name, string blurb, bool community, bool isAction = false, bool dim = false)
     {
+        _dim = dim;
         Key = key;
         Text = name;
         _community = community;
@@ -217,7 +261,7 @@ public class WidgetNavItem : Control
             using var dot = new SolidBrush(Theme.Ok);
             g.FillEllipse(dot, 36, Height / 2 - 3, 6, 6);
         }
-        var fore = _selected ? Theme.Text : _action ? Theme.Accent : Theme.Muted;
+        var fore = _selected ? Theme.Text : _action ? Theme.Accent : _dim ? Theme.Dim : Theme.Muted;
         TextRenderer.DrawText(g, Text, Font, new Rectangle(56, 0, Width - 62, Height), fore,
             TextFormatFlags.VerticalCenter | TextFormatFlags.Left | TextFormatFlags.EndEllipsis | TextFormatFlags.NoPadding);
     }
