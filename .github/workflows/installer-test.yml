@@ -1,0 +1,25 @@
+name: Installer test build
+
+# Builds the installer without publishing a release or uploading anything,
+# so changes to the installer script can be checked safely.
+on:
+  workflow_dispatch:
+
+jobs:
+  build:
+    runs-on: windows-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-dotnet@v4
+        with:
+          dotnet-version: '10.0.x'
+      - name: Publish
+        run: dotnet publish src/Bunker.csproj -c Release -r win-x64 --self-contained -p:PublishSingleFile=true -p:BuildNumber=${{ github.run_number }} -o publish
+      - name: Install Inno Setup
+        run: choco install innosetup -y --no-progress
+      - name: Build installer
+        run: '& "C:\Program Files (x86)\Inno Setup 6\ISCC.exe" /DSourceDir=..\publish installer\Bunker.iss'
+      - uses: actions/upload-artifact@v4
+        with:
+          name: installer-test
+          path: dist/*.exe

@@ -20,7 +20,7 @@ public static class Pages
 
         var stats = Card.Titled("Server", new ServerInfoView(core, 6));
         stats.Dock = DockStyle.Top;
-        stats.Height = 160;
+        stats.Height = 150;
 
         body.Controls.Add(row);
         body.Controls.Add(stats);
@@ -114,21 +114,27 @@ public class LayoutPage : Panel
     private Card MakeSlot(int index, int infoColumns)
     {
         var kind = _core.Settings.Layout.SlotAt(index);
-        var combo = new ComboBox
+        var picker = Theme.GhostButton(Widgets.Name(kind) + "   ▾");
+        picker.Width = 160;
+        picker.Height = 30;
+        picker.Location = new Point(0, 6);
+        picker.Font = Theme.Semibold;
+
+        var menu = new ContextMenuStrip { BackColor = Theme.Input, ForeColor = Theme.Text, Renderer = new DarkMenuRenderer(), ShowImageMargin = false };
+        foreach (var k in Widgets.All)
         {
-            DropDownStyle = ComboBoxStyle.DropDownList, FlatStyle = FlatStyle.Flat, BackColor = Theme.Input, ForeColor = Theme.Text,
-            Font = Theme.Semibold, Width = 160, Location = new Point(0, 7),
-        };
-        foreach (var k in Widgets.All) combo.Items.Add(Widgets.Name(k));
-        combo.SelectedIndex = Array.IndexOf(Widgets.All, kind);
-        combo.SelectedIndexChanged += (_, _) =>
-        {
-            _core.Settings.Layout.Slots[index] = Widgets.All[combo.SelectedIndex];
-            _core.Settings.Save();
-            BeginInvoke(Rebuild);
-        };
+            var item = new ToolStripMenuItem(Widgets.Name(k)) { Checked = k == kind, BackColor = Theme.Input, ForeColor = Theme.Text };
+            item.Click += (_, _) =>
+            {
+                _core.Settings.Layout.Slots[index] = k;
+                _core.Settings.Save();
+                BeginInvoke(Rebuild);
+            };
+            menu.Items.Add(item);
+        }
+        picker.Click += (_, _) => menu.Show(picker, new Point(0, picker.Height));
         var holder = new Panel { Width = 170, BackColor = Theme.Panel };
-        holder.Controls.Add(combo);
+        holder.Controls.Add(picker);
 
         var (content, actions) = Widgets.Create(kind, _core, infoColumns);
         return new Card(holder, content, actions);
@@ -158,7 +164,7 @@ public class SettingsPage : Panel
         serverCard.Size = new Size(560, 150);
 
         var updateBody = new Panel { BackColor = Theme.Panel };
-        updateBody.Controls.Add(new Label { Text = $"Current version: {Updater.CurrentVersion}", AutoSize = true, ForeColor = Theme.Muted, Location = new Point(0, 6) });
+        updateBody.Controls.Add(new Label { Text = $"Current version: {Updater.VersionText}", AutoSize = true, ForeColor = Theme.Muted, Location = new Point(0, 6) });
         _autoUpdate.Location = new Point(0, 36);
         _check.Location = new Point(0, 68);
         updateBody.Controls.Add(_autoUpdate);

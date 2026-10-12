@@ -160,7 +160,6 @@ public class Core
             Log.Add($"Connected to {s.DisplayName} ({s.Host}:{s.Port})", LogKind.Info);
             SetState(ConnState.Connected, "Connected");
             Monitor.Start();
-            await Rcon.SendCommandAsync("serverinfo");
         }
         catch (Exception e)
         {

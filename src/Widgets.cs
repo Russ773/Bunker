@@ -171,13 +171,13 @@ public class PlayersView : Panel
         _grid.Columns.Add("Name", "Name");
         _grid.Columns.Add("SteamId", "Steam ID");
         _grid.Columns.Add("Ping", "Ping");
-        _grid.Columns.Add("Time", "Connected");
-        _grid.Columns.Add("Health", "Health");
-        _grid.Columns[0].FillWeight = 140;
-        _grid.Columns[1].FillWeight = 120;
-        _grid.Columns[2].FillWeight = 45;
-        _grid.Columns[3].FillWeight = 70;
-        _grid.Columns[4].FillWeight = 55;
+        _grid.Columns.Add("Time", "Time");
+        _grid.Columns.Add("Health", "HP");
+        _grid.Columns[0].FillWeight = 110;
+        _grid.Columns[1].FillWeight = 125;
+        _grid.Columns[2].FillWeight = 58;
+        _grid.Columns[3].FillWeight = 84;
+        _grid.Columns[4].FillWeight = 66;
         Controls.Add(_grid);
 
         var menu = new ContextMenuStrip();
@@ -223,7 +223,7 @@ public class PlayersView : Panel
         _grid.Rows.Clear();
         foreach (var p in players)
         {
-            var idx = _grid.Rows.Add(p.Name, p.SteamId, p.Ping + " ms", Duration(p.ConnectedSeconds), Math.Round(p.Health) + " hp");
+            var idx = _grid.Rows.Add(p.Name, p.SteamId, p.Ping + "ms", Duration(p.ConnectedSeconds), Math.Round(p.Health).ToString());
             _grid.Rows[idx].Tag = p;
             if (p.SteamId == selectedId) _grid.Rows[idx].Selected = true;
         }
@@ -257,9 +257,9 @@ public class ServerInfoView : Panel
         _tiles = new (Label, Label)[Captions.Length];
         for (var i = 0; i < Captions.Length; i++)
         {
-            var tile = new Panel { Dock = DockStyle.Top, Height = 78, BackColor = Theme.Input, Margin = new Padding(0, 0, 8, 8), Padding = new Padding(14, 10, 8, 6) };
-            var value = new Label { Text = "-", Font = new Font("Segoe UI Semibold", 15f), ForeColor = Theme.Text, AutoSize = true, Location = new Point(12, 24) };
-            var sub = new Label { Text = "", Font = Theme.Small, ForeColor = Theme.Muted, AutoSize = true, Location = new Point(14, 54) };
+            var tile = new Panel { Dock = DockStyle.Top, Height = 70, BackColor = Theme.Input, Margin = new Padding(0, 0, 8, 6), Padding = new Padding(14, 10, 8, 6) };
+            var value = new Label { Text = "-", Font = new Font("Segoe UI Semibold", 14f), ForeColor = Theme.Text, AutoSize = true, Location = new Point(12, 21) };
+            var sub = new Label { Text = "", Font = Theme.Small, ForeColor = Theme.Muted, AutoSize = true, Location = new Point(14, 47) };
             tile.Controls.Add(sub);
             tile.Controls.Add(value);
             tile.Controls.Add(new Label { Text = Captions[i], Font = new Font("Segoe UI Semibold", 8f), ForeColor = Theme.Muted, AutoSize = true, Location = new Point(14, 8) });

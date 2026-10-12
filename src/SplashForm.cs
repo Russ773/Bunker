@@ -10,6 +10,8 @@ public class SplashForm : Form
     private static readonly Image? Logo = LoadLogo();
     private float _progress;
 
+    protected override bool ShowWithoutActivation => true;
+
     public SplashForm()
     {
         FormBorderStyle = FormBorderStyle.None;
@@ -20,6 +22,9 @@ public class SplashForm : Form
         ClientSize = new Size(560, 340);
         BackColor = Theme.Bg;
         Opacity = 0;
+#if DEBUG
+        if (Environment.GetEnvironmentVariable("BUNKER_OFFSCREEN") == "1") { StartPosition = FormStartPosition.Manual; Location = new Point(-4000, 100); }
+#endif
         if (Theme.AppIcon is { } icon) Icon = icon;
     }
 

@@ -180,3 +180,23 @@ public class PresetButton : Control
             g.FillRectangle(cell, inner.X + x * inner.Width + 1.5f, inner.Y + y * inner.Height + 1.5f, w * inner.Width - 3f, h * inner.Height - 3f);
     }
 }
+
+/// <summary>Dark colours for context menus so they match the rest of the app.</summary>
+public class DarkMenuRenderer : ToolStripProfessionalRenderer
+{
+    public DarkMenuRenderer() : base(new DarkColors()) { }
+
+    private sealed class DarkColors : ProfessionalColorTable
+    {
+        public override Color ToolStripDropDownBackground => Theme.Input;
+        public override Color MenuBorder => Theme.Border;
+        public override Color MenuItemBorder => Theme.Accent;
+        public override Color MenuItemSelected => Color.FromArgb(52, 38, 32);
+        public override Color ImageMarginGradientBegin => Theme.Input;
+        public override Color ImageMarginGradientMiddle => Theme.Input;
+        public override Color ImageMarginGradientEnd => Theme.Input;
+        public override Color CheckBackground => Color.FromArgb(52, 38, 32);
+        public override Color CheckSelectedBackground => Color.FromArgb(52, 38, 32);
+        public override Color CheckPressedBackground => Color.FromArgb(52, 38, 32);
+    }
+}

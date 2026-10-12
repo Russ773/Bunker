@@ -37,6 +37,11 @@ public class MainForm : Form
         _sidebar.Navigated += Navigate;
         _sidebar.ConnectClicked += async () => await ToggleConnectionAsync();
         Navigate("dashboard");
+#if DEBUG
+        // Test hooks (debug builds only): open on a given page, and keep the window off-screen.
+        if (Environment.GetEnvironmentVariable("BUNKER_START_PAGE") is { Length: > 0 } startPage && _pages.ContainsKey(startPage)) Navigate(startPage);
+        if (Environment.GetEnvironmentVariable("BUNKER_OFFSCREEN") == "1") { StartPosition = FormStartPosition.Manual; Location = new Point(-4000, 100); ShowInTaskbar = false; }
+#endif
 
         Shown += async (_, _) => await StartupAsync();
         FormClosing += (_, _) => _core.Rcon.Dispose();
