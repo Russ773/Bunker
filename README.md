@@ -55,8 +55,6 @@ Watch the console, see who's online and run your server, without ever launching 
 > 💡 Windows SmartScreen may say the publisher is unknown, because the installer isn't code-signed yet.
 > Choose **More info → Run anyway**.
 
-Every release is also mirrored at <https://chaos-gaming.co.uk/bunker/release/> (`Bunker-Setup-latest.exe` is always the newest).
-
 ---
 
 ## ✨ Features
@@ -227,7 +225,6 @@ Pushing a tag such as `v0.0.9` runs the pipeline:
 2. 🏗️ publish a self-contained Windows build
 3. 📦 build the Inno Setup installer
 4. 🚀 publish a GitHub Release
-5. 🌐 upload the installer and `latest.json` to the download mirror
 
 </details>
 
