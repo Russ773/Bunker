@@ -220,7 +220,9 @@ public class WidgetsPage : Panel, ISectionPage
 
     private void Build(string key, Panel host, WidgetInfo info)
     {
-        if (FullWidth.Contains(info.Kind))
+        // A community widget that shows its own replies (an "output" box) does not need the console beside it, and its tables are wide.
+        var showsReplies = info.Kind == WidgetKind.Custom && _core.Widgets.Get(info.CustomId) is { } def && def.Controls.Any(c => c.Type == "output");
+        if (FullWidth.Contains(info.Kind) || showsReplies)
         {
             // Wide widgets (tables, charts) use the whole page.
             var (wide, wideActions) = Widgets.Create(info.Kind, _core, 2, info.CustomId);

@@ -177,15 +177,59 @@ public class CustomWidgetView : ActionPanel
         var box = new RichTextBox
         {
             ReadOnly = true, BackColor = Theme.Bg, ForeColor = Theme.Text, BorderStyle = BorderStyle.None, Font = Core.ConsoleFont,
-            DetectUrls = false, Height = c.Height ?? 160, HideSelection = false, Margin = new Padding(0, 10, 0, 0), ScrollBars = RichTextBoxScrollBars.Vertical,
+            DetectUrls = false, Height = c.Height ?? 160, HideSelection = false, Margin = new Padding(0, 10, 0, 0),
+            // Replies such as plugin tables are wide. Wrapping them splits every row in two, so lines stay whole and scroll sideways instead.
+            WordWrap = false, ScrollBars = RichTextBoxScrollBars.Both,
         };
         DarkScroll.Apply(box);
+
+        var menu = new ContextMenuStrip { BackColor = Theme.Input, ForeColor = Theme.Text, Renderer = new DarkMenuRenderer(), ShowImageMargin = false };
+        var copy = new ToolStripMenuItem("Copy all") { BackColor = Theme.Input, ForeColor = Theme.Text };
+        copy.Click += (_, _) => { if (box.TextLength > 0) try { Clipboard.SetText(box.Text); } catch { } };
+        var clear = new ToolStripMenuItem("Clear") { BackColor = Theme.Input, ForeColor = Theme.Text };
+        clear.Click += (_, _) => box.Clear();
+        menu.Items.Add(copy);
+        menu.Items.Add(clear);
+        box.ContextMenuStrip = menu;
         _outputs[c.Id!] = box;
         var host = new Panel { Height = (c.Height ?? 160) + 22, BackColor = Theme.Bg, Padding = new Padding(10, 8, 6, 6), Margin = new Padding(0, 10, 0, 0) };
         box.Dock = DockStyle.Fill;
         box.Margin = new Padding(0);
         host.Controls.Add(box);
         return host;
+    }
+
+    private static readonly System.Text.RegularExpressions.Regex Markup =
+        new(@"\x1B\[[0-9;]*[A-Za-z]|</?(?:color|size|b|i)(?:=[^>]*)?>", System.Text.RegularExpressions.RegexOptions.IgnoreCase | System.Text.RegularExpressions.RegexOptions.Compiled);
+
+    /// <summary>
+    /// Tidies a server reply for display: removes colour codes the console would have shown as colour, lines tabs up on 8-character
+    /// stops (so a table keeps its columns), trims trailing spaces and squeezes runs of blank lines.
+    /// </summary>
+    public static string CleanReply(string reply)
+    {
+        var lines = new List<string>();
+        var blank = 0;
+        foreach (var raw in Markup.Replace(reply.Replace("\r\n", "\n").Replace('\r', '\n'), "").Split('\n'))
+        {
+            var line = ExpandTabs(raw).TrimEnd();
+            if (line.Length == 0) { if (++blank > 1) continue; }
+            else blank = 0;
+            lines.Add(line);
+        }
+        return string.Join(Environment.NewLine, lines).Trim('\r', '\n');
+    }
+
+    private static string ExpandTabs(string line)
+    {
+        if (!line.Contains('\t')) return line;
+        var sb = new System.Text.StringBuilder();
+        foreach (var ch in line)
+        {
+            if (ch == '\t') sb.Append(' ', 8 - sb.Length % 8);
+            else sb.Append(ch);
+        }
+        return sb.ToString();
     }
 
     private static void Append(RichTextBox box, string text, Color color)
@@ -280,7 +324,7 @@ public class CustomWidgetView : ActionPanel
                     string reply;
                     try { reply = await Core.Rcon.QueryAsync(command, 8000); }
                     catch (OperationCanceledException) when (!token.IsCancellationRequested) { reply = "(no reply from the server)"; }
-                    Append(output, reply.TrimEnd(), Theme.Text);
+                    Append(output, CleanReply(reply), Theme.Text);
                 }
                 else await Core.SendCommandAsync(command);
                 sent++;

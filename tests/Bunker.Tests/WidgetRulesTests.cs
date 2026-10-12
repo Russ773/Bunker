@@ -173,3 +173,28 @@ public class WidgetV2Tests
         Assert.Equal(valid, errors.Count == 0);
     }
 }
+
+public class ReplyCleaningTests
+{
+    [Fact]
+    public void Colour_codes_are_removed_and_trailing_spaces_trimmed()
+    {
+        Assert.Equal("Name  v1.0\nOther", CustomWidgetView.CleanReply("<color=#ffcc00>Name</color>  v1.0   \r\n\u001b[32mOther\u001b[0m  ").Replace(Environment.NewLine, "\n"));
+    }
+
+    [Fact]
+    public void Tabs_line_up_on_eight_character_stops()
+    {
+        var result = CustomWidgetView.CleanReply("ab\tc\nabcdefg\td");
+        Assert.Equal("ab      c" + Environment.NewLine + "abcdefg d", result);
+    }
+
+    [Fact]
+    public void Runs_of_blank_lines_are_squeezed_to_one()
+    {
+        Assert.Equal("a" + Environment.NewLine + Environment.NewLine + "b", CustomWidgetView.CleanReply("a\n\n\n\n\nb\n\n"));
+    }
+
+    [Fact]
+    public void An_empty_reply_stays_empty() => Assert.Equal("", CustomWidgetView.CleanReply("  \n \n"));
+}
