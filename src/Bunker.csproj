@@ -9,6 +9,7 @@
     <ApplicationIcon>Bunker.ico</ApplicationIcon>
     <Version>0.0.10</Version>
     <AssemblyName>Bunker</AssemblyName>
+    <Product>Bunker</Product>
     <RootNamespace>Bunker</RootNamespace>
     <!-- Our custom controls are never edited in the Visual Studio designer, so designer-serialization warnings do not apply. -->
     <NoWarn>$(NoWarn);WFO1000</NoWarn>

@@ -190,7 +190,8 @@ How signing will work:
 
 * Only builds made by this repository's [release workflow](.github/workflows/release.yml) on GitHub Actions are signed, from the tagged source code. Nothing is signed from a developer's own machine.
 * `Bunker.exe` and the installer are signed. Both are built from the source in this repository.
-* **Maintainer, reviewer and approver:** [Russ773](https://github.com/Russ773).
+* Every release needs manual approval before it is signed.
+* **Authors, reviewers and approvers:** [Russ773](https://github.com/Russ773). Two-factor authentication is required for the repository and the signing service.
 * **Privacy:** Bunker doesn't send data anywhere except to your own server and to GitHub (see [Safety & privacy](#-safety--privacy)).
 
 ---
