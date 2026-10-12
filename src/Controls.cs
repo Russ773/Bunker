@@ -103,7 +103,7 @@ public class NavButton : Control
         if (_selected || _hover)
         {
             using var path = Rounded(r, 8);
-            using var br = new SolidBrush(_selected ? Theme.Input : Color.FromArgb(30, 34, 41));
+            using var br = new SolidBrush(_selected ? Theme.Input : Theme.Hover);
             g.FillPath(br, path);
         }
         if (_selected)
@@ -191,13 +191,13 @@ public class DarkMenuRenderer : ToolStripProfessionalRenderer
         public override Color ToolStripDropDownBackground => Theme.Input;
         public override Color MenuBorder => Theme.Border;
         public override Color MenuItemBorder => Theme.Accent;
-        public override Color MenuItemSelected => Color.FromArgb(52, 38, 32);
+        public override Color MenuItemSelected => Theme.Selection;
         public override Color ImageMarginGradientBegin => Theme.Input;
         public override Color ImageMarginGradientMiddle => Theme.Input;
         public override Color ImageMarginGradientEnd => Theme.Input;
-        public override Color CheckBackground => Color.FromArgb(52, 38, 32);
-        public override Color CheckSelectedBackground => Color.FromArgb(52, 38, 32);
-        public override Color CheckPressedBackground => Color.FromArgb(52, 38, 32);
+        public override Color CheckBackground => Theme.Selection;
+        public override Color CheckSelectedBackground => Theme.Selection;
+        public override Color CheckPressedBackground => Theme.Selection;
     }
 }
 
@@ -241,7 +241,7 @@ public class DarkGrid : DataGridView
         CellBorderStyle = DataGridViewCellBorderStyle.SingleHorizontal;
         EnableHeadersVisualStyles = false;
         BackgroundColor = Theme.Panel;
-        GridColor = Color.FromArgb(36, 40, 48);
+        GridColor = Theme.GridLine;
         RowTemplate.Height = 32;
         ColumnHeadersHeight = 34;
         ColumnHeadersBorderStyle = DataGridViewHeaderBorderStyle.None;
@@ -251,7 +251,7 @@ public class DarkGrid : DataGridView
         };
         DefaultCellStyle = new DataGridViewCellStyle
         {
-            BackColor = Theme.Panel, ForeColor = Theme.Text, SelectionBackColor = Color.FromArgb(52, 38, 32), SelectionForeColor = Theme.Text,
+            BackColor = Theme.Panel, ForeColor = Theme.Text, SelectionBackColor = Theme.Selection, SelectionForeColor = Theme.Text,
             Padding = new Padding(4, 0, 4, 0),
         };
         AutoSizeColumnsMode = DataGridViewAutoSizeColumnsMode.Fill;

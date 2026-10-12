@@ -70,6 +70,7 @@ public class AppSettings
     public bool CheckForUpdatesOnLaunch { get; set; } = true;
     public bool StartMaximised { get; set; } = true;
     public bool AutoConnect { get; set; } = true;
+    public bool LightTheme { get; set; }
     public List<ServerProfile> Servers { get; set; } = new();
     public string? ActiveServerId { get; set; }
     public LayoutConfig Layout { get; set; } = new();

@@ -6,6 +6,7 @@ static class Program
     static void Main()
     {
         ApplicationConfiguration.Initialize();
+        Theme.Init(AppSettings.Load().LightTheme); // must happen before any window exists
 
         MainForm? main = null;
         using (var splash = new SplashForm())

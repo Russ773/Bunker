@@ -211,7 +211,7 @@ public static class DarkScroll
     /// <summary>Gives a control's native scrollbars the dark Windows look (Windows 10 1809 or later).</summary>
     public static void Apply(Control c)
     {
-        void Set() { try { SetWindowTheme(c.Handle, "DarkMode_Explorer", null); } catch { } }
+        void Set() { try { SetWindowTheme(c.Handle, Theme.IsLight ? "Explorer" : "DarkMode_Explorer", null); } catch { } }
         if (c.IsHandleCreated) Set(); else c.HandleCreated += (_, _) => Set();
     }
 }

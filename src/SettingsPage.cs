@@ -167,11 +167,29 @@ public class SettingsPage : Panel
     private Control BuildGeneral()
     {
         var inner = new Panel { BackColor = Theme.Panel };
-        var maximised = Check("Start Bunker maximised", _core.Settings.StartMaximised, 6, v => _core.Settings.StartMaximised = v);
-        var autoConnect = Check("Connect to the active server when Bunker starts", _core.Settings.AutoConnect, 40, v => _core.Settings.AutoConnect = v);
-        inner.Controls.Add(maximised);
-        inner.Controls.Add(autoConnect);
-        inner.Controls.Add(new Label { Text = "These take effect the next time Bunker starts.", Font = Theme.Small, ForeColor = Theme.Muted, AutoSize = true, Location = new Point(2, 78) });
+
+        // Theme: dark or light. The colours are chosen once when Bunker starts, so a change needs a restart.
+        inner.Controls.Add(new Label { Text = "Theme", Font = Theme.Small, ForeColor = Theme.Muted, AutoSize = true, Location = new Point(2, 6) });
+        var dark = new RadioButton { Text = "Dark", AutoSize = true, ForeColor = Theme.Text, Cursor = Cursors.Hand, Location = new Point(0, 28), Checked = !Theme.IsLight };
+        var light = new RadioButton { Text = "Light", AutoSize = true, ForeColor = Theme.Text, Cursor = Cursors.Hand, Location = new Point(90, 28), Checked = Theme.IsLight };
+        void ThemeChanged(bool toLight)
+        {
+            if (_core.Settings.LightTheme == toLight) return;
+            _core.Settings.LightTheme = toLight;
+            _core.Settings.Save();
+            if (toLight == Theme.IsLight) return;
+            var restart = MessageBox.Show(FindForm(), "Restart Bunker now to switch theme?\n\nChoose No to switch the next time Bunker starts.",
+                "Theme changed", MessageBoxButtons.YesNo, MessageBoxIcon.Question);
+            if (restart == DialogResult.Yes) Application.Restart();
+        }
+        dark.CheckedChanged += (_, _) => { if (dark.Checked) ThemeChanged(false); };
+        light.CheckedChanged += (_, _) => { if (light.Checked) ThemeChanged(true); };
+        inner.Controls.Add(dark);
+        inner.Controls.Add(light);
+
+        inner.Controls.Add(Check("Start Bunker maximised", _core.Settings.StartMaximised, 72, v => _core.Settings.StartMaximised = v));
+        inner.Controls.Add(Check("Connect to the active server when Bunker starts", _core.Settings.AutoConnect, 106, v => _core.Settings.AutoConnect = v));
+        inner.Controls.Add(new Label { Text = "Theme, maximised and connect settings take effect the next time Bunker starts.", Font = Theme.Small, ForeColor = Theme.Muted, AutoSize = true, Location = new Point(2, 146) });
         return Wrap("General", inner);
     }
 

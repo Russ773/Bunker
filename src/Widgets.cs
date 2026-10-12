@@ -123,7 +123,7 @@ public class ConsoleView : Panel
         if (_box.TextLength > 400_000) { _box.Select(0, _box.TextLength / 2); _box.SelectedText = ""; }
         _box.SelectionStart = _box.TextLength;
         _box.SelectionLength = 0;
-        _box.SelectionColor = Color.FromArgb(90, 96, 108);
+        _box.SelectionColor = Theme.Dim;
         _box.AppendText(e.Time.ToString("HH:mm:ss") + "  ");
         _box.SelectionColor = ColorOf(e.Kind);
         _box.AppendText(e.Text + Environment.NewLine);

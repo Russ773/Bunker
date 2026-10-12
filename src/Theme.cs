@@ -6,18 +6,53 @@ namespace Bunker;
 /// <summary>Shared colours, fonts and control styling so every window looks the same.</summary>
 public static class Theme
 {
-    public static readonly Color Bg = Color.FromArgb(17, 19, 23);
-    public static readonly Color Panel = Color.FromArgb(26, 29, 35);
-    public static readonly Color Input = Color.FromArgb(32, 36, 43);
-    public static readonly Color Border = Color.FromArgb(48, 53, 63);
-    public static readonly Color Text = Color.FromArgb(230, 232, 236);
-    public static readonly Color Muted = Color.FromArgb(138, 145, 156);
-    public static readonly Color Accent = Color.FromArgb(224, 89, 42);
-    public static readonly Color AccentHover = Color.FromArgb(240, 110, 62);
-    public static readonly Color Ok = Color.FromArgb(76, 195, 138);
-    public static readonly Color Warn = Color.FromArgb(240, 180, 41);
-    public static readonly Color Err = Color.FromArgb(239, 83, 80);
-    public static readonly Color Chat = Color.FromArgb(124, 196, 255);
+    /// <summary>True when the light theme is active. Chosen once at start-up by Init, before any window is created.</summary>
+    public static bool IsLight { get; private set; }
+
+    public static Color Bg { get; private set; } = Color.FromArgb(17, 19, 23);
+    public static Color Panel { get; private set; } = Color.FromArgb(26, 29, 35);
+    public static Color Input { get; private set; } = Color.FromArgb(32, 36, 43);
+    public static Color Border { get; private set; } = Color.FromArgb(48, 53, 63);
+    public static Color Text { get; private set; } = Color.FromArgb(230, 232, 236);
+    public static Color Muted { get; private set; } = Color.FromArgb(138, 145, 156);
+    public static Color Accent { get; private set; } = Color.FromArgb(224, 89, 42);
+    public static Color AccentHover { get; private set; } = Color.FromArgb(240, 110, 62);
+    public static Color Ok { get; private set; } = Color.FromArgb(76, 195, 138);
+    public static Color Warn { get; private set; } = Color.FromArgb(240, 180, 41);
+    public static Color Err { get; private set; } = Color.FromArgb(239, 83, 80);
+    public static Color Chat { get; private set; } = Color.FromArgb(124, 196, 255);
+
+    // Less common shades that also have to change with the theme
+    public static Color Hover { get; private set; } = Color.FromArgb(30, 34, 41);
+    public static Color Selection { get; private set; } = Color.FromArgb(52, 38, 32);
+    public static Color GridLine { get; private set; } = Color.FromArgb(36, 40, 48);
+    public static Color Dim { get; private set; } = Color.FromArgb(90, 96, 108);
+    public static Color SplashTop { get; private set; } = Color.FromArgb(24, 27, 33);
+
+    /// <summary>Picks the palette. Must run before any window or control is created.</summary>
+    public static void Init(bool light)
+    {
+        IsLight = light;
+        if (!light) return; // the dark palette is the default above
+
+        Bg = Color.FromArgb(243, 244, 247);
+        Panel = Color.FromArgb(255, 255, 255);
+        Input = Color.FromArgb(240, 242, 246);
+        Border = Color.FromArgb(214, 219, 227);
+        Text = Color.FromArgb(28, 31, 38);
+        Muted = Color.FromArgb(104, 112, 126);
+        Accent = Color.FromArgb(220, 82, 34);
+        AccentHover = Color.FromArgb(196, 66, 22);
+        Ok = Color.FromArgb(22, 140, 88);
+        Warn = Color.FromArgb(176, 118, 0);
+        Err = Color.FromArgb(206, 48, 44);
+        Chat = Color.FromArgb(18, 106, 196);
+        Hover = Color.FromArgb(236, 239, 244);
+        Selection = Color.FromArgb(253, 233, 223);
+        GridLine = Color.FromArgb(228, 231, 237);
+        Dim = Color.FromArgb(150, 157, 168);
+        SplashTop = Color.FromArgb(255, 255, 255);
+    }
 
     public static readonly Font UI = new("Segoe UI", 10f);
     public static readonly Font Small = new("Segoe UI", 9f);
@@ -45,7 +80,7 @@ public static class Theme
         f.ForeColor = Text;
         f.Font = UI;
         if (AppIcon is not null) f.Icon = AppIcon;
-        f.HandleCreated += (_, _) => { int on = 1; DwmSetWindowAttribute(f.Handle, 20, ref on, sizeof(int)); };
+        f.HandleCreated += (_, _) => { int on = IsLight ? 0 : 1; DwmSetWindowAttribute(f.Handle, 20, ref on, sizeof(int)); };
     }
 
     public static Button PrimaryButton(string text) => Styled(text, Accent, AccentHover, Color.White, 0);

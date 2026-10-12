@@ -190,20 +190,18 @@ public class AnnounceView : ActionPanel
     }
 }
 
-/// <summary>One-click server actions: save, set the time of day, restart (with a countdown) and cancel a restart.</summary>
+/// <summary>One-click server actions: save, set the time of day, and shut down with a countdown.</summary>
 public class QuickActionsView : ActionPanel
 {
     private readonly Button _save = Theme.PrimaryButton("Save world");
     private readonly Button _time = Theme.GhostButton("Set time ▾");
     private readonly Button _restart = Theme.GhostButton("Restart ▾");
-    private readonly Button _cancel = Theme.GhostButton("Cancel restart");
 
     public QuickActionsView(Core core) : base(core)
     {
-        foreach (var b in new[] { _save, _time, _restart, _cancel }) b.Height = 36;
+        foreach (var b in new[] { _save, _time, _restart }) b.Height = 36;
 
         _save.Click += async (_, _) => { await Core.SendCommandAsync("server.save"); Say("World save requested.", Theme.Ok); };
-        _cancel.Click += async (_, _) => { await Core.SendCommandAsync("restart -1"); Say("Restart cancel requested.", Theme.Ok); };
         _time.Click += (_, _) =>
         {
             var menu = NewMenu();
@@ -222,7 +220,9 @@ public class QuickActionsView : ActionPanel
                 var m = minutes;
                 menu.Items.Add(new ToolStripMenuItem($"In {m} minute{(m == 1 ? "" : "s")}", null, async (_, _) =>
                 {
-                    if (!Confirm($"Restart the server in {m} minute{(m == 1 ? "" : "s")}? Players will be warned.", "Restart server")) return;
+                    // Rust's restart command warns players, then shuts the server down. Something outside the game
+                    // (your host's auto-restart) has to start it again, and Rust has no built-in way to cancel it.
+                    if (!Confirm($"Shut the server down in {m} minute{(m == 1 ? "" : "s")}?\n\nPlayers are warned first. Rust's restart command stops the server, so your host must start it again, and it cannot be cancelled from here.", "Restart server")) return;
                     await Core.SendCommandAsync($"restart {m * 60} \"Server restarting\"");
                     Say($"Restart in {m} minute{(m == 1 ? "" : "s")} requested.", Theme.Warn);
                 }) { BackColor = Theme.Input, ForeColor = Theme.Text });
@@ -232,8 +232,8 @@ public class QuickActionsView : ActionPanel
 
         Add(Caption("Server"));
         Add(Row(_save, _time));
-        Add(Caption("Restart"));
-        Add(Row(_restart, _cancel));
+        Add(Caption("Shut down with a countdown"));
+        Add(Row(_restart));
         Add(Status);
         Init();
     }
@@ -243,13 +243,13 @@ public class QuickActionsView : ActionPanel
 
     protected override void Enable(bool connected)
     {
-        _save.Enabled = _time.Enabled = _restart.Enabled = _cancel.Enabled = connected;
+        _save.Enabled = _time.Enabled = _restart.Enabled = connected;
         if (!connected) Say("Connect to a server to use quick actions.", Theme.Muted);
         else if (Status.Text.StartsWith("Connect to")) Say("", Theme.Muted);
     }
 }
 
-/// <summary>Kick or ban the selected player, or unban a Steam ID.</summary>
+/// <summary>Kick, ban or mute the selected player, or unban a Steam ID.</summary>
 public class ModerationView : ActionPanel
 {
     private static readonly Regex SteamId = new(@"^\d{17}$", RegexOptions.Compiled);
@@ -258,6 +258,8 @@ public class ModerationView : ActionPanel
     private readonly ModernField _unbanId = new();
     private readonly Button _kick = Theme.GhostButton("Kick");
     private readonly Button _ban = Theme.PrimaryButton("Ban");
+    private readonly Button _mute = Theme.GhostButton("Mute");
+    private readonly Button _unmute = Theme.GhostButton("Unmute");
     private readonly Button _unban = Theme.GhostButton("Unban");
 
     public ModerationView(Core core) : base(core)
@@ -265,16 +267,18 @@ public class ModerationView : ActionPanel
         _player = new PlayerPicker(core, "Select a player");
         _reason.Box.PlaceholderText = "Reason (shown to the player)";
         _unbanId.Box.PlaceholderText = "Steam ID to unban (17 digits)";
-        foreach (var b in new[] { _kick, _ban, _unban }) b.Height = 36;
+        foreach (var b in new[] { _kick, _ban, _mute, _unmute, _unban }) b.Height = 36;
 
         _kick.Click += async (_, _) => await ActAsync("kick");
         _ban.Click += async (_, _) => await ActAsync("ban");
+        _mute.Click += async (_, _) => await MuteAsync(true);
+        _unmute.Click += async (_, _) => await MuteAsync(false);
         _unban.Click += async (_, _) => await UnbanAsync();
 
         Add(_player.Button);
         Add(Caption("Reason"));
         Add(_reason);
-        Add(Row(_kick, _ban));
+        Add(Row(_kick, _ban, _mute, _unmute));
         Add(Caption("Unban"));
         Add(_unbanId);
         Add(Row(_unban));
@@ -284,7 +288,7 @@ public class ModerationView : ActionPanel
 
     protected override void Enable(bool connected)
     {
-        _kick.Enabled = _ban.Enabled = _unban.Enabled = _player.Button.Enabled = connected;
+        _kick.Enabled = _ban.Enabled = _mute.Enabled = _unmute.Enabled = _unban.Enabled = _player.Button.Enabled = connected;
         if (!connected) Say("Connect to a server to moderate players.", Theme.Muted);
         else if (Status.Text.StartsWith("Connect to")) Say("", Theme.Muted);
     }
@@ -297,74 +301,68 @@ public class ModerationView : ActionPanel
         var name = _player.PlayerName ?? _player.SteamId;
         if (!Confirm($"{(verb == "ban" ? "Ban" : "Kick")} {name}?\n\nReason: {reason}", verb == "ban" ? "Ban player" : "Kick player")) return;
 
-        var cmd = verb == "ban"
-            ? $"banid \"{_player.SteamId}\" {Cmd.Quote(name)} {Cmd.Quote(reason)}"
-            : $"kick \"{_player.SteamId}\" {Cmd.Quote(reason)}";
-        await Core.SendCommandAsync(cmd);
+        if (verb == "ban")
+        {
+            await Core.SendCommandAsync($"banid {_player.SteamId} {Cmd.Quote(name)} {Cmd.Quote(reason)}");
+            await Core.SendCommandAsync("server.writecfg"); // without this, bans can be lost when the server restarts
+        }
+        else await Core.SendCommandAsync($"kick \"{_player.SteamId}\" {Cmd.Quote(reason)}");
         Say($"{(verb == "ban" ? "Ban" : "Kick")} sent for {name}.", Theme.Ok);
         _player.Reset();
+    }
+
+    private async Task MuteAsync(bool mute)
+    {
+        if (_player.SteamId is null) { Say("Select a player first.", Theme.Err); return; }
+        var name = _player.PlayerName ?? _player.SteamId;
+        await Core.SendCommandAsync($"{(mute ? "mute" : "unmute")} \"{_player.SteamId}\"");
+        Say($"{(mute ? "Mute" : "Unmute")} sent for {name}. Check the console for the server's reply.", Theme.Ok);
     }
 
     private async Task UnbanAsync()
     {
         var id = _unbanId.Text.Trim();
         if (!SteamId.IsMatch(id)) { Say("Enter a 17-digit Steam ID.", Theme.Err); return; }
-        await Core.SendCommandAsync($"unban \"{id}\"");
+        await Core.SendCommandAsync($"unban {id}"); // the ID goes without quotes
+        await Core.SendCommandAsync("server.writecfg");
         Say($"Unban sent for {id}.", Theme.Ok);
     }
 }
 
-/// <summary>Move a player to another player, or to coordinates.</summary>
+/// <summary>Move one online player to another online player.</summary>
 public class TeleportView : ActionPanel
 {
-    private static readonly Regex Coords = new(@"^\s*-?\d+(\.\d+)?[\s,]+-?\d+(\.\d+)?[\s,]+-?\d+(\.\d+)?\s*$", RegexOptions.Compiled);
     private readonly PlayerPicker _who;
     private readonly PlayerPicker _to;
-    private readonly ModernField _pos = new();
-    private readonly Button _toPlayer = Theme.PrimaryButton("Teleport to player");
-    private readonly Button _toPos = Theme.GhostButton("Teleport to position");
+    private readonly Button _go = Theme.PrimaryButton("Teleport");
 
     public TeleportView(Core core) : base(core)
     {
         _who = new PlayerPicker(core, "Player to move");
         _to = new PlayerPicker(core, "Move them to player");
-        _pos.Box.PlaceholderText = "x y z   (for example 100 50 -200)";
-        _toPlayer.Height = _toPos.Height = 36;
-        _toPlayer.Click += async (_, _) => await ToPlayerAsync();
-        _toPos.Click += async (_, _) => await ToPositionAsync();
+        _go.Height = 36;
+        _go.Click += async (_, _) => await TeleportAsync();
 
         Add(_who.Button);
         Add(_to.Button);
-        Add(Row(_toPlayer));
-        Add(Caption("Or move them to a position"));
-        Add(_pos);
-        Add(Row(_toPos));
+        Add(Row(_go));
         Add(Status);
         Init();
     }
 
     protected override void Enable(bool connected)
     {
-        _toPlayer.Enabled = _toPos.Enabled = _who.Button.Enabled = _to.Button.Enabled = connected;
+        _go.Enabled = _who.Button.Enabled = _to.Button.Enabled = connected;
         if (!connected) Say("Connect to a server to teleport players.", Theme.Muted);
         else if (Status.Text.StartsWith("Connect to")) Say("", Theme.Muted);
     }
 
-    private async Task ToPlayerAsync()
+    private async Task TeleportAsync()
     {
         if (_who.SteamId is null || _to.SteamId is null) { Say("Select both players.", Theme.Err); return; }
         if (_who.SteamId == _to.SteamId) { Say("Pick two different players.", Theme.Err); return; }
         await Core.SendCommandAsync($"teleport \"{_who.SteamId}\" \"{_to.SteamId}\"");
-        Say($"Teleport sent: {_who.PlayerName} to {_to.PlayerName}.", Theme.Ok);
-    }
-
-    private async Task ToPositionAsync()
-    {
-        if (_who.SteamId is null) { Say("Select the player to move.", Theme.Err); return; }
-        if (!Coords.IsMatch(_pos.Text)) { Say("Enter three numbers: x y z.", Theme.Err); return; }
-        var xyz = string.Join(" ", Regex.Split(_pos.Text.Trim(), @"[\s,]+"));
-        await Core.SendCommandAsync($"teleportpos \"{xyz}\" \"{_who.SteamId}\"");
-        Say($"Teleport sent: {_who.PlayerName} to {xyz}.", Theme.Ok);
+        Say($"Teleport sent: {_who.PlayerName} to {_to.PlayerName}. Check the console for the server's reply.", Theme.Ok);
     }
 }
 

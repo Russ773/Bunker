@@ -62,7 +62,7 @@ public class SplashForm : Form
         g.SmoothingMode = SmoothingMode.AntiAlias;
         g.InterpolationMode = InterpolationMode.HighQualityBicubic;
 
-        using (var bg = new LinearGradientBrush(ClientRectangle, Color.FromArgb(24, 27, 33), Theme.Bg, 90f))
+        using (var bg = new LinearGradientBrush(ClientRectangle, Theme.SplashTop, Theme.Bg, 90f))
             g.FillRectangle(bg, ClientRectangle);
 
         if (Logo is not null) g.DrawImage(Logo, new Rectangle(ClientSize.Width / 2 - 70, 40, 140, 140));
