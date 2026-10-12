@@ -59,6 +59,7 @@ public class LayoutConfig
 public class AppSettings
 {
     public bool CheckForUpdatesOnLaunch { get; set; } = true;
+    public bool StartMaximised { get; set; } = true;
     public ServerProfile? Server { get; set; }
     public LayoutConfig Layout { get; set; } = new();
 

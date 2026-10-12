@@ -163,6 +163,18 @@ public class SettingsPage : Panel
         var serverCard = Card.Titled("Server", serverBody);
         serverCard.Size = new Size(560, 150);
 
+        var startMax = new CheckBox
+        {
+            Text = "Start Bunker maximised", AutoSize = true, ForeColor = Theme.Text, Cursor = Cursors.Hand,
+            Location = new Point(0, 6), Checked = core.Settings.StartMaximised,
+        };
+        startMax.CheckedChanged += (_, _) => { core.Settings.StartMaximised = startMax.Checked; core.Settings.Save(); };
+        var generalBody = new Panel { BackColor = Theme.Panel };
+        generalBody.Controls.Add(startMax);
+        generalBody.Controls.Add(new Label { Text = "Takes effect the next time Bunker starts.", Font = Theme.Small, ForeColor = Theme.Muted, AutoSize = true, Location = new Point(2, 32) });
+        var generalCard = Card.Titled("General", generalBody);
+        generalCard.Size = new Size(560, 118);
+
         var updateBody = new Panel { BackColor = Theme.Panel };
         updateBody.Controls.Add(new Label { Text = $"Current version: {Updater.VersionText}", AutoSize = true, ForeColor = Theme.Muted, Location = new Point(0, 6) });
         _autoUpdate.Location = new Point(0, 36);
@@ -176,6 +188,7 @@ public class SettingsPage : Panel
 
         var flow = new FlowLayoutPanel { FlowDirection = FlowDirection.TopDown, WrapContents = false, AutoScroll = true, BackColor = Theme.Bg };
         flow.Controls.Add(serverCard);
+        flow.Controls.Add(generalCard);
         flow.Controls.Add(updateCard);
 
         var page = new Page("Settings", "Your server connection and app updates", flow);

@@ -16,6 +16,7 @@ public class MainForm : Form
         MinimumSize = new Size(960, 600);
         StartPosition = FormStartPosition.CenterScreen;
 
+        if (_core.Settings.StartMaximised) WindowState = FormWindowState.Maximized;
         _sidebar = new Sidebar(_core);
         var content = new Panel { Dock = DockStyle.Fill, BackColor = Theme.Bg };
 
@@ -40,7 +41,7 @@ public class MainForm : Form
 #if DEBUG
         // Test hooks (debug builds only): open on a given page, and keep the window off-screen.
         if (Environment.GetEnvironmentVariable("BUNKER_START_PAGE") is { Length: > 0 } startPage && _pages.ContainsKey(startPage)) Navigate(startPage);
-        if (Environment.GetEnvironmentVariable("BUNKER_OFFSCREEN") == "1") { StartPosition = FormStartPosition.Manual; Location = new Point(-4000, 100); ShowInTaskbar = false; }
+        if (Environment.GetEnvironmentVariable("BUNKER_OFFSCREEN") == "1") { WindowState = FormWindowState.Normal; StartPosition = FormStartPosition.Manual; Location = new Point(-4000, 100); ShowInTaskbar = false; }
 #endif
 
         Shown += async (_, _) => await StartupAsync();
