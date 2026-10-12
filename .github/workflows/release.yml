@@ -27,11 +27,70 @@ jobs:
       - name: Publish
         run: dotnet publish src/Bunker.csproj -c Release -r win-x64 --self-contained -p:PublishSingleFile=true -p:Version=${{ env.VERSION }} -p:BuildNumber=${{ github.run_number }} -o publish
 
+      # Code signing through SignPath. Switched on by setting the repository variable
+      # SIGNPATH_ORGANIZATION_ID (and the secret SIGNPATH_API_TOKEN); until then releases are unsigned.
+      - name: Stage Bunker.exe for signing
+        if: vars.SIGNPATH_ORGANIZATION_ID != ''
+        shell: bash
+        run: mkdir -p sign-in/exe && cp publish/Bunker.exe sign-in/exe/Bunker.exe
+
+      - name: Upload Bunker.exe for signing
+        id: upload-exe
+        if: vars.SIGNPATH_ORGANIZATION_ID != ''
+        uses: actions/upload-artifact@v4
+        with:
+          name: bunker-exe-unsigned
+          path: sign-in/exe/Bunker.exe
+
+      - name: Sign Bunker.exe
+        if: vars.SIGNPATH_ORGANIZATION_ID != ''
+        uses: signpath/github-action-submit-signing-request@v1
+        with:
+          api-token: ${{ secrets.SIGNPATH_API_TOKEN }}
+          organization-id: ${{ vars.SIGNPATH_ORGANIZATION_ID }}
+          project-slug: Bunker
+          signing-policy-slug: release-signing
+          artifact-configuration-slug: exe
+          github-artifact-id: ${{ steps.upload-exe.outputs.artifact-id }}
+          wait-for-completion: true
+          output-artifact-directory: sign-out/exe
+
+      - name: Use the signed Bunker.exe
+        if: vars.SIGNPATH_ORGANIZATION_ID != ''
+        shell: bash
+        run: cp sign-out/exe/Bunker.exe publish/Bunker.exe
+
       - name: Install Inno Setup
         run: choco install innosetup -y --no-progress
 
       - name: Build installer
         run: '& "C:\Program Files (x86)\Inno Setup 6\ISCC.exe" /DAppVersion=${{ env.VERSION }} /DSourceDir=..\publish installer\Bunker.iss'
+
+      - name: Upload installer for signing
+        id: upload-installer
+        if: vars.SIGNPATH_ORGANIZATION_ID != ''
+        uses: actions/upload-artifact@v4
+        with:
+          name: bunker-installer-unsigned
+          path: dist/Bunker-Setup-${{ env.VERSION }}.exe
+
+      - name: Sign installer
+        if: vars.SIGNPATH_ORGANIZATION_ID != ''
+        uses: signpath/github-action-submit-signing-request@v1
+        with:
+          api-token: ${{ secrets.SIGNPATH_API_TOKEN }}
+          organization-id: ${{ vars.SIGNPATH_ORGANIZATION_ID }}
+          project-slug: Bunker
+          signing-policy-slug: release-signing
+          artifact-configuration-slug: installer
+          github-artifact-id: ${{ steps.upload-installer.outputs.artifact-id }}
+          wait-for-completion: true
+          output-artifact-directory: sign-out/installer
+
+      - name: Use the signed installer
+        if: vars.SIGNPATH_ORGANIZATION_ID != ''
+        shell: bash
+        run: cp "sign-out/installer/Bunker-Setup-$VERSION.exe" "dist/Bunker-Setup-$VERSION.exe"
 
       - name: GitHub release
         shell: bash

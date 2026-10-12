@@ -53,8 +53,10 @@ Watch the console, see who's online and run your server, without ever launching 
 2. Run it. It installs just for you, with no admin prompt.
 3. Start **Bunker** and enter your server's RCON details. That's it.
 
-> 💡 Windows SmartScreen may say the publisher is unknown, because the installer isn't code-signed yet.
-> Choose **More info → Run anyway**.
+> 💡 Windows SmartScreen may say the publisher is unknown, because the installer isn't code-signed yet
+> (see [Code signing policy](#-code-signing-policy)). Choose **More info → Run anyway**.
+> If Windows 11's Smart App Control blocks it outright, right-click the downloaded file, open
+> **Properties** and tick **Unblock** before running it.
 
 ---
 
@@ -175,6 +177,21 @@ Want to make one? Read the **[widget guide](docs/WIDGETS.md)** and open a pull r
 * 📡 Bunker talks to **your server** and to **GitHub** (to check for updates and, if you open it, the widget library). Nothing else, and no analytics.
 * 🙋 **Updates always ask first.** Nothing installs without your OK.
 * 🧪 The widget safety rules have **automated tests** that run on every release.
+
+---
+
+## ✍️ Code signing policy
+
+Bunker is open source (MIT) and is applying for free code signing from [SignPath Foundation](https://signpath.org).
+**Until that is approved, releases are not signed**, which is why Windows shows an unknown publisher.
+Once approved, this section will read: *Free code signing provided by [SignPath.io](https://signpath.io), certificate by [SignPath Foundation](https://signpath.org).*
+
+How signing will work:
+
+* Only builds made by this repository's [release workflow](.github/workflows/release.yml) on GitHub Actions are signed, from the tagged source code. Nothing is signed from a developer's own machine.
+* `Bunker.exe` and the installer are signed. Both are built from the source in this repository.
+* **Maintainer, reviewer and approver:** [Russ773](https://github.com/Russ773).
+* **Privacy:** Bunker doesn't send data anywhere except to your own server and to GitHub (see [Safety & privacy](#-safety--privacy)).
 
 ---
 
