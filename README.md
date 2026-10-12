@@ -53,8 +53,9 @@ Watch the console, see who's online and run your server, without ever launching 
 2. Run it. It installs just for you, with no admin prompt.
 3. Start **Bunker** and enter your server's RCON details. That's it.
 
-> 💡 Windows SmartScreen may say the publisher is unknown, because the installer isn't code-signed yet
-> (see [Code signing policy](#-code-signing-policy)). Choose **More info → Run anyway**.
+> 🛍️ **Microsoft Store:** Bunker has been submitted to the Microsoft Store as **Bunker RCON**. Once it is approved this page will link to it, and the Store version installs with no Windows warnings and updates itself.
+>
+> 💡 Until then, the installer above isn't code-signed, so Windows SmartScreen may say the publisher is unknown. Choose **More info → Run anyway**.
 > If Windows 11's Smart App Control blocks it outright, right-click the downloaded file, open
 > **Properties** and tick **Unblock** before running it.
 
@@ -180,22 +181,6 @@ Want to make one? Read the **[widget guide](docs/WIDGETS.md)** and open a pull r
 
 ---
 
-## ✍️ Code signing policy
-
-Bunker is open source (MIT) and is applying for free code signing from [SignPath Foundation](https://signpath.org).
-**Until that is approved, releases are not signed**, which is why Windows shows an unknown publisher.
-Once approved, this section will read: *Free code signing provided by [SignPath.io](https://signpath.io), certificate by [SignPath Foundation](https://signpath.org).*
-
-How signing will work:
-
-* Only builds made by this repository's [release workflow](.github/workflows/release.yml) on GitHub Actions are signed, from the tagged source code. Nothing is signed from a developer's own machine.
-* `Bunker.exe` and the installer are signed. Both are built from the source in this repository.
-* Every release needs manual approval before it is signed.
-* **Authors, reviewers and approvers:** [Russ773](https://github.com/Russ773). Two-factor authentication is required for the repository and the signing service.
-* **Privacy:** Bunker doesn't send data anywhere except to your own server and to GitHub (see [Safety & privacy](#-safety--privacy)).
-
----
-
 ## 📟 Rust commands Bunker uses
 
 | Feature | Commands |
@@ -271,7 +256,7 @@ Pushing a tag such as `v1.0.0` runs the pipeline:
 - [ ] Auto-reconnect when the connection drops mid-session
 - [ ] Ban list and plugin list as proper tables (once the servers' reply formats are confirmed)
 - [ ] Widget library submissions through the app
-- [ ] Code-signed installer
+- [ ] Microsoft Store listing (submitted, waiting for review)
 
 Have an idea? [Open an issue](https://github.com/Russ773/Bunker/issues) or build a [widget](docs/WIDGETS.md).
 
