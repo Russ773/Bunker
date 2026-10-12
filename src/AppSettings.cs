@@ -89,6 +89,8 @@ public class AppSettings
     public bool CheckForUpdatesOnLaunch { get; set; } = true;
     public bool StartMaximised { get; set; } = true;
     public bool AutoConnect { get; set; } = true;
+    /// <summary>Download the Rust item list and pictures from GitHub (bobosneefdev/rust-items-json) so item search stays current.</summary>
+    public bool UseOnlineItemList { get; set; } = true;
     public bool LightTheme { get; set; }
     public string ConsoleFontName { get; set; } = "Consolas";
     public float ConsoleFontSize { get; set; } = 10.5f;

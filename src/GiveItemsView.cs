@@ -8,24 +8,9 @@ public class GiveItemsView : Panel
 {
     internal static readonly Regex SafeItem = new(@"^[A-Za-z0-9._-]{1,64}$", RegexOptions.Compiled);
 
-    /// <summary>Common item shortnames for auto-complete. Any valid Rust shortname can still be typed.</summary>
-    internal static readonly string[] Items =
-    {
-        "wood", "stones", "metal.ore", "metal.fragments", "metal.refined", "sulfur.ore", "sulfur", "charcoal", "gunpowder",
-        "lowgradefuel", "cloth", "leather", "fat.animal", "scrap", "gears", "metalpipe", "metalspring", "rope", "sewingkit",
-        "tarp", "techparts", "roadsigns", "sheetmetal", "semibody", "riflebody", "smgbody", "targetingcomputer", "cctvcamera",
-        "ammo.rifle", "ammo.pistol", "ammo.shotgun", "ammo.shotgun.slug", "ammo.rifle.explosive", "ammo.rifle.hv",
-        "ammo.pistol.hv", "ammo.rocket.basic", "ammo.rocket.hv", "arrow.wooden", "arrow.hv",
-        "rifle.ak", "rifle.lr300", "rifle.bolt", "rifle.semiauto", "rifle.l96", "rifle.m39", "smg.thompson", "smg.mp5", "smg.2",
-        "pistol.python", "pistol.m92", "pistol.semiauto", "pistol.revolver", "shotgun.pump", "shotgun.double", "shotgun.waterpipe",
-        "shotgun.spas12", "lmg.m249", "rocket.launcher", "bow.hunting", "crossbow",
-        "pickaxe", "hatchet", "axe.salvaged", "icepick.salvaged", "chainsaw", "jackhammer",
-        "syringe.medical", "bandage", "largemedkit", "antiradpills",
-    };
-
     private readonly Core _core;
     private readonly PlayerPicker _picker;
-    private readonly ModernField _item = new();
+    private readonly ItemPicker _item;
     private readonly ModernField _amount = new();
     private readonly Button _giveOne = Theme.PrimaryButton("Give to player");
     private readonly Button _giveAll = Theme.GhostButton("Give to everyone");
@@ -35,6 +20,7 @@ public class GiveItemsView : Panel
     {
         _core = core;
         _picker = new PlayerPicker(core, "Select a player");
+        _item = new ItemPicker(core, "Search items, e.g. wood or rifle");
         BackColor = Theme.Panel;
         AutoScroll = true;
         DarkScroll.Apply(this);
@@ -48,12 +34,6 @@ public class GiveItemsView : Panel
 
 
         _item.Dock = DockStyle.Top;
-        _item.Box.PlaceholderText = "Item shortname, e.g. wood or rifle.ak";
-        _item.Box.AutoCompleteMode = AutoCompleteMode.SuggestAppend;
-        _item.Box.AutoCompleteSource = AutoCompleteSource.CustomSource;
-        var source = new AutoCompleteStringCollection();
-        source.AddRange(Items);
-        _item.Box.AutoCompleteCustomSource = source;
 
         _amount.Dock = DockStyle.Top;
         _amount.Text = "100";
@@ -112,7 +92,7 @@ public class GiveItemsView : Panel
 
     private bool TryReadItem(out string item, out int amount)
     {
-        item = _item.Text.Trim();
+        item = _item.Shortname;
         amount = 0;
         if (!SafeItem.IsMatch(item)) { Say("Enter an item shortname such as wood or rifle.ak (letters, numbers, dots and dashes only).", Theme.Err); return false; }
         if (!int.TryParse(_amount.Text.Trim(), out amount) || amount is < 1 or > 100000) { Say("The amount must be a number from 1 to 100,000.", Theme.Err); return false; }

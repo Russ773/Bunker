@@ -81,7 +81,7 @@ Every widget is listed under the **WIDGETS** heading in the sidebar. Click one t
 
 | | |
 | --- | --- |
-| **Built-in** · Announce, Quick actions, Moderation, Teleport, Shortcuts, Give items | One-click helpers for the things you do most. |
+| **Built-in** · Announce, Quick actions, Moderation, Teleport, Shortcuts, Give items | One-click helpers for the things you do most. **Give items** has a searchable list of every current Rust item with its picture, kept up to date automatically when Rust updates. |
 | **Built-in** · 📈 Server health | Live charts of FPS, players, entities and memory over 5 minutes to 2 hours. Spot lag spikes and restarts at a glance. |
 | **Built-in** · ⏰ Scheduler | Recurring announcements, a daily world save, restart warning sequences with `wait` steps. |
 | **Built-in** · 🗂️ Player database and Join/leave feed | Everyone who has joined, with **your own notes**, plus a live feed. |
@@ -183,7 +183,7 @@ Want to make one? Read the **[widget guide](docs/WIDGETS.md)** and open a pull r
 ## 🔒 Safety & privacy
 
 * 🔐 **RCON passwords are encrypted** with Windows DPAPI, so only your Windows account can read them.
-* 📡 Bunker talks to **your server** and to **GitHub** (to check for updates and, if you open it, the widget library). Nothing else, and no analytics.
+* 📡 Bunker talks to **your server** and to **GitHub** (to check for updates, the Rust item list and pictures, and, if you open it, the widget library). The Rust item list and pictures come from [bobosneefdev/rust-items-json](https://github.com/bobosneefdev/rust-items-json) on GitHub, at most once a day, and can be switched off in **Settings → General**. Nothing else, and no analytics.
 * 🙋 **Updates always ask first.** Nothing installs without your OK.
 * 🧪 The widget safety rules have **automated tests** that run on every release.
 
@@ -267,6 +267,13 @@ Pushing a tag such as `v1.0.0` runs the pipeline:
 - [ ] Microsoft Store listing (submitted, waiting for review)
 
 Have an idea? [Open an issue](https://github.com/Russ773/Bunker/issues) or build a [widget](docs/WIDGETS.md).
+
+---
+
+## 🙏 Credits
+
+* **Rust item list and pictures:** [bobosneefdev/rust-items-json](https://github.com/bobosneefdev/rust-items-json), which re-reads the game files whenever Rust updates. The item data and pictures belong to Facepunch Studios; Bunker is not affiliated with or endorsed by them.
+* **[SkiaSharp](https://github.com/mono/SkiaSharp)** (MIT) turns those pictures into something Windows can draw.
 
 ---
 

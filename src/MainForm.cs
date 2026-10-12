@@ -79,9 +79,20 @@ public class MainForm : Form
 
     private async Task StartupAsync()
     {
+        _ = RefreshItemsLaterAsync();
         if (await AutoUpdateAsync()) return;
         if (_core.Settings.ActiveServer is null) RunOnboarding();
         if (_core.Settings.ActiveServer is not null && _core.Settings.AutoConnect) await AutoConnectAsync();
+    }
+
+    /// <summary>A few seconds after launch, quietly checks whether Rust has been updated and fetches the newer item list if so.</summary>
+    private async Task RefreshItemsLaterAsync()
+    {
+#if DEBUG
+        if (Environment.GetEnvironmentVariable("BUNKER_DATA_DIR") is null) return; // dev builds against real settings stay quiet
+#endif
+        await Task.Delay(6000);
+        await _core.Items.RefreshAsync();
     }
 
     private bool _autoConnectCancelled;

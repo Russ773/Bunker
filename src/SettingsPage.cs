@@ -199,7 +199,8 @@ public partial class SettingsPage : Panel, ISectionPage
 
         inner.Controls.Add(Check("Start Bunker maximised", _core.Settings.StartMaximised, 72, v => _core.Settings.StartMaximised = v));
         inner.Controls.Add(Check("Connect to the active server when Bunker starts", _core.Settings.AutoConnect, 106, v => _core.Settings.AutoConnect = v));
-        inner.Controls.Add(new Label { Text = "Theme, maximised and connect settings take effect the next time Bunker starts.", Font = Theme.Small, ForeColor = Theme.Muted, AutoSize = true, Location = new Point(2, 146) });
+        inner.Controls.Add(Check("Keep the Rust item list and pictures up to date from GitHub (used by item search)", _core.Settings.UseOnlineItemList, 140, v => _core.Settings.UseOnlineItemList = v));
+        inner.Controls.Add(new Label { Text = "Theme, maximised and connect settings take effect the next time Bunker starts.", Font = Theme.Small, ForeColor = Theme.Muted, AutoSize = true, Location = new Point(2, 184) });
         return Wrap("General", inner);
     }
 

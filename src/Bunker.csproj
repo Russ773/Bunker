@@ -25,6 +25,20 @@
 
   <ItemGroup>
     <EmbeddedResource Include="..\assets\logo-512.png" LogicalName="logo.png" />
+    <EmbeddedResource Include="..\assets\items-fallback.json" LogicalName="items-fallback.json" />
   </ItemGroup>
+
+
+  <ItemGroup>
+    <!-- Turns the item pictures (WebP) into PNG. Its native library is copied next to Bunker.exe. -->
+    <PackageReference Include="SkiaSharp" Version="4.153.1" />
+  </ItemGroup>
+
+  <!-- SkiaSharp ships a ~96 MB symbols file for its native library; users do not need it. -->
+  <Target Name="DropSkiaSymbols" AfterTargets="ComputeResolvedFilesToPublishList">
+    <ItemGroup>
+      <ResolvedFileToPublish Remove="@(ResolvedFileToPublish)" Condition="'%(Filename)%(Extension)' == 'libSkiaSharp.pdb'" />
+    </ItemGroup>
+  </Target>
 
 </Project>

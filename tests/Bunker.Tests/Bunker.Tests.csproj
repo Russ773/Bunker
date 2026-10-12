@@ -17,6 +17,7 @@
   <ItemGroup>
     <ProjectReference Include="..\..\src\Bunker.csproj" />
     <None Include="..\..\widgets\*.json" LinkBase="widgets" CopyToOutputDirectory="PreserveNewest" />
+    <None Include="TestData\*" LinkBase="TestData" CopyToOutputDirectory="PreserveNewest" />
   </ItemGroup>
 
 </Project>

@@ -4,7 +4,7 @@ using System.Drawing;
 namespace Bunker;
 
 /// <summary>One text box in a <see cref="PromptForm"/>.</summary>
-public sealed record PromptField(string Label, string Default = "", string Placeholder = "", bool DigitsOnly = false, string[]? Suggestions = null, bool Multiline = false);
+public sealed record PromptField(string Label, string Default = "", string Placeholder = "", bool DigitsOnly = false, string[]? Suggestions = null, bool Multiline = false, Core? ItemSearchFor = null);
 
 /// <summary>A small themed dialog that asks for one or two pieces of text, such as a reason or an item and amount.</summary>
 public class PromptForm : Form
@@ -33,7 +33,7 @@ public class PromptForm : Form
         {
             var f = fields[i];
             flow.Controls.Add(new Label { Text = f.Label, ForeColor = Theme.Muted, Font = Theme.Small, AutoSize = true, Margin = new Padding(0, 8, 0, 3) });
-            var box = new ModernField { Width = 444, Text = f.Default };
+            var box = f.ItemSearchFor is { } itemCore ? new ItemPicker(itemCore) { Width = 444, Text = f.Default } : new ModernField { Width = 444, Text = f.Default };
             if (f.Placeholder.Length > 0) box.Box.PlaceholderText = f.Placeholder;
             if (f.DigitsOnly) box.Box.KeyPress += (_, e) => { if (!char.IsControl(e.KeyChar) && !char.IsDigit(e.KeyChar)) e.Handled = true; };
             if (f.Suggestions is { Length: > 0 })
@@ -180,7 +180,7 @@ public static class PlayerMenu
         while (true)
         {
             var asked = PromptForm.Ask(owner, "Give item", $"Give an item to {p.Name}.", "Give",
-                new PromptField("Item shortname", "", "e.g. wood or rifle.ak", Suggestions: GiveItemsView.Items),
+                new PromptField("Item (type to search)", "", ItemSearchFor: core),
                 new PromptField("Amount", "100", DigitsOnly: true));
             if (asked is null) return;
             if (!GiveItemsView.SafeItem.IsMatch(asked[0])) { MessageBox.Show(owner, "Enter an item shortname such as wood or rifle.ak (letters, numbers, dots and dashes only).", "Give item"); continue; }

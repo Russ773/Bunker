@@ -8,7 +8,7 @@ Bunker is a desktop app that runs on your own PC. It doesn't collect, store on a
 
 **Where Bunker connects**
 - **Your own Rust server**, at the address and port you enter, over WebRCON.
-- **GitHub** (github.com and raw.githubusercontent.com), to check for updates in the downloadable version and to browse the community widget library when you open it. GitHub's privacy policy applies to those requests.
+- **GitHub** (github.com and raw.githubusercontent.com), to check for updates in the downloadable version and to browse the community widget library when you open it, and to fetch the Rust item list and item pictures (from the open bobosneefdev/rust-items-json project) so item search stays current. The item list is checked at most once a day, pictures are fetched as you search, and this can be switched off in Settings → General. GitHub's privacy policy applies to those requests.
 
 Bunker sends nothing else to anyone. Source code: https://github.com/Russ773/Bunker
 
