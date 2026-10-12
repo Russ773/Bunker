@@ -258,3 +258,46 @@ public class DarkGrid : DataGridView
         DarkScroll.Apply(this);
     }
 }
+
+/// <summary>A horizontal tab: icon glyph and text, with an accent underline when selected.</summary>
+public class TabButton : Control
+{
+    private static readonly Font IconFont = new("Segoe MDL2 Assets", 12f);
+    private readonly string _glyph;
+    private bool _hover;
+    private bool _selected;
+
+    [System.ComponentModel.DesignerSerializationVisibility(System.ComponentModel.DesignerSerializationVisibility.Hidden)]
+    public bool Selected { get => _selected; set { _selected = value; Invalidate(); } }
+
+    public TabButton(string glyph, string text)
+    {
+        _glyph = glyph;
+        Text = text;
+        Font = Theme.UI;
+        Height = 46;
+        Cursor = Cursors.Hand;
+        DoubleBuffered = true;
+        SetStyle(ControlStyles.Selectable, false);
+        Width = 56 + TextRenderer.MeasureText(text, Theme.UI).Width;
+    }
+
+    protected override void OnMouseEnter(EventArgs e) { _hover = true; Invalidate(); base.OnMouseEnter(e); }
+    protected override void OnMouseLeave(EventArgs e) { _hover = false; Invalidate(); base.OnMouseLeave(e); }
+
+    protected override void OnPaint(PaintEventArgs e)
+    {
+        var g = e.Graphics;
+        g.Clear(_hover && !_selected ? Theme.Hover : Theme.Panel);
+        var fore = _selected ? Theme.Text : Theme.Muted;
+        TextRenderer.DrawText(g, _glyph, IconFont, new Rectangle(8, 0, 28, Height - 3), _selected ? Theme.Accent : fore,
+            TextFormatFlags.VerticalCenter | TextFormatFlags.HorizontalCenter);
+        TextRenderer.DrawText(g, Text, Font, new Rectangle(38, 0, Width - 40, Height - 3), fore,
+            TextFormatFlags.VerticalCenter | TextFormatFlags.Left);
+        if (_selected)
+        {
+            using var br = new SolidBrush(Theme.Accent);
+            g.FillRectangle(br, 6, Height - 3, Width - 12, 3);
+        }
+    }
+}

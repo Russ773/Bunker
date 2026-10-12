@@ -7,8 +7,8 @@ namespace Bunker;
 public class SettingsPage : Panel
 {
     private readonly Core _core;
-    private readonly Dictionary<string, (NavButton Button, Control Panel)> _sections = new();
-    private readonly Panel _content = new() { Dock = DockStyle.Fill, BackColor = Theme.Bg, Padding = new Padding(14, 0, 0, 0) };
+    private readonly Dictionary<string, (TabButton Button, Control Panel)> _sections = new();
+    private readonly Panel _content = new() { Dock = DockStyle.Fill, BackColor = Theme.Bg, Padding = new Padding(0, 14, 0, 0) };
 
     // Servers
     private readonly DarkGrid _grid = new();
@@ -27,7 +27,7 @@ public class SettingsPage : Panel
         _core = core;
         BackColor = Theme.Bg;
 
-        var menu = new Panel { Dock = DockStyle.Left, Width = 210, BackColor = Theme.Panel, Padding = new Padding(0, 8, 0, 8) };
+        var menu = new Panel { Dock = DockStyle.Top, Height = 46, BackColor = Theme.Panel };
         menu.Paint += (_, e) => { using var p = new Pen(Theme.Border); e.Graphics.DrawRectangle(p, 0, 0, menu.Width - 1, menu.Height - 1); };
 
         var defs = new (string Key, string Glyph, string Title, Func<Control> Build)[]
@@ -44,7 +44,7 @@ public class SettingsPage : Panel
             panel.Visible = false;
             _content.Controls.Add(panel);
             var key = d.Key;
-            var button = new NavButton(d.Glyph, d.Title) { Height = 42 };
+            var button = new TabButton(d.Glyph, d.Title) { Dock = DockStyle.Left };
             button.Click += (_, _) => ShowSection(key);
             _sections[key] = (button, panel);
         }
