@@ -24,7 +24,7 @@ public class MainForm : Form
         _pages["console"] = Pages.Console(_core);
         _pages["players"] = Pages.Players(_core);
         _pages["layout"] = new LayoutPage(_core);
-        _pages["tools"] = new ToolsPage(_core);
+        _pages["widgets"] = new WidgetsPage(_core);
         _pages["settings"] = new SettingsPage(_core);
         foreach (var page in _pages.Values)
         {

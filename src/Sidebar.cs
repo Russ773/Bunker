@@ -36,8 +36,13 @@ public class Sidebar : Panel
         foreach (var l in new[] { _serverName, _serverAddr }) { l.Click += (_, _) => ShowServerMenu(); }
 
         // Main navigation (top) and the less-used items (just above the server block)
+        // Two groups: the core application, then the optional widgets. Top-docked items stack last-added-first, so the bottom group goes in first.
         var nav = new Panel { Dock = DockStyle.Fill, BackColor = Theme.Panel, Padding = new Padding(0, 6, 0, 0) };
-        AddItems(nav, ("dashboard", "", "Dashboard"), ("console", "", "Console"), ("players", "", "Players"), ("tools", "", "Tools"));
+        AddItems(nav, ("widgets", "", "Widgets"));
+        nav.Controls.Add(Caption("ADD-ONS"));
+        AddItems(nav,("dashboard", "", "Dashboard"), ("console", "", "Console"), ("players", "", "Players"));
+
+        nav.Controls.Add(Caption("CORE"));
 
         var lower = new Panel { Dock = DockStyle.Bottom, Height = 104, BackColor = Theme.Panel, Padding = new Padding(0, 8, 0, 6) };
         AddItems(lower, ("layout", "", "Layout"), ("settings", "", "Settings"));
@@ -60,6 +65,12 @@ public class Sidebar : Panel
         _core.ServerChanged += RefreshState;
         RefreshState();
     }
+
+    private static Label Caption(string text) => new()
+    {
+        Text = text, Dock = DockStyle.Top, Height = 30, Font = new Font("Segoe UI Semibold", 8f), ForeColor = Theme.Dim,
+        Padding = new Padding(22, 12, 0, 0), BackColor = Theme.Panel,
+    };
 
     /// <summary>Adds nav buttons in the given order (Top-docked children stack last-added-first, so add reversed).</summary>
     private void AddItems(Panel host, params (string Key, string Glyph, string Text)[] defs)

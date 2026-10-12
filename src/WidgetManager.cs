@@ -4,7 +4,7 @@ using System.Text.Json;
 
 namespace Bunker;
 
-/// <summary>Tools tab for managing community widgets: add from a file or link, browse the library, review, remove.</summary>
+/// <summary>The Widgets page section for managing community widgets: add from a file or link, browse the library, review, remove.</summary>
 public class WidgetManagerView : Panel
 {
     private readonly Core _core;
@@ -119,7 +119,7 @@ public class WidgetManagerView : Panel
         using var f = new WidgetReviewForm(def, install: true);
         if (f.ShowDialog(FindForm()) != DialogResult.OK) return false;
         _core.Widgets.Install(def, json);
-        Say($"Installed \"{def.Name}\". It is now a tab on this page and in the Layout widget picker.", Theme.Ok);
+        Say($"Installed \"{def.Name}\". It is now in the Widgets list and in the Layout widget picker.", Theme.Ok);
         return true;
     }
 

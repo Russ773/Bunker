@@ -5,7 +5,7 @@ send the console commands written on its buttons, and Bunker shows you every one
 
 ## Install a widget
 
-In Bunker open **Tools → Widgets**, then:
+In Bunker open **Widgets**, press **Get more widgets...** under the list, then:
 
 | Button | What it does |
 | --- | --- |
@@ -16,7 +16,7 @@ In Bunker open **Tools → Widgets**, then:
 Every install shows a review window with the author, the description and **every command the widget can send**.
 Commands that can affect players or the server itself (kick, ban, restart, give-to-everyone…) are marked with `!`.
 
-Installed widgets get their own tab on the Tools page and appear in the widget picker on the **Layout** page.
+Installed widgets appear in the **Community** part of the Widgets list, marked as community widgets, and in the picker on the **Layout** page.
 
 ## The file format
 
@@ -117,7 +117,7 @@ Inside a button's `commands` (and `confirm`) text, `{id}` is replaced by what th
 
 ## Share your widget
 
-1. Make sure the file passes in Bunker (**Tools → Widgets → Add from file…**).
+1. Make sure the file passes in Bunker (**Widgets → Get more widgets → Add from file…**).
 2. Fork this repository, add your file to [`widgets/`](../widgets) (keep it under 64 KB) and add its file name to [`widgets/index.json`](../widgets/index.json) so it shows up in **Browse library**.
 3. Open a pull request. Describe what the widget does and which Rust commands it uses, and say where you checked that they work.
 

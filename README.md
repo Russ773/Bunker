@@ -63,22 +63,30 @@ Watch the console, see who's online and run your server, without ever launching 
 
 ## ✨ Features
 
+Bunker is split in two so it is always clear what is part of the app and what is an add-on.
+
+### 🏠 Core: always there
+
 | | |
 | --- | --- |
+| 🖥️ **Console** | The heart of Bunker. Colour-coded live output and a command box that runs **any** console command. Command history with ↑/↓, **search and filters** (hide chat, warnings, errors), auto-scroll, and your choice of **font and size**. |
 | 📊 **Dashboard** | Live players, FPS, entities, uptime, memory and map, with the player list and console in one glance. |
-| 🖥️ **Console** | Colour-coded output, command history with ↑/↓, **search and filters** (hide chat, warnings, errors), auto-scroll, and your choice of **font and size** with a live preview. |
 | 👥 **Players** | Who's online with ping, time played and health. Right-click to copy a Steam ID, kick or ban. |
-| 📈 **Server health** | Live charts of FPS, players, entities and memory over 5 minutes to 2 hours. Hover for exact values, and spot lag spikes and restarts at a glance. |
-| ⏰ **Scheduler** | Automation: recurring announcements, a daily world save, restart warning sequences with `wait` steps. Shows each schedule's next run. |
-| 🗂️ **Player database** | Everyone who has joined: first and last seen, time played, visits, and **your own notes**. Plus a live **join and leave feed**. |
-| 💬 **Chat monitor** | Watch-words that highlight messages and flash the taskbar, with mute, kick and ban right from a message. |
-| 🧰 **Admin tools** | **Announce**, **Quick actions**, **Moderation**, **Teleport**, **Shortcuts** and **Give items**, each with the live console beside it so you see the server's reply. |
-| 🧩 **Community widgets** | Install widgets other people have made. They can show live stats, command replies and run timed sequences, and are reviewed command by command first. [Write your own →](docs/WIDGETS.md) |
-| 🪟 **Your own layout** | Pick 1, 2 or 4 sections and choose what goes in each. Go **fullscreen** for a wall-display control room. |
-| 🌐 **Multiple servers** | Save as many servers as you like and switch from the sidebar. Passwords are encrypted for your Windows account. |
-| 🎨 **Dark & light themes** | Easy on the eyes at 3 a.m., readable in daylight. |
-| 🔄 **Updates that ask first** | Bunker checks for new versions and *asks* before installing anything. |
-| 🔌 **Reconnects gracefully** | Waits a moment after launch, then retries if the server isn't ready. |
+| 🪟 **Layout** | Pick 1, 2 or 4 sections and put a core panel *or any widget* in each. Go **fullscreen** for a wall-display control room. |
+| ⚙️ **Settings** | Several saved servers (passwords encrypted for your Windows account), dark and light themes, console font, startup options and updates that *ask first*. |
+
+### 🧩 Widgets: optional add-ons
+
+Open the **Widgets** page: every widget is listed on the left, marked **Built-in** or **Community**, with the widget on the right and a live console beside it so you see the server's reply. **Add to Layout** puts any widget into a Layout section in one click.
+
+| | |
+| --- | --- |
+| **Built-in** · Announce, Quick actions, Moderation, Teleport, Shortcuts, Give items | One-click helpers for the things you do most. |
+| **Built-in** · 📈 Server health | Live charts of FPS, players, entities and memory over 5 minutes to 2 hours. Spot lag spikes and restarts at a glance. |
+| **Built-in** · ⏰ Scheduler | Recurring announcements, a daily world save, restart warning sequences with `wait` steps. |
+| **Built-in** · 🗂️ Player database and Join/leave feed | Everyone who has joined, with **your own notes**, plus a live feed. |
+| **Built-in** · 💬 Chat monitor | Watch-words that highlight messages and flash the taskbar, with mute, kick and ban from a message. |
+| **Community** | Install widgets other people made. They can show live stats, command replies and run timed sequences, and are reviewed command by command first. [Write your own →](docs/WIDGETS.md) |
 
 ---
 
@@ -86,20 +94,20 @@ Watch the console, see who's online and run your server, without ever launching 
 
 <table>
   <tr>
-    <td width="50%"><img src="docs/screenshots/layout.png" alt="Custom layout"><br><sub><b>🪟 Build your own layout</b>: players, console, server info and chat</sub></td>
+    <td width="50%"><img src="docs/screenshots/widgets.png" alt="The Widgets page"><br><sub><b>🧩 Widgets</b>: built-in and community widgets in one list, away from the core app</sub></td>
+    <td width="50%"><img src="docs/screenshots/layout.png" alt="Custom layout"><br><sub><b>🪟 Layout</b>: put core panels or any widget in each section</sub></td>
+  </tr>
+  <tr>
     <td width="50%"><img src="docs/screenshots/health.png" alt="Server health charts"><br><sub><b>📈 Server health</b>: live charts with a time window</sub></td>
-  </tr>
-  <tr>
     <td width="50%"><img src="docs/screenshots/player-database.png" alt="Player database"><br><sub><b>🗂️ Player database</b>: history and your own notes</sub></td>
+  </tr>
+  <tr>
     <td width="50%"><img src="docs/screenshots/chat-monitor.png" alt="Chat monitor"><br><sub><b>💬 Chat monitor</b>: watch-words and one-click actions</sub></td>
-  </tr>
-  <tr>
     <td width="50%"><img src="docs/screenshots/scheduler.png" alt="Scheduler"><br><sub><b>⏰ Scheduler</b>: announcements, saves and countdowns on a timer</sub></td>
-    <td width="50%"><img src="docs/screenshots/community-widget.png" alt="Community widget"><br><sub><b>🧩 Community widgets</b>: live stats and replies, here the Server Report</sub></td>
   </tr>
   <tr>
+    <td width="50%"><img src="docs/screenshots/community-widget.png" alt="Community widget"><br><sub><b>🧩 Community widget</b>: live stats and replies, here the Server Report</sub></td>
     <td width="50%"><img src="docs/screenshots/light-theme.png" alt="Light theme"><br><sub><b>☀️ Light theme</b>: one switch in Settings</sub></td>
-    <td width="50%"><img src="docs/screenshots/settings-console.png" alt="Console font settings"><br><sub><b>🔤 Console font &amp; size</b>, with a live preview</sub></td>
   </tr>
 </table>
 
@@ -132,8 +140,8 @@ Press **Test & connect**. Bunker checks the connection before saving anything. O
 
 ### 3. Explore
 
-* **Dashboard** is your overview. **Console** is the full live console.
-* **Tools** has the admin helpers. **Layout** lets you build your own screen.
+* **Core** (Dashboard, Console, Players) is the app itself. The **Console** is where you read the server and run any command.
+* **Widgets** holds the optional add-ons: announcements, moderation, charts, the scheduler and anything you install. **Layout** lets you build your own screen from core panels and widgets.
 * Click the server name in the sidebar to switch servers. **Settings** has themes, fonts, startup options and updates.
 
 > ⌨️ **Tips:** `↑`/`↓` recall previous commands · `Esc` or `F11` leaves fullscreen · right-click a player for quick actions · hover long names for a tooltip.
@@ -166,7 +174,7 @@ A **widget** is a small `.json` file, **never a program**. It describes some fie
 * 🚫 **Hard limits.** Widgets can't touch RCON settings or admin rights, can't run scripts and can't reach the network.
 * 🧼 **Cleaned inputs.** Text typed into a widget has quotes, semicolons and control characters removed before it's used.
 * ⚡ **More than buttons.** Widgets can show **live server stats**, display the server's **replies** in a panel, and run **timed sequences** with a Stop button, such as countdowns.
-* 📚 **Try the starters** in [`widgets/`](widgets): *Welcome Packs*, *Broadcast Presets*, *Resource Drop*, *Event Countdown*, *Server Report*, *Ban Manager* and *Oxide Plugin Control*. Install them from **Tools → Widgets → Browse library**.
+* 📚 **Try the starters** in [`widgets/`](widgets): *Welcome Packs*, *Broadcast Presets*, *Resource Drop*, *Event Countdown*, *Server Report*, *Ban Manager* and *Oxide Plugin Control*. Install them from **Widgets → Get more widgets → Browse library**.
 
 Want to make one? Read the **[widget guide](docs/WIDGETS.md)** and open a pull request. 💜
 
@@ -216,8 +224,8 @@ Bunker/
 ├── src/                  The WinForms app (C#, .NET 10)
 │   ├── Core.cs             connection, console log, server monitor
 │   ├── RconClient.cs       WebRCON client
-│   ├── *Page.cs            Dashboard, Console, Players, Tools, Layout, Settings
-│   ├── *View.cs            widgets: console, players, charts, scheduler, player database, chat monitor, admin tools
+│   ├── *Page.cs            Dashboard, Console, Players, Widgets, Layout, Settings
+│   ├── *View.cs            panels and widgets: console, players, charts, scheduler, player database, chat monitor, admin helpers
 │   └── CommunityWidgets.cs the safe widget format, rules and store
 ├── tests/Bunker.Tests/   xUnit tests (widget rules and bundled widgets)
 ├── widgets/              starter community widgets

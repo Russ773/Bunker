@@ -82,18 +82,28 @@ public class LayoutGrid : Panel
         }
 
         var menu = new ContextMenuStrip { BackColor = Theme.Input, ForeColor = Theme.Text, Renderer = new DarkMenuRenderer(), ShowImageMargin = false };
-        foreach (var k in Widgets.All)
+        void Heading(string text, bool separator)
         {
-            var item = new ToolStripMenuItem(Widgets.Name(k)) { Checked = k == kind, BackColor = Theme.Input, ForeColor = Theme.Text };
-            item.Click += (_, _) => Choose(k, null);
+            if (separator) menu.Items.Add(new ToolStripSeparator());
+            menu.Items.Add(new ToolStripMenuItem(text) { Enabled = false, BackColor = Theme.Input, ForeColor = Theme.Muted });
+        }
+
+        void AddKind(WidgetInfo info)
+        {
+            var item = new ToolStripMenuItem(info.Name) { Checked = info.Kind == kind, BackColor = Theme.Input, ForeColor = Theme.Text };
+            item.Click += (_, _) => Choose(info.Kind, null);
             menu.Items.Add(item);
         }
+
+        Heading("CORE", false);
+        foreach (var info in WidgetCatalog.CorePanels) AddKind(info);
+        Heading("BUILT-IN WIDGETS", true);
+        foreach (var info in WidgetCatalog.BuiltIn) AddKind(info);
 
         var community = _core.Widgets.All;
         if (community.Count > 0)
         {
-            menu.Items.Add(new ToolStripSeparator());
-            menu.Items.Add(new ToolStripMenuItem("Community widgets") { Enabled = false, BackColor = Theme.Input, ForeColor = Theme.Muted });
+            Heading("COMMUNITY WIDGETS", true);
             foreach (var d in community)
             {
                 var def = d;
@@ -150,7 +160,7 @@ public class LayoutPage : Panel
         }
         Highlight();
 
-        var page = new Page("Layout", "Choose how many sections to show, then pick what goes in each one",
+        var page = new Page("Layout", "Choose how many sections to show, then pick what goes in each: a core panel such as Console or Players, or any widget",
             _grid, headerControls.ToArray());
         page.Dock = DockStyle.Fill;
         Controls.Add(page);

@@ -421,7 +421,7 @@ public static class Widgets
             case WidgetKind.Custom:
                 return core.Widgets.Get(customId) is { } def
                     ? (new CustomWidgetView(core, def), Array.Empty<Control>())
-                    : (new Label { Text = "This community widget is not installed any more. Pick another widget from the title menu, or add it again under Tools, Widgets.", ForeColor = Theme.Muted, Padding = new Padding(4, 14, 4, 0) }, Array.Empty<Control>());
+                    : (new Label { Text = "This community widget is not installed any more. Pick another widget from the title menu, or install it again from the Widgets page.", ForeColor = Theme.Muted, Padding = new Padding(4, 14, 4, 0) }, Array.Empty<Control>());
             default: { var v = new ConsoleView(core); return (v, v.HeaderActions); }
         }
     }
