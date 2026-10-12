@@ -12,6 +12,7 @@ public partial class SettingsPage
         AutoSize = true, WrapContents = false, BackColor = Theme.Bg, Padding = new Padding(12, 10, 12, 10), Margin = new Padding(0, 6, 0, 0), MinimumSize = new Size(420, 0),
     };
     private readonly Label _previewTime = new() { AutoSize = true, ForeColor = Theme.Dim, Margin = new Padding(0), Text = "17:30:43  " };
+    private readonly Label _previewTag = new() { AutoSize = true, Margin = new Padding(0), Font = new Font("Segoe UI Semibold", 10f), Text = "[ADMIN] " };
     private readonly Label _previewName = new() { AutoSize = true, Margin = new Padding(0), Font = new Font("Segoe UI Semibold", 10f) };
     private readonly Label _previewColon = new() { AutoSize = true, ForeColor = Theme.Muted, Margin = new Padding(0), Text = ": " };
     private readonly Label _previewText = new() { AutoSize = true, ForeColor = Theme.Text, Margin = new Padding(0), Text = "Hello everyone" };
@@ -66,8 +67,26 @@ public partial class SettingsPage
         flow.Controls.Add(Caption("Name colour"));
         flow.Controls.Add(presets);
 
+        // Tag colour: the prefixes a chat plugin adds, such as [ADMIN]
+        var tagColour = new ModernField { Width = 140, Text = s.ChatTagColor };
+        tagColour.Box.MaxLength = 9;
+        var tagPresets = new FlowLayoutPanel { AutoSize = true, WrapContents = false, BackColor = Theme.Panel, Margin = new Padding(0) };
+        foreach (var (label, hex) in new[] { ("Blue", "#5af"), ("Green", "#af5"), ("Orange", "#fa5"), ("White", "#eee") })
+        {
+            var b = Theme.GhostButton(label);
+            b.Height = 38;
+            b.Margin = new Padding(0, 0, 8, 0);
+            var value = hex;
+            b.Click += (_, _) => tagColour.Text = value;
+            tagPresets.Controls.Add(b);
+        }
+        tagColour.Margin = new Padding(8, 0, 0, 0);
+        tagPresets.Controls.Add(tagColour);
+        flow.Controls.Add(Caption("Tag colour (for prefixes such as [ADMIN] that your chat plugin adds; the server does not tell Bunker their colour)"));
+        flow.Controls.Add(tagPresets);
+
         // Preview
-        _chatPreview.Controls.AddRange(new Control[] { _previewTime, _previewName, _previewColon, _previewText });
+        _chatPreview.Controls.AddRange(new Control[] { _previewTime, _previewTag, _previewName, _previewColon, _previewText });
         flow.Controls.Add(Caption("Preview"));
         flow.Controls.Add(_chatPreview);
 
@@ -109,6 +128,7 @@ public partial class SettingsPage
             var who = string.IsNullOrWhiteSpace(name.Text) ? "SERVER" : name.Text.Trim();
             _previewName.Text = who;
             _previewName.ForeColor = tint;
+            _previewTag.ForeColor = Theme.Readable(Theme.ParseHex(ChatSender.TagColourOrDefault(tagColour.Text)) ?? Theme.Chat);
 
             var id = steam.Text.Trim();
             steamNote.Text = id.Length == 0 ? "Optional. Without it your message has no Steam picture."
@@ -121,6 +141,7 @@ public partial class SettingsPage
             s.ChatName = name.Text.Trim();
             s.ChatSteamId = steam.Text.Trim();
             s.ChatColor = ChatSender.ColourOrDefault(colour.Text);
+            s.ChatTagColor = ChatSender.TagColourOrDefault(tagColour.Text);
             s.ChatUsePlugin = usePlugin.Checked;
             s.Save();
             _core.NotifyChatIdentityChanged();
@@ -130,6 +151,7 @@ public partial class SettingsPage
         name.Box.TextChanged += (_, _) => Save();
         steam.Box.TextChanged += (_, _) => Save();
         colour.Box.TextChanged += (_, _) => Save();
+        tagColour.Box.TextChanged += (_, _) => Save();
         usePlugin.CheckedChanged += (_, _) => Save();
         Refresh();
 

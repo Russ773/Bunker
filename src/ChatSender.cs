@@ -14,6 +14,12 @@ public static class ChatSender
     public static string ColourOrDefault(string? colour) =>
         Theme.ParseHex(colour) is null ? DefaultColour : "#" + colour!.Trim().TrimStart('#');
 
+    public const string DefaultTagColour = "#5af";
+
+    /// <summary>Like <see cref="ColourOrDefault"/>, for the colour of plugin prefixes such as [ADMIN] (blue unless you choose otherwise).</summary>
+    public static string TagColourOrDefault(string? colour) =>
+        Theme.ParseHex(colour) is null ? DefaultTagColour : "#" + colour!.Trim().TrimStart('#');
+
     /// <summary>The command for the Bunker Chat plugin on the server: <c>bunker.say steamid "name" "colour" "message"</c>.</summary>
     public static string PluginCommand(string steamId, string name, string colour, string message) =>
         $"bunker.say {(IsSteamId(steamId) ? steamId : "0")} {Cmd.Quote(name)} {Cmd.Quote(ColourOrDefault(colour))} {Cmd.Quote(message)}";

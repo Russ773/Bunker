@@ -136,3 +136,30 @@ public class WidgetUpdateTests
     public void A_higher_version_counts_as_an_update(string? offered, string? installed, bool expected) =>
         Assert.Equal(expected, WidgetUpdateService.IsNewer(offered, installed));
 }
+
+public class FavouriteWidgetTests
+{
+    private static WidgetInfo W(string key) => new(key, key, "", WidgetOrigin.BuiltIn, WidgetKind.Announce);
+
+    [Fact]
+    public void Starred_widgets_come_first_and_keep_their_own_order()
+    {
+        var list = new[] { W("a"), W("b"), W("c"), W("d") };
+        var ordered = WidgetCatalog.FavouritesFirst(list, new List<string> { "d", "b" });
+        Assert.Equal(new[] { "b", "d", "a", "c" }, ordered.Select(w => w.Key));
+    }
+
+    [Fact]
+    public void With_no_favourites_the_order_is_unchanged()
+    {
+        var list = new[] { W("a"), W("b") };
+        Assert.Equal(new[] { "a", "b" }, WidgetCatalog.FavouritesFirst(list, new List<string>()).Select(w => w.Key));
+    }
+
+    [Fact]
+    public void A_favourite_that_no_longer_exists_is_ignored()
+    {
+        var list = new[] { W("a"), W("b") };
+        Assert.Equal(new[] { "a", "b" }, WidgetCatalog.FavouritesFirst(list, new List<string> { "gone" }).Select(w => w.Key));
+    }
+}

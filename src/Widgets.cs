@@ -15,6 +15,9 @@ public class ConsoleView : Panel
     };
     private readonly ModernField _input = new();
     private readonly Button _send = Theme.PrimaryButton("Send");
+    private readonly Button _mode = Theme.GhostButton("Command   ▾");
+    private bool _sayInChat; // console only: what you type is said in the chat instead of run as a command
+    private const string CommandPlaceholder = "Type a command (e.g. status, say hello)";
     private readonly CheckBox _autoScroll = new() { Text = "Auto-scroll", Checked = true, AutoSize = true, ForeColor = Theme.Muted, Cursor = Cursors.Hand, Margin = new Padding(0, 3, 12, 0) };
     private readonly Label _clear = new() { Text = "Clear", AutoSize = true, ForeColor = Theme.Muted, Cursor = Cursors.Hand, Margin = new Padding(0, 4, 4, 0) };
     private readonly List<string> _history = new();
@@ -47,12 +50,23 @@ public class ConsoleView : Panel
             var bar = new Panel { Dock = DockStyle.Bottom, Height = 52, Padding = new Padding(0, 10, 0, 0), BackColor = Theme.Panel };
             _input.Dock = DockStyle.Fill;
             _input.Box.Font = Theme.Mono;
-            _input.Box.PlaceholderText = chat ? ChatPlaceholder() : "Type a command (e.g. status, say hello)";
+            _input.Box.PlaceholderText = chat ? ChatPlaceholder() : CommandPlaceholder;
             var gap = new Panel { Dock = DockStyle.Right, Width = 8 };
             _send.Dock = DockStyle.Right;
             _send.Width = 86;
             _send.Height = 36;
             bar.Controls.AddRange(new Control[] { _input, gap, _send });
+            if (!chat)
+            {
+                // A choice between running what you type as a command, or saying it in the game's chat as you.
+                _mode.Dock = DockStyle.Left;
+                _mode.Width = 132;
+                _mode.Height = 36;
+                _mode.Click += (_, _) => ShowModeMenu();
+                Tips.Set(_mode, "Choose whether what you type is run as a command, or said in the game's chat as you.");
+                bar.Controls.Add(_mode);
+                bar.Controls.Add(new Panel { Dock = DockStyle.Left, Width = 8 });
+            }
             Controls.Add(bar);
             _bar = bar;
             _send.Click += async (_, _) => await SendAsync();
@@ -105,7 +119,28 @@ public class ConsoleView : Panel
         if (_bar is not null) _bar.Height = Math.Max(52, _input.Box.PreferredHeight + 42);
     }
 
-    private void RefreshChatPlaceholder() => _input.Box.PlaceholderText = ChatPlaceholder();
+    private void RefreshChatPlaceholder() => _input.Box.PlaceholderText = _chat || _sayInChat ? ChatPlaceholder() : CommandPlaceholder;
+
+    private void ShowModeMenu()
+    {
+        var menu = new ContextMenuStrip { BackColor = Theme.Input, ForeColor = Theme.Text, Renderer = new DarkMenuRenderer(), ShowImageMargin = false, ShowCheckMargin = true };
+        var name = _core.Settings.ChatName.Trim();
+        void Choose(string label, bool chat)
+        {
+            var item = new ToolStripMenuItem(label) { Checked = _sayInChat == chat, BackColor = Theme.Input, ForeColor = Theme.Text };
+            item.Click += (_, _) =>
+            {
+                _sayInChat = chat;
+                _mode.Text = chat ? "Chat   ▾" : "Command   ▾";
+                RefreshChatPlaceholder();
+                _input.Box.Focus();
+            };
+            menu.Items.Add(item);
+        }
+        Choose("Command  (run what I type)", false);
+        Choose(name.Length > 0 ? $"Chat  (say it as {name})" : "Chat  (say it as SERVER)", true);
+        menu.Show(_mode, new Point(0, _mode.Height));
+    }
 
     private void OnAdded(LogEntry e) => Append(e);
     private void OnCleared() => _box.Clear();
@@ -259,7 +294,9 @@ public class ConsoleView : Panel
         _history.Add(text);
         _historyIndex = _history.Count;
         _input.Text = "";
-        if (_chat) await _core.SendChatAsync(text);
+        if (_chat || _sayInChat) await _core.SendChatAsync(text);
+        // With a chat name set, "say hello" typed here is said as you (not SERVER), the same as in the Chat panel.
+        else if (_core.Settings.ChatName.Trim().Length > 0 && text.StartsWith("say ", StringComparison.OrdinalIgnoreCase) && text.Length > 4) await _core.SendChatAsync(text[4..].Trim());
         else await _core.SendCommandAsync(text);
     }
 
@@ -301,7 +338,8 @@ public class ConsoleView : Panel
             // Chat looks the way it does in the game: [TEAM] tag, the player's name in their own colour, then the message in plain text.
             var tint = Theme.Readable(Theme.ParseHex(e.Color) ?? Theme.Chat);
             if (e.Channel == 1) AppendPart("[TEAM] ", Theme.Ok, bold: true);
-            if (e.Tags is { Length: > 0 }) AppendPart(e.Tags + " ", tint, bold: true); // a chat plugin's own prefix, such as [ADMIN]
+            // A chat plugin's own prefix, such as [ADMIN]. The server does not send its colour, so it has its own setting.
+            if (e.Tags is { Length: > 0 }) AppendPart(e.Tags + " ", Theme.Readable(Theme.ParseHex(_core.Settings.ChatTagColor) ?? Theme.Chat), bold: true);
             AppendPart(who, tint, bold: true);
             AppendPart(": ", Theme.Muted, bold: false);
             AppendPart(e.Message + Environment.NewLine, Theme.Text, bold: false);

@@ -290,7 +290,6 @@ public class Core
         if (name.Length > 0 && Settings.ChatUsePlugin && !_chatPluginMissing)
         {
             var command = ChatSender.PluginCommand(Settings.ChatSteamId, name, colour, text);
-            Log.Add("> " + command, LogKind.Command);
             try
             {
                 var reply = await Rcon.QueryAsync(command, 6000);
@@ -305,8 +304,10 @@ public class Core
             catch (Exception e) { Log.Add("Chat was not sent: " + e.Message, LogKind.Error); return; }
         }
 
-        await SendCommandAsync(ChatSender.SayCommand(name, text));
+        // The message shows in the console as chat (with your name), so the command itself is not repeated there.
+        await SendCommandAsync(ChatSender.SayCommand(name, text), showInConsole: false);
         if (name.Length > 0) EchoChat(name, text, colour);
+        else Log.Add("SERVER: " + text, LogKind.Chat, null, "SERVER", text, "#eee", 0);
     }
 
     private void EchoChat(string name, string text, string colour)
@@ -315,10 +316,10 @@ public class Core
         Log.Add($"{name}: {text}", LogKind.Chat, id, name, text, colour, 0);
     }
 
-    public async Task SendCommandAsync(string command)
+    public async Task SendCommandAsync(string command, bool showInConsole = true)
     {
         if (!Rcon.IsConnected) return;
-        Log.Add("> " + command, LogKind.Command);
+        if (showInConsole) Log.Add("> " + command, LogKind.Command);
         try { await Rcon.SendCommandAsync(command); }
         catch (Exception e) { Log.Add("Send failed: " + e.Message, LogKind.Error); }
     }

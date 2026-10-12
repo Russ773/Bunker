@@ -52,6 +52,13 @@ public static class WidgetCatalog
     public static IEnumerable<WidgetInfo> AllWidgets(Core core) =>
         BuiltIn.Concat(core.Widgets.All.Select(Community));
 
+    /// <summary>Starred widgets first, keeping the usual order within each group.</summary>
+    public static List<WidgetInfo> FavouritesFirst(IEnumerable<WidgetInfo> widgets, ICollection<string> favourites)
+    {
+        var all = widgets.ToList();
+        return all.Where(w => favourites.Contains(w.Key)).Concat(all.Where(w => !favourites.Contains(w.Key))).ToList();
+    }
+
     public static WidgetInfo? Find(WidgetKind kind) =>
         CorePanels.Concat(BuiltIn).FirstOrDefault(i => i.Kind == kind);
 

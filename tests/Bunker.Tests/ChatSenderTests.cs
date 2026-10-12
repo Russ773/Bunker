@@ -38,6 +38,14 @@ public class ChatSenderTests
     public void Colours_are_tidied_or_replaced_by_the_admin_green(string? input, string expected) =>
         Assert.Equal(expected, ChatSender.ColourOrDefault(input));
 
+    [Theory]
+    [InlineData("#fa5", "#fa5")]
+    [InlineData("5af", "#5af")]
+    [InlineData("nope", "#5af")]
+    [InlineData(null, "#5af")]
+    public void Plugin_prefix_colour_defaults_to_blue(string? input, string expected) =>
+        Assert.Equal(expected, ChatSender.TagColourOrDefault(input));
+
     [Fact]
     public void Plain_say_adds_your_name_only_when_you_have_one()
     {

@@ -113,7 +113,7 @@ public class Sidebar : Panel
 
         var hiddenKeys = _core.Settings.HiddenWidgets;
         var all = WidgetCatalog.AllWidgets(_core).ToList();
-        var shown = all.Where(i => !hiddenKeys.Contains(i.Key)).ToList();
+        var shown = WidgetCatalog.FavouritesFirst(all.Where(i => !hiddenKeys.Contains(i.Key)), _core.Settings.FavouriteWidgets);
         var hidden = all.Where(i => hiddenKeys.Contains(i.Key)).ToList();
 
         var entries = new List<WidgetNavItem>();
@@ -143,8 +143,11 @@ public class Sidebar : Panel
     {
         var key = "widgets:" + info.Key;
         var hint = dim ? "Right-click to show it in this menu again." : "Right-click to hide it from this menu.";
-        var item = new WidgetNavItem(key, info.Name, info.Blurb + "\n\n" + hint, info.IsCommunity, dim: dim);
+        var update = info.IsCommunity && _core.WidgetUpdates.HasUpdate(info.CustomId);
+        var favourite = _core.Settings.FavouriteWidgets.Contains(info.Key);
+        var item = new WidgetNavItem(key, info.Name, (update ? "A newer version of this widget is available.\n\n" : "") + info.Blurb + "\n\n" + hint + "\nClick the star to make it a favourite (listed first).", info.IsCommunity, dim: dim, hasUpdate: update, canStar: true, starred: favourite);
         item.Click += (_, _) => Navigated?.Invoke(key);
+        item.StarClicked += () => ToggleFavourite(info.Key);
         item.MouseUp += (_, e) =>
         {
             if (e.Button != MouseButtons.Right) return;
@@ -156,6 +159,14 @@ public class Sidebar : Panel
             menu.Show(item, e.Location);
         };
         return item;
+    }
+
+    private void ToggleFavourite(string widgetKey)
+    {
+        var list = _core.Settings.FavouriteWidgets;
+        if (!list.Remove(widgetKey)) list.Add(widgetKey);
+        _core.Settings.Save();
+        BeginInvoke(BuildWidgetList);
     }
 
     private void SetHidden(string widgetKey, bool hide)
@@ -216,15 +227,25 @@ public class WidgetNavItem : Control
     private readonly bool _action;
     private readonly bool _dim;
     private readonly bool _hasUpdate;
+    private readonly bool _canStar;
+    private readonly bool _starred;
+    private bool _pressedOnStar;
+
+    /// <summary>The star at the right of the row was clicked (instead of the row itself).</summary>
+    public event Action? StarClicked;
+
+    private bool OnStar(Point p) => _canStar && p.X >= Width - 40;
 
     public string Key { get; }
 
     [System.ComponentModel.DesignerSerializationVisibility(System.ComponentModel.DesignerSerializationVisibility.Hidden)]
     public bool Selected { get => _selected; set { _selected = value; Invalidate(); } }
 
-    public WidgetNavItem(string key, string name, string blurb, bool community, bool isAction = false, bool dim = false, bool hasUpdate = false)
+    public WidgetNavItem(string key, string name, string blurb, bool community, bool isAction = false, bool dim = false, bool hasUpdate = false, bool canStar = false, bool starred = false)
     {
         _dim = dim;
+        _canStar = canStar;
+        _starred = starred;
         _hasUpdate = hasUpdate;
         Key = key;
         Text = name;
@@ -241,6 +262,14 @@ public class WidgetNavItem : Control
 
     protected override void OnMouseEnter(EventArgs e) { _hover = true; Invalidate(); base.OnMouseEnter(e); }
     protected override void OnMouseLeave(EventArgs e) { _hover = false; Invalidate(); base.OnMouseLeave(e); }
+    protected override void OnMouseDown(MouseEventArgs e) { _pressedOnStar = e.Button == MouseButtons.Left && OnStar(e.Location); base.OnMouseDown(e); }
+
+    protected override void OnClick(EventArgs e)
+    {
+        // A click on the star stars or un-stars the widget; it does not open it.
+        if (_pressedOnStar) { _pressedOnStar = false; StarClicked?.Invoke(); return; }
+        base.OnClick(e);
+    }
 
     protected override void OnPaint(PaintEventArgs e)
     {
@@ -267,10 +296,16 @@ public class WidgetNavItem : Control
         if (_hasUpdate)
         {
             using var arrow = new SolidBrush(Theme.Accent);
-            g.FillEllipse(arrow, Width - 28, Height / 2 - 4, 8, 8); // an orange dot: a newer version is available
+            g.FillEllipse(arrow, Width - 56, Height / 2 - 4, 8, 8); // an orange dot: a newer version is available
+        }
+        if (_canStar && (_starred || _hover || _selected))
+        {
+            // A filled orange star for a favourite; a faint outline on hover so it can be found.
+            TextRenderer.DrawText(g, _starred ? "★" : "☆", new Font("Segoe UI Symbol", 11f), new Rectangle(Width - 38, 0, 28, Height),
+                _starred ? Theme.Accent : Theme.Dim, TextFormatFlags.VerticalCenter | TextFormatFlags.HorizontalCenter | TextFormatFlags.NoPadding);
         }
         var fore = _selected ? Theme.Text : _action ? Theme.Accent : _dim ? Theme.Dim : Theme.Muted;
-        TextRenderer.DrawText(g, Text, Font, new Rectangle(56, 0, Width - 62, Height), fore,
+        TextRenderer.DrawText(g, Text, Font, new Rectangle(56, 0, Width - (_canStar ? 100 : 62), Height), fore,
             TextFormatFlags.VerticalCenter | TextFormatFlags.Left | TextFormatFlags.EndEllipsis | TextFormatFlags.NoPadding);
     }
 }

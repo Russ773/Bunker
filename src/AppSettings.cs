@@ -98,6 +98,10 @@ public class AppSettings
     public string ChatColor { get; set; } = "#af5";
     /// <summary>Send chat through the Bunker Chat plugin on the server (shows your name and avatar). Falls back to the plain say command if it is not installed.</summary>
     public bool ChatUsePlugin { get; set; } = true;
+    /// <summary>The colour of prefixes that chat plugins add, such as [ADMIN]. The server does not say what colour the game shows them in.</summary>
+    public string ChatTagColor { get; set; } = "#5af";
+    /// <summary>Widgets you starred. They are listed first in the WIDGETS menu.</summary>
+    public List<string> FavouriteWidgets { get; set; } = new();
     /// <summary>Rules for console lines to hide: a whole plugin, or any line containing some words.</summary>
     public List<HideRule> ConsoleHidden { get; set; } = new();
     public bool UseOnlineItemList { get; set; } = true;
