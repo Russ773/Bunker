@@ -265,6 +265,50 @@ public class Core
         SetState(ConnState.Disconnected, "Disconnected");
     }
 
+    /// <summary>Raised when your chat name, Steam ID or colour is changed in Settings.</summary>
+    public event Action? ChatIdentityChanged;
+    public void NotifyChatIdentityChanged() => ChatIdentityChanged?.Invoke();
+
+    private bool _chatPluginMissing;
+
+    /// <summary>
+    /// Sends a message from the Chat panel. With a chat name set it goes through the Bunker Chat plugin (your name, colour and avatar in-game);
+    /// if the plugin is not on the server, or no name is set, it uses the plain say command. Your own message is shown in the panel straight away.
+    /// </summary>
+    public async Task SendChatAsync(string text)
+    {
+        if (!Rcon.IsConnected || text.Length == 0) return;
+        var name = Settings.ChatName.Trim();
+        var colour = ChatSender.ColourOrDefault(Settings.ChatColor);
+
+        if (name.Length > 0 && Settings.ChatUsePlugin && !_chatPluginMissing)
+        {
+            var command = ChatSender.PluginCommand(Settings.ChatSteamId, name, colour, text);
+            Log.Add("> " + command, LogKind.Command);
+            try
+            {
+                var reply = await Rcon.QueryAsync(command, 6000);
+                if (!ChatSender.LooksUnknown(reply))
+                {
+                    EchoChat(name, text, colour);
+                    return;
+                }
+                _chatPluginMissing = true;
+                Log.Add("The Bunker Chat plugin is not installed on this server, so chat is sent with the plain say command (it shows as SERVER). Settings → Chat explains how to install it.", LogKind.Warning);
+            }
+            catch (Exception e) { Log.Add("Chat was not sent: " + e.Message, LogKind.Error); return; }
+        }
+
+        await SendCommandAsync(ChatSender.SayCommand(name, text));
+        if (name.Length > 0) EchoChat(name, text, colour);
+    }
+
+    private void EchoChat(string name, string text, string colour)
+    {
+        var id = ChatSender.IsSteamId(Settings.ChatSteamId) ? Settings.ChatSteamId : null;
+        Log.Add($"{name}: {text}", LogKind.Chat, id, name, text, colour, 0);
+    }
+
     public async Task SendCommandAsync(string command)
     {
         if (!Rcon.IsConnected) return;
@@ -277,6 +321,7 @@ public class Core
     {
         State = state;
         StatusText = text;
+        if (state == ConnState.Connected) _chatPluginMissing = false; // look again: the plugin may have been installed since
         if (state != ConnState.Connected) Monitor.Stop();
         else Scheduler.OnConnected();
         StateChanged?.Invoke();

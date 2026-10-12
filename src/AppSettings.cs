@@ -92,6 +92,12 @@ public class AppSettings
     /// <summary>Download the Rust item list and pictures from GitHub (bobosneefdev/rust-items-json) so item search stays current.</summary>
     /// <summary>Widgets hidden from the sidebar menu (by key). They stay available in the Layout picker.</summary>
     public List<string> HiddenWidgets { get; set; } = new();
+    /// <summary>The name, Steam ID and name colour used when you send chat from the Chat panel (instead of SERVER).</summary>
+    public string ChatName { get; set; } = "";
+    public string ChatSteamId { get; set; } = "";
+    public string ChatColor { get; set; } = "#af5";
+    /// <summary>Send chat through the Bunker Chat plugin on the server (shows your name and avatar). Falls back to the plain say command if it is not installed.</summary>
+    public bool ChatUsePlugin { get; set; } = true;
     public bool UseOnlineItemList { get; set; } = true;
     public bool LightTheme { get; set; }
     public string ConsoleFontName { get; set; } = "Consolas";

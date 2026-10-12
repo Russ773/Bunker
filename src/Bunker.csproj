@@ -26,6 +26,7 @@
   <ItemGroup>
     <EmbeddedResource Include="..\assets\logo-512.png" LogicalName="logo.png" />
     <EmbeddedResource Include="..\assets\items-fallback.json" LogicalName="items-fallback.json" />
+    <EmbeddedResource Include="..\plugins\BunkerChat.cs" LogicalName="BunkerChat.cs" />
   </ItemGroup>
 
 

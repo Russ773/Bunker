@@ -46,7 +46,7 @@ public class ConsoleView : Panel
             var bar = new Panel { Dock = DockStyle.Bottom, Height = 52, Padding = new Padding(0, 10, 0, 0), BackColor = Theme.Panel };
             _input.Dock = DockStyle.Fill;
             _input.Box.Font = Theme.Mono;
-            _input.Box.PlaceholderText = chat ? "Say something to the server..." : "Type a command (e.g. status, say hello)";
+            _input.Box.PlaceholderText = chat ? ChatPlaceholder() : "Type a command (e.g. status, say hello)";
             var gap = new Panel { Dock = DockStyle.Right, Width = 8 };
             _send.Dock = DockStyle.Right;
             _send.Width = 86;
@@ -62,6 +62,7 @@ public class ConsoleView : Panel
         DarkScroll.Apply(_box);
         ApplyFont();
         _core.ConsoleFontChanged += ApplyFont;
+        if (chat && showInput) _core.ChatIdentityChanged += RefreshChatPlaceholder;
         foreach (var e in _core.Log.Entries) Append(e);
         _core.Log.Added += OnAdded;
         _core.Log.Cleared += OnCleared;
@@ -79,9 +80,13 @@ public class ConsoleView : Panel
             _core.Log.Cleared -= OnCleared;
             _core.StateChanged -= ApplyEnabled;
             _core.ConsoleFontChanged -= ApplyFont;
+            _core.ChatIdentityChanged -= RefreshChatPlaceholder;
         }
         base.Dispose(disposing);
     }
+
+    private string ChatPlaceholder() =>
+        _core.Settings.ChatName.Trim() is { Length: > 0 } name ? $"Say something as {name}..." : "Say something to the server (as SERVER; set your name in Settings → Chat)";
 
     /// <summary>Uses the font chosen in Settings, and makes the command bar tall enough for it.</summary>
     private void ApplyFont()
@@ -91,6 +96,8 @@ public class ConsoleView : Panel
         _input.Box.Font = _core.ConsoleFont;
         if (_bar is not null) _bar.Height = Math.Max(52, _input.Box.PreferredHeight + 42);
     }
+
+    private void RefreshChatPlaceholder() => _input.Box.PlaceholderText = ChatPlaceholder();
 
     private void OnAdded(LogEntry e) => Append(e);
     private void OnCleared() => _box.Clear();
@@ -177,7 +184,8 @@ public class ConsoleView : Panel
         _history.Add(text);
         _historyIndex = _history.Count;
         _input.Text = "";
-        await _core.SendCommandAsync(_chat ? "say " + text : text);
+        if (_chat) await _core.SendChatAsync(text);
+        else await _core.SendCommandAsync(text);
     }
 
     private void InputKeyDown(object? s, KeyEventArgs e)

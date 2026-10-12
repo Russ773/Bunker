@@ -73,6 +73,7 @@ Bunker is split in two so it is always clear what is part of the app and what is
 | 📊 **Dashboard** | Live players, FPS, entities, uptime, memory and map, with the player list and console in one glance. |
 | 👥 **Players** | Who's online with ping, time played and health. Right-click for copy, Steam profile, kick, ban, mute, teleport, give an item, or a private note. |
 | 🪟 **Layout** | Pick 1, 2 or 4 sections and put a core panel *or any widget* in each. Go **fullscreen** for a wall-display control room. |
+| 💬 **Chat** | Send chat from Bunker with your own name, colour and Steam picture instead of SERVER. Needs the small [BunkerChat plugin](plugins/BunkerChat.cs) on the server (Carbon or Oxide); without it Bunker falls back to the plain `say` command. |
 | ⚙️ **Settings** | Several saved servers (passwords encrypted for your Windows account), **import from RustAdmin**, dark and light themes, console font, startup options and updates that *ask first*. |
 
 ### 🧩 Widgets: optional add-ons

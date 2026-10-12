@@ -93,6 +93,18 @@ public class ChatMonitorView : Panel
 
     private bool Matches(LogEntry e) => Words() is { Count: > 0 } words && words.Any(w => e.Text.Contains(w, StringComparison.OrdinalIgnoreCase));
 
+    /// <summary>
+    /// Keeps the newest message in view. A table with no room to show a row (not laid out yet, or squeezed very small) refuses to scroll
+    /// and throws, which must never take the app down, so scrolling is skipped until there is room.
+    /// </summary>
+    private void ScrollToNewest()
+    {
+        if (_grid.Rows.Count == 0 || _grid.SelectedRows.Count > 0) return;
+        if (!_grid.IsHandleCreated || _grid.DisplayedRowCount(false) < 1) return;
+        try { _grid.FirstDisplayedScrollingRowIndex = Math.Max(0, _grid.Rows.Count - 1); }
+        catch (InvalidOperationException) { /* no room to display rows yet */ }
+    }
+
     private LogEntry? Selected() => _grid.SelectedRows.Count == 1 ? _grid.SelectedRows[0].Tag as LogEntry : null;
 
     private void Rebuild()
@@ -127,7 +139,7 @@ public class ChatMonitorView : Panel
             if (alert) Alert(e);
         }
         while (_grid.Rows.Count > MaxRows) _grid.Rows.RemoveAt(0);
-        if (_grid.Rows.Count > 0 && _grid.SelectedRows.Count == 0) _grid.FirstDisplayedScrollingRowIndex = Math.Max(0, _grid.Rows.Count - 1);
+        ScrollToNewest();
     }
 
     private void UpdateStats() =>

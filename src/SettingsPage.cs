@@ -36,6 +36,7 @@ public partial class SettingsPage : Panel, ISectionPage
             ("servers", "", "Servers", BuildServers),
             ("general", "", "General", BuildGeneral),
             ("console", "", "Console", BuildConsole),
+            ("chat", "", "Chat", BuildChat),
             ("updates", "", "Updates", BuildUpdates),
             ("about", "", "About", BuildAbout),
         };
