@@ -18,9 +18,10 @@ param(
 $ErrorActionPreference = 'Stop'
 $root = Split-Path $PSScriptRoot -Parent
 
-# Store packages need a first version part above 0 and a last part of 0, so 0.0.10 becomes 1.0.10.0.
+# Store packages need a first version part above 0 and a last part of 0, so 1.0.1 becomes 1.0.1.0.
 $v = [Version]$Version
-$msixVersion = "{0}.{1}.{2}.0" -f ($v.Major + 1), $v.Minor, [Math]::Max($v.Build, 0)
+if ($v.Major -lt 1) { throw "Store packages need a version of 1.0.0 or higher (got $Version)." }
+$msixVersion = "{0}.{1}.{2}.0" -f $v.Major, $v.Minor, [Math]::Max($v.Build, 0)
 
 $makeappx = Get-ChildItem "${env:ProgramFiles(x86)}\Windows Kits\10\bin\*\x64\makeappx.exe" |
     Sort-Object FullName -Descending | Select-Object -First 1

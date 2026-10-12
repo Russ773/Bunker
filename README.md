@@ -247,7 +247,7 @@ Bunker/
 <details>
 <summary><b>🚢 How a release works</b></summary>
 
-Pushing a tag such as `v0.0.9` runs the pipeline:
+Pushing a tag such as `v1.0.0` runs the pipeline:
 
 1. 🧪 run the tests
 2. 🏗️ publish a self-contained Windows build
