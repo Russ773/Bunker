@@ -100,6 +100,9 @@ public abstract class ActionPanel : Panel
     /// <summary>Call once the derived widget has built its controls.</summary>
     protected void Init() => OnState();
 
+    /// <summary>How tall all the stacked controls want to be at the current width.</summary>
+    protected int MeasureStack() => _stack.GetPreferredSize(new Size(Math.Max(ClientSize.Width, 100), 0)).Height;
+
     private void OnState() => Enable(Core.State == ConnState.Connected);
 
     protected abstract void Enable(bool connected);

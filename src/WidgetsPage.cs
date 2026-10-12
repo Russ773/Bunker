@@ -81,6 +81,7 @@ public class WidgetsPage : Panel, ISectionPage
 
         // A widget was installed or removed: drop everything that was built and show the current one again (or the first).
         _core.Widgets.Changed += () => BeginInvoke(Reset);
+        _core.WidgetUpdates.Changed += () => { if (IsHandleCreated) BeginInvoke(() => { if (_current != ManageKey) ShowSection(_current); }); };
         ShowSection(_current);
     }
 
@@ -160,6 +161,13 @@ public class WidgetsPage : Panel, ISectionPage
         layout.Width = 150;
         layout.Click += (_, _) => ShowLayoutMenu(layout, info);
         buttons.Add(layout);
+        if (info.IsCommunity && _core.WidgetUpdates.Find(info.CustomId) is { } update)
+        {
+            var upgrade = Theme.PrimaryButton("Update Available");
+            upgrade.Width = 150;
+            upgrade.Click += (_, _) => _core.WidgetUpdates.ReviewAndInstall(update, FindForm());
+            buttons.Insert(0, upgrade);
+        }
         if (info.IsCommunity && _core.Widgets.Get(info.CustomId) is { } d)
         {
             var details = Theme.GhostButton("Details");

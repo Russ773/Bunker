@@ -121,3 +121,18 @@ public class ChatTidyTests
         Assert.Equal("big", message);
     }
 }
+
+public class WidgetUpdateTests
+{
+    [Theory]
+    [InlineData("1.0.2", "1.0.0", true)]
+    [InlineData("1.0.10", "1.0.9", true)]
+    [InlineData("2.0.0", "1.9.9", true)]
+    [InlineData("1.0.0", "1.0.0", false)]
+    [InlineData("1.0.0", "1.0.2", false)]
+    [InlineData(null, "1.0.0", false)]
+    [InlineData("1.0.1", null, false)]
+    [InlineData("soon", "1.0.0", false)]
+    public void A_higher_version_counts_as_an_update(string? offered, string? installed, bool expected) =>
+        Assert.Equal(expected, WidgetUpdateService.IsNewer(offered, installed));
+}

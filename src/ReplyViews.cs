@@ -156,14 +156,18 @@ public sealed class PluginTableView : Panel, IReplyTarget
         _grid.Columns[list.NameColumn].DefaultCellStyle.Font = Theme.Semibold;
         // Type and version columns read better in a quieter colour than the plugin's name.
         if (list.Columns[0] == "Type") _grid.Columns[0].DefaultCellStyle.ForeColor = Theme.Muted;
-        // Size each column from its longest text (measured here because the grid may not have been drawn yet).
+        // Size each column from its longest text (measured here because the grid may not have been drawn yet). Columns then share
+        // any spare width in proportion, and never get narrower than their text, so a table that fits has no sideways scrollbar.
+        _grid.AutoSizeColumnsMode = DataGridViewAutoSizeColumnsMode.Fill;
         foreach (DataGridViewColumn c in _grid.Columns)
         {
             var font = c.DefaultCellStyle.Font ?? _grid.DefaultCellStyle.Font ?? Theme.UI;
             var widest = TextRenderer.MeasureText(c.HeaderText, Theme.Small).Width + 30; // room for the sort arrow
             foreach (DataGridViewRow row in _grid.Rows)
                 widest = Math.Max(widest, TextRenderer.MeasureText(Convert.ToString(row.Cells[c.Index].Value) ?? "", font).Width);
-            c.Width = Math.Clamp(widest + 26, 70, 360);
+            var wide = Math.Clamp(widest + 26, 70, 360);
+            c.MinimumWidth = wide;
+            c.FillWeight = wide;
         }
         _grid.ClearSelection();
         _grid.ResumeLayout();
@@ -193,7 +197,7 @@ public sealed class PluginTableView : Panel, IReplyTarget
             foreach (var f in file) Write($"      line {f.Line}   {f.Message}", Theme.Muted);
         }
         _problems.BackColor = Theme.Bg;
-        _problems.Height = Math.Min(lines * 19 + 14, 130);
+        _problems.Height = Math.Min(lines * 19 + 14, 92); // a few lines; the rest scrolls, so the table keeps its room
         _problems.Visible = true;
     }
 

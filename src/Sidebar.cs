@@ -67,6 +67,7 @@ public class Sidebar : Panel
         BuildWidgetList();
         HandleCreated += (_, _) => BeginInvoke(() => { if (_widgetItems.FirstOrDefault(w => w.Selected) is { } shown) _widgetList.ScrollControlIntoView(shown); });
         _core.Widgets.Changed += () => BeginInvoke(BuildWidgetList);
+        _core.WidgetUpdates.Changed += () => { if (IsHandleCreated) BeginInvoke(BuildWidgetList); };
 
         _connect.Click += (_, _) => ConnectClicked?.Invoke();
         _core.StateChanged += RefreshState;
@@ -214,15 +215,17 @@ public class WidgetNavItem : Control
     private readonly bool _community;
     private readonly bool _action;
     private readonly bool _dim;
+    private readonly bool _hasUpdate;
 
     public string Key { get; }
 
     [System.ComponentModel.DesignerSerializationVisibility(System.ComponentModel.DesignerSerializationVisibility.Hidden)]
     public bool Selected { get => _selected; set { _selected = value; Invalidate(); } }
 
-    public WidgetNavItem(string key, string name, string blurb, bool community, bool isAction = false, bool dim = false)
+    public WidgetNavItem(string key, string name, string blurb, bool community, bool isAction = false, bool dim = false, bool hasUpdate = false)
     {
         _dim = dim;
+        _hasUpdate = hasUpdate;
         Key = key;
         Text = name;
         _community = community;
@@ -260,6 +263,11 @@ public class WidgetNavItem : Control
         {
             using var dot = new SolidBrush(Theme.Ok);
             g.FillEllipse(dot, 36, Height / 2 - 3, 6, 6);
+        }
+        if (_hasUpdate)
+        {
+            using var arrow = new SolidBrush(Theme.Accent);
+            g.FillEllipse(arrow, Width - 28, Height / 2 - 4, 8, 8); // an orange dot: a newer version is available
         }
         var fore = _selected ? Theme.Text : _action ? Theme.Accent : _dim ? Theme.Dim : Theme.Muted;
         TextRenderer.DrawText(g, Text, Font, new Rectangle(56, 0, Width - 62, Height), fore,

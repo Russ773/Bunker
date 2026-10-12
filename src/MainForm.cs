@@ -43,6 +43,7 @@ public class MainForm : Form
 #if DEBUG
         // Test hooks (debug builds only): open on a given page, and keep the window off-screen.
         if (Environment.GetEnvironmentVariable("BUNKER_START_PAGE") is { Length: > 0 } startPage && _pages.ContainsKey(startPage.Split(':')[0])) Navigate(startPage);
+        if (Environment.GetEnvironmentVariable("BUNKER_TEST_SIZE") is { Length: > 0 } size && size.Split('x') is [var sw, var sh] && int.TryParse(sw, out var w0) && int.TryParse(sh, out var h0)) { WindowState = FormWindowState.Normal; Size = new Size(w0, h0); }
         if (Environment.GetEnvironmentVariable("BUNKER_OFFSCREEN") == "1") { WindowState = FormWindowState.Normal; StartPosition = FormStartPosition.Manual; Location = new Point(-4000, 100); ShowInTaskbar = false; }
 #endif
 
@@ -101,6 +102,7 @@ public class MainForm : Form
 #endif
         await Task.Delay(6000);
         await _core.Items.RefreshAsync();
+        await _core.WidgetUpdates.CheckAsync(); // at most every 12 hours
     }
 
     private bool _autoConnectCancelled;

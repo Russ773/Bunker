@@ -216,11 +216,13 @@ public partial class SettingsPage : Panel, ISectionPage
 
     private Control BuildUpdates()
     {
-        var inner = new Panel { BackColor = Theme.Panel };
+        var inner = new Panel { BackColor = Theme.Panel, AutoScroll = true };
+        DarkScroll.Apply(inner);
         inner.Controls.Add(new Label { Text = $"Current version: {Updater.VersionText}", AutoSize = true, ForeColor = Theme.Muted, Location = new Point(0, 6) });
         if (Updater.IsStoreVersion)
         {
             inner.Controls.Add(new Label { Text = "This copy of Bunker comes from the Microsoft Store, which keeps it up to date for you.", AutoSize = true, ForeColor = Theme.Text, Location = new Point(0, 40) });
+            AddWidgetUpdates(inner, 96);
             return Wrap("Updates", inner);
         }
         inner.Controls.Add(Check("Check for updates when Bunker starts (you are asked before anything installs)", _core.Settings.CheckForUpdatesOnLaunch, 36, v => _core.Settings.CheckForUpdatesOnLaunch = v));
@@ -229,7 +231,71 @@ public partial class SettingsPage : Panel, ISectionPage
         inner.Controls.Add(_progress);
         inner.Controls.Add(_result);
         _check.Click += async (_, _) => await CheckForUpdateAsync();
+        AddWidgetUpdates(inner, 190);
         return Wrap("Updates", inner);
+    }
+
+    // ---- Widget updates: newer versions of the community widgets you have installed
+
+    private readonly FlowLayoutPanel _widgetRows = new() { FlowDirection = FlowDirection.TopDown, WrapContents = false, AutoSize = true, BackColor = Theme.Panel, Margin = new Padding(0) };
+    private readonly Label _widgetStatus = new() { AutoSize = true, MaximumSize = new Size(640, 0), ForeColor = Theme.Muted, Font = Theme.Small };
+    private readonly Button _widgetCheck = Theme.GhostButton("Check for widget updates");
+
+    private void AddWidgetUpdates(Panel inner, int top)
+    {
+        inner.Controls.Add(new Panel { Height = 1, Width = 640, BackColor = Theme.Border, Location = new Point(0, top) });
+        inner.Controls.Add(new Label { Text = "Widget updates", Font = Theme.Semibold, ForeColor = Theme.Text, AutoSize = true, Location = new Point(0, top + 16) });
+        inner.Controls.Add(new Label
+        {
+            Text = "Community widgets are updated separately from Bunker. A newer version is also marked with an orange dot in the WIDGETS menu.",
+            AutoSize = true, MaximumSize = new Size(640, 0), ForeColor = Theme.Muted, Font = Theme.Small, Location = new Point(0, top + 42),
+        });
+        _widgetCheck.Location = new Point(0, top + 82);
+        _widgetCheck.Width = 220;
+        _widgetCheck.Height = 36;
+        inner.Controls.Add(_widgetCheck);
+        _widgetStatus.Location = new Point(236, top + 91);
+        inner.Controls.Add(_widgetStatus);
+        _widgetRows.Location = new Point(0, top + 132);
+        inner.Controls.Add(_widgetRows);
+
+        _widgetCheck.Click += async (_, _) => await _core.WidgetUpdates.CheckAsync(force: true);
+        _core.WidgetUpdates.Changed += () => { if (IsHandleCreated) BeginInvoke(RefreshWidgetUpdates); };
+        _core.Widgets.Changed += () => { if (IsHandleCreated) BeginInvoke(RefreshWidgetUpdates); };
+        RefreshWidgetUpdates();
+    }
+
+    private void RefreshWidgetUpdates()
+    {
+        var service = _core.WidgetUpdates;
+        _widgetCheck.Enabled = !service.Checking;
+        foreach (Control c in _widgetRows.Controls.Cast<Control>().ToList()) { _widgetRows.Controls.Remove(c); c.Dispose(); }
+
+        if (service.Checking) { _widgetStatus.ForeColor = Theme.Muted; _widgetStatus.Text = "Checking the widget library..."; return; }
+        if (service.LastError is { } error) { _widgetStatus.ForeColor = Theme.Err; _widgetStatus.Text = "Could not check: " + error; return; }
+        if (_core.Widgets.All.Count == 0) { _widgetStatus.ForeColor = Theme.Muted; _widgetStatus.Text = "You have no community widgets installed."; return; }
+        if (service.Available.Count == 0)
+        {
+            _widgetStatus.ForeColor = service.LastChecked is null ? Theme.Muted : Theme.Ok;
+            _widgetStatus.Text = service.LastChecked is { } at ? $"All your widgets are up to date (checked {at:HH:mm})." : "Not checked yet. Press the button to look for updates.";
+            return;
+        }
+
+        _widgetStatus.ForeColor = Theme.Warn;
+        _widgetStatus.Text = $"{service.Available.Count} widget update{(service.Available.Count == 1 ? "" : "s")} available.";
+        foreach (var update in service.Available)
+        {
+            var row = new Panel { Width = 640, Height = 52, BackColor = Theme.Input, Margin = new Padding(0, 0, 0, 8) };
+            row.Controls.Add(new Label { Text = update.Installed.Name, Font = Theme.Semibold, ForeColor = Theme.Text, AutoSize = true, Location = new Point(14, 8) });
+            row.Controls.Add(new Label { Text = $"Update Available:  v{update.Installed.Version}  →  v{update.Offered.Version}", Font = Theme.Small, ForeColor = Theme.Accent, AutoSize = true, Location = new Point(14, 29) });
+            var go = Theme.PrimaryButton("Review and update");
+            go.Size = new Size(170, 36);
+            go.Location = new Point(row.Width - 184, 8);
+            var chosen = update;
+            go.Click += (_, _) => service.ReviewAndInstall(chosen, FindForm());
+            row.Controls.Add(go);
+            _widgetRows.Controls.Add(row);
+        }
     }
 
     private async Task CheckForUpdateAsync()

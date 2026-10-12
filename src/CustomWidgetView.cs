@@ -12,6 +12,7 @@ public class CustomWidgetView : ActionPanel
     private readonly Dictionary<string, WidgetControl> _byId = new();
     private readonly Dictionary<string, IReplyTarget> _outputs = new();
     private readonly List<(PluginTableView View, string? PickField)> _picks = new();
+    private readonly List<(Control Host, int MinHeight)> _outputHosts = new();
     private readonly List<(string Source, Label Value)> _stats = new();
     private readonly List<Button> _buttons = new();
     private CancellationTokenSource? _running;
@@ -113,8 +114,16 @@ public class CustomWidgetView : ActionPanel
             }
         }
         Flush();
+        var textFields = def.Controls.Where(x => x.Type == "text" && x.Id is not null).Select(x => x.Id!).ToList();
         foreach (var (view, field) in _picks)
-            if (field is not null && _setters.TryGetValue(field, out var set)) view.Picked = set;
+        {
+            // With no "pick" given, a click on a plugin fills the widget's only text field.
+            var target = field ?? (textFields.Count == 1 ? textFields[0] : null);
+            if (target is not null && _setters.TryGetValue(target, out var set)) view.Picked = set;
+        }
+        // A single output takes all the room that is left, so the list is as long as the page allows and the buttons sit below it.
+        Resize += (_, _) => FitOutput();
+        VisibleChanged += (_, _) => FitOutput();
         Add(Status);
         if (_stats.Count > 0) { Core.Monitor.Updated += RefreshStats; RefreshStats(); }
 #if DEBUG
@@ -138,6 +147,16 @@ public class CustomWidgetView : ActionPanel
     {
         if (disposing) { Core.Monitor.Updated -= RefreshStats; _running?.Cancel(); }
         base.Dispose(disposing);
+    }
+
+    /// <summary>Stretches the single output box to the bottom of the page. Its own height is the least it will ever be.</summary>
+    private void FitOutput()
+    {
+        if (_outputHosts.Count != 1 || !IsHandleCreated || ClientSize.Height < 100) return;
+        var (host, min) = _outputHosts[0];
+        var others = MeasureStack() - host.Height - host.Margin.Vertical;
+        var wanted = Math.Max(min, ClientSize.Height - others - host.Margin.Vertical - 12);
+        if (Math.Abs(wanted - host.Height) > 2) host.Height = wanted;
     }
 
     // ------------------------------------------------------------------ stats
@@ -177,15 +196,19 @@ public class CustomWidgetView : ActionPanel
 
     private Control BuildOutput(WidgetControl c)
     {
+        // Every output can show a plugin list as a table (anything else is shown as text), so widgets written before the table existed
+        // get it too. Only an output that asks for "text" is kept plain.
         IReplyTarget target;
-        if (c.Format == "plugins")
+        var minHeight = c.Height ?? 160;
+        if (c.Format == "text") target = new TextReplyBox(Core, minHeight);
+        else
         {
-            var view = new PluginTableView(Core, c.Height ?? 300);
+            var view = new PluginTableView(Core, Math.Max(minHeight, 300));
             _picks.Add((view, c.Pick));
             target = view;
         }
-        else target = new TextReplyBox(Core, c.Height ?? 160);
         _outputs[c.Id!] = target;
+        _outputHosts.Add((target.Host, Math.Max(minHeight, c.Format == "text" ? minHeight : 300)));
         return target.Host;
     }
 

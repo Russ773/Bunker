@@ -169,6 +169,7 @@ public class Core
     public WidgetStore Widgets { get; } = new();
     public Scheduler Scheduler { get; }
     public ItemCatalog Items { get; }
+    public WidgetUpdateService WidgetUpdates { get; }
     public PlayerTracker Tracker { get; }
     public ConsoleLog Log { get; } = new();
     public ServerMonitor Monitor { get; }
@@ -199,6 +200,7 @@ public class Core
         Monitor = new ServerMonitor(Rcon);
         Scheduler = new Scheduler(this);
         Items = new ItemCatalog(() => settings.UseOnlineItemList);
+        WidgetUpdates = new WidgetUpdateService(this);
         Tracker = new PlayerTracker(this);
         Rcon.MessageReceived += m => _ui.Post(_ => OnMessage(m), null);
         Rcon.Disconnected += reason => _ui.Post(_ =>
