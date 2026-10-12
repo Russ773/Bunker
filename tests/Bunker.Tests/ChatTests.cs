@@ -163,3 +163,39 @@ public class FavouriteWidgetTests
         Assert.Equal(new[] { "a", "b" }, WidgetCatalog.FavouritesFirst(list, new List<string> { "gone" }).Select(w => w.Key));
     }
 }
+
+public class CommandGuessTests
+{
+    [Theory]
+    [InlineData("status")]
+    [InlineData("Status")]
+    [InlineData("kick 76561198000000001 \"bye\"")]
+    [InlineData("say hello everyone")]
+    [InlineData("c.reload Economics")]
+    [InlineData("oxide.plugins")]
+    [InlineData("server.save")]
+    [InlineData("inventory.giveto 765 wood 10")]
+    [InlineData("count")]
+    [InlineData("")]
+    public void Commands_are_recognised(string text) => Assert.True(CommandGuess.LooksLikeCommand(text));
+
+    [Theory]
+    [InlineData("Hello")]
+    [InlineData("hello there everyone")]
+    [InlineData("stauts")]
+    [InlineData("/home")]
+    [InlineData("Is anyone online?")]
+    public void Ordinary_words_are_not_commands(string text) => Assert.False(CommandGuess.LooksLikeCommand(text));
+
+    [Fact]
+    public void A_word_confirmed_as_a_command_is_not_asked_about_again()
+    {
+        var confirmed = new HashSet<string>(StringComparer.OrdinalIgnoreCase) { "rb" };
+        Assert.False(CommandGuess.LooksLikeCommand("rb reload"));
+        Assert.True(CommandGuess.LooksLikeCommand("rb reload", confirmed));
+        Assert.True(CommandGuess.LooksLikeCommand("RB reload", confirmed));
+    }
+
+    [Fact]
+    public void The_first_word_is_what_is_remembered() => Assert.Equal("rb", CommandGuess.FirstWord("  rb reload now"));
+}

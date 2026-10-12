@@ -80,6 +80,12 @@ public class PlayerDbView : Panel
         _search.Box.TextChanged += (_, _) => Fill();
         _onlineOnly.CheckedChanged += (_, _) => Fill();
         _grid.SelectionChanged += (_, _) => OnSelected();
+        // The same right-click menu as the Players page. Players who have left can still be banned or given a note.
+        PlayerMenu.Attach(_grid, _core, () => Selected() is { } r ? new PlayerTarget(r.SteamId, r.Name, null, _core.Tracker.IsOnline(r.SteamId)) : null);
+        _grid.CellMouseDown += (_, e) =>
+        {
+            if (e.Button == MouseButtons.Right && e.RowIndex >= 0) { _grid.ClearSelection(); _grid.Rows[e.RowIndex].Selected = true; }
+        };
         _saveNote.Click += (_, _) => SaveNote();
         _note.Leave += (_, _) => SaveNote();
         _copy.Click += (_, _) => { if (_selectedId is not null) Clipboard.SetText(_selectedId); };

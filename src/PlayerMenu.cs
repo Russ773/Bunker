@@ -72,11 +72,19 @@ public class PromptForm : Form
     }
 }
 
+/// <summary>Who the player menu is for. Players who are not online can still be copied, looked up, banned or given a note.</summary>
+public sealed record PlayerTarget(string SteamId, string Name, int? Ping, bool Online);
+
 /// <summary>The right-click menu for a player: copy, open their Steam profile, moderate, teleport, give items and keep a note.</summary>
 public static class PlayerMenu
 {
     /// <summary>Gives a grid of players a themed right-click menu. The selected player is read from <paramref name="selected"/> each time it opens.</summary>
-    public static void Attach(Control grid, Core core, Func<PlayerInfo?> selected)
+    /// <summary>For a table of players who are online right now.</summary>
+    public static void Attach(Control grid, Core core, Func<PlayerInfo?> selected) =>
+        Attach(grid, core, () => selected() is { } p ? new PlayerTarget(p.SteamId, p.Name, p.Ping, true) : null);
+
+    /// <summary>For any table of players, such as the player database, where some are offline.</summary>
+    public static void Attach(Control grid, Core core, Func<PlayerTarget?> selected)
     {
         var menu = new ContextMenuStrip { BackColor = Theme.Input, ForeColor = Theme.Text, Renderer = new DarkMenuRenderer(), ShowImageMargin = false };
         menu.Opening += (_, e) =>
@@ -96,14 +104,15 @@ public static class PlayerMenu
 
     private static ToolStripMenuItem Heading(string text) => Item(text, null, enabled: false, colour: Theme.Muted);
 
-    private static void Rebuild(ContextMenuStrip menu, Core core, PlayerInfo p, Control owner)
+    private static void Rebuild(ContextMenuStrip menu, Core core, PlayerTarget p, Control owner)
     {
         menu.Items.Clear();
         var form = owner.FindForm();
-        var online = core.State == ConnState.Connected;
+        var connected = core.State == ConnState.Connected;
+        var online = connected && p.Online; // kick, mute, teleport and give need the player to be on the server now
         var safeId = p.SteamId.All(char.IsDigit);
 
-        menu.Items.Add(Heading($"{p.Name}   ·   {p.Ping} ms"));
+        menu.Items.Add(Heading(p.Online && p.Ping is { } ping ? $"{p.Name}   ·   {ping} ms" : p.Online ? p.Name : $"{p.Name}   ·   offline"));
         menu.Items.Add(new ToolStripSeparator());
 
         menu.Items.Add(Item("Copy name", () => SafeCopy(p.Name)));
@@ -115,7 +124,7 @@ public static class PlayerMenu
         menu.Items.Add(new ToolStripSeparator());
 
         menu.Items.Add(Item("Kick...", () => _ = Moderate(core, form, p, "kick"), online && safeId));
-        menu.Items.Add(Item("Ban...", () => _ = Moderate(core, form, p, "ban"), online && safeId, Theme.Err));
+        menu.Items.Add(Item("Ban...", () => _ = Moderate(core, form, p, "ban"), connected && safeId, Theme.Err)); // a ban works for players who are offline too
         menu.Items.Add(Item("Mute", () => _ = Moderate(core, form, p, "mute"), online && safeId));
         menu.Items.Add(Item("Unmute", () => _ = Moderate(core, form, p, "unmute"), online && safeId));
         menu.Items.Add(new ToolStripSeparator());
@@ -146,7 +155,7 @@ public static class PlayerMenu
         try { Clipboard.SetText(text); } catch { /* the clipboard can be busy */ }
     }
 
-    private static async Task Moderate(Core core, IWin32Window? owner, PlayerInfo p, string verb)
+    private static async Task Moderate(Core core, IWin32Window? owner, PlayerTarget p, string verb)
     {
         switch (verb)
         {
@@ -175,7 +184,7 @@ public static class PlayerMenu
         }
     }
 
-    private static async Task GiveItem(Core core, IWin32Window? owner, PlayerInfo p)
+    private static async Task GiveItem(Core core, IWin32Window? owner, PlayerTarget p)
     {
         while (true)
         {
@@ -190,7 +199,7 @@ public static class PlayerMenu
         }
     }
 
-    private static void EditNote(Core core, IWin32Window? owner, PlayerInfo p)
+    private static void EditNote(Core core, IWin32Window? owner, PlayerTarget p)
     {
         var existing = core.Tracker.Records.FirstOrDefault(r => r.SteamId == p.SteamId)?.Note ?? "";
         var asked = PromptForm.Ask(owner, "Player note", $"A private note about {p.Name}. It is saved on this PC and shown in the Player database.", "Save",

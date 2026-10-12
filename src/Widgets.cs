@@ -297,7 +297,28 @@ public class ConsoleView : Panel
         if (_chat || _sayInChat) await _core.SendChatAsync(text);
         // With a chat name set, "say hello" typed here is said as you (not SERVER), the same as in the Chat panel.
         else if (_core.Settings.ChatName.Trim().Length > 0 && text.StartsWith("say ", StringComparison.OrdinalIgnoreCase) && text.Length > 4) await _core.SendChatAsync(text[4..].Trim());
+        else if (!CommandGuess.LooksLikeCommand(text, _confirmedCommands)) await AskCommandOrChatAsync(text);
         else await _core.SendCommandAsync(text);
+    }
+
+    private readonly HashSet<string> _confirmedCommands = new(StringComparer.OrdinalIgnoreCase);
+
+    /// <summary>What was typed does not look like a server command. Asks whether to say it in the game's chat instead of sending it as one.</summary>
+    private async Task AskCommandOrChatAsync(string text)
+    {
+        var name = _core.Settings.ChatName.Trim();
+        var who = name.Length > 0 ? name : "SERVER";
+        var shown = text.Length > 60 ? text[..60] + "..." : text;
+        var answer = MessageBox.Show(FindForm(),
+            $"\"{shown}\" does not look like a server command.\n\nYes: say it in the game's chat as {who}\nNo: run it as a command anyway\nCancel: do not send it",
+            "Say this in chat?", MessageBoxButtons.YesNoCancel, MessageBoxIcon.Question);
+        if (answer == DialogResult.Yes) await _core.SendChatAsync(text);
+        else if (answer == DialogResult.No)
+        {
+            _confirmedCommands.Add(CommandGuess.FirstWord(text)); // it is a command after all (a plugin's, for example): do not ask again
+            await _core.SendCommandAsync(text);
+        }
+        else _input.Text = text; // put it back so nothing is lost
     }
 
     private void InputKeyDown(object? s, KeyEventArgs e)
