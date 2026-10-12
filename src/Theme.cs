@@ -78,7 +78,7 @@ public class ModernField : Panel
         Font = Theme.UI, Dock = DockStyle.Fill,
     };
 
-    public override string Text { get => Box.Text; set => Box.Text = value; }
+    public override string? Text { get => Box.Text; set => Box.Text = value ?? ""; }
 
     public ModernField()
     {

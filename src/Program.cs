@@ -6,6 +6,11 @@ static class Program
     static void Main()
     {
         ApplicationConfiguration.Initialize();
-        Application.Run(new MainForm());
+
+        MainForm? main = null;
+        using (var splash = new SplashForm())
+            splash.RunFor(1800, () => main = new MainForm());
+
+        Application.Run(main!);
     }
 }

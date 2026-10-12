@@ -30,6 +30,12 @@ public static class Updater
         }
     }
 
+    /// <summary>The build counter (4th part of the version); goes up with every build.</summary>
+    public static int BuildNumber => Math.Max(Assembly.GetExecutingAssembly().GetName().Version?.Revision ?? 0, 0);
+
+    /// <summary>For display, e.g. "v0.0.3  -  build 57".</summary>
+    public static string VersionText => $"v{CurrentVersion}  ·  build {BuildNumber}";
+
     /// <summary>Returns the newer release, or null if already up to date. Throws on network/parse errors.</summary>
     public static async Task<UpdateInfo?> CheckAsync(CancellationToken ct = default)
     {

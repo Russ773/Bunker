@@ -1,0 +1,182 @@
+using System.Drawing;
+using System.Drawing.Drawing2D;
+
+namespace Bunker;
+
+/// <summary>A bordered panel with a header (title or custom control on the left, optional actions on the right).</summary>
+public class Card : Panel
+{
+    public Card(Control headerLeft, Control content, params Control[] actions)
+    {
+        DoubleBuffered = true;
+        BackColor = Theme.Panel;
+        Padding = new Padding(1);
+        Margin = new Padding(6);
+
+        var header = new Panel { Dock = DockStyle.Top, Height = 42, Padding = new Padding(14, 0, 10, 0), BackColor = Theme.Panel };
+        var right = new FlowLayoutPanel
+        {
+            Dock = DockStyle.Right, AutoSize = true, WrapContents = false, FlowDirection = FlowDirection.LeftToRight,
+            Padding = new Padding(0, 8, 0, 0), BackColor = Color.Transparent,
+        };
+        right.Controls.AddRange(actions);
+        headerLeft.Dock = DockStyle.Left;
+        header.Controls.Add(headerLeft);
+        header.Controls.Add(right);
+
+        var body = new Panel { Dock = DockStyle.Fill, Padding = new Padding(12, 0, 12, 12), BackColor = Theme.Panel };
+        content.Dock = DockStyle.Fill;
+        body.Controls.Add(content);
+
+        Controls.Add(body);
+        Controls.Add(header);
+    }
+
+    public static Card Titled(string title, Control content, params Control[] actions) =>
+        new(new Label { Text = title, Font = Theme.Semibold, ForeColor = Theme.Text, AutoSize = true, Padding = new Padding(0, 11, 0, 0) },
+            content, actions);
+
+    protected override void OnPaint(PaintEventArgs e)
+    {
+        base.OnPaint(e);
+        using var pen = new Pen(Theme.Border);
+        e.Graphics.DrawRectangle(pen, 0, 0, Width - 1, Height - 1);
+    }
+}
+
+/// <summary>A page: a big title (and optional right-hand controls) above its content.</summary>
+public class Page : Panel
+{
+    public Page(string title, string subtitle, Control body, params Control[] headerRight)
+    {
+        BackColor = Theme.Bg;
+        Padding = new Padding(22, 18, 22, 14);
+
+        var head = new Panel { Dock = DockStyle.Top, Height = 62, BackColor = Theme.Bg };
+        head.Controls.Add(new Label { Text = subtitle, Font = Theme.Small, ForeColor = Theme.Muted, AutoSize = true, Location = new Point(2, 36) });
+        head.Controls.Add(new Label { Text = title, Font = new Font("Segoe UI Semibold", 17f), ForeColor = Theme.Text, AutoSize = true, Location = new Point(0, 0) });
+        if (headerRight.Length > 0)
+        {
+            var right = new FlowLayoutPanel { Dock = DockStyle.Right, AutoSize = true, WrapContents = false, BackColor = Color.Transparent, Padding = new Padding(0, 6, 0, 0) };
+            right.Controls.AddRange(headerRight);
+            head.Controls.Add(right);
+        }
+
+        body.Dock = DockStyle.Fill;
+        Controls.Add(body);
+        Controls.Add(head);
+    }
+}
+
+/// <summary>A sidebar navigation item with an icon glyph, hover highlight and an accent bar when selected.</summary>
+public class NavButton : Control
+{
+    private static readonly Font IconFont = new("Segoe MDL2 Assets", 13f);
+    private readonly string _glyph;
+    private bool _hover;
+    private bool _selected;
+
+    [System.ComponentModel.DesignerSerializationVisibility(System.ComponentModel.DesignerSerializationVisibility.Hidden)]
+    public bool Selected { get => _selected; set { _selected = value; Invalidate(); } }
+
+    public NavButton(string glyph, string text)
+    {
+        _glyph = glyph;
+        Text = text;
+        Height = 44;
+        Dock = DockStyle.Top;
+        Cursor = Cursors.Hand;
+        DoubleBuffered = true;
+        SetStyle(ControlStyles.Selectable, false);
+        Font = Theme.UI;
+    }
+
+    protected override void OnMouseEnter(EventArgs e) { _hover = true; Invalidate(); base.OnMouseEnter(e); }
+    protected override void OnMouseLeave(EventArgs e) { _hover = false; Invalidate(); base.OnMouseLeave(e); }
+
+    protected override void OnPaint(PaintEventArgs e)
+    {
+        var g = e.Graphics;
+        g.SmoothingMode = SmoothingMode.AntiAlias;
+        g.Clear(Theme.Panel);
+        var r = new Rectangle(10, 3, Width - 20, Height - 6);
+        if (_selected || _hover)
+        {
+            using var path = Rounded(r, 8);
+            using var br = new SolidBrush(_selected ? Theme.Input : Color.FromArgb(30, 34, 41));
+            g.FillPath(br, path);
+        }
+        if (_selected)
+        {
+            using var br = new SolidBrush(Theme.Accent);
+            g.FillRectangle(br, 0, 10, 3, Height - 20);
+        }
+        var fore = _selected ? Theme.Text : Theme.Muted;
+        TextRenderer.DrawText(g, _glyph, IconFont, new Rectangle(20, 0, 30, Height), _selected ? Theme.Accent : fore,
+            TextFormatFlags.VerticalCenter | TextFormatFlags.HorizontalCenter);
+        TextRenderer.DrawText(g, Text, Font, new Rectangle(56, 0, Width - 60, Height), fore,
+            TextFormatFlags.VerticalCenter | TextFormatFlags.Left);
+    }
+
+    internal static GraphicsPath Rounded(Rectangle r, int radius)
+    {
+        var d = radius * 2;
+        var p = new GraphicsPath();
+        p.AddArc(r.X, r.Y, d, d, 180, 90);
+        p.AddArc(r.Right - d, r.Y, d, d, 270, 90);
+        p.AddArc(r.Right - d, r.Bottom - d, d, d, 0, 90);
+        p.AddArc(r.X, r.Bottom - d, d, d, 90, 90);
+        p.CloseFigure();
+        return p;
+    }
+}
+
+/// <summary>A small button showing a miniature of a layout preset.</summary>
+public class PresetButton : Control
+{
+    private bool _hover;
+    public LayoutPreset Preset { get; }
+    [System.ComponentModel.DesignerSerializationVisibility(System.ComponentModel.DesignerSerializationVisibility.Hidden)]
+    public bool Selected { get; set; }
+
+    public PresetButton(LayoutPreset preset)
+    {
+        Preset = preset;
+        Size = new Size(46, 34);
+        Margin = new Padding(0, 0, 8, 0);
+        Cursor = Cursors.Hand;
+        DoubleBuffered = true;
+    }
+
+    protected override void OnMouseEnter(EventArgs e) { _hover = true; Invalidate(); base.OnMouseEnter(e); }
+    protected override void OnMouseLeave(EventArgs e) { _hover = false; Invalidate(); base.OnMouseLeave(e); }
+
+    /// <summary>Cells as fractions of a unit square: x, y, w, h.</summary>
+    public static (float X, float Y, float W, float H)[] Cells(LayoutPreset p) => p switch
+    {
+        LayoutPreset.Single => new[] { (0f, 0f, 1f, 1f) },
+        LayoutPreset.TwoColumns => new[] { (0f, 0f, .5f, 1f), (.5f, 0f, .5f, 1f) },
+        LayoutPreset.TwoRows => new[] { (0f, 0f, 1f, .5f), (0f, .5f, 1f, .5f) },
+        LayoutPreset.ThreeLeftBig => new[] { (0f, 0f, .5f, 1f), (.5f, 0f, .5f, .5f), (.5f, .5f, .5f, .5f) },
+        _ => new[] { (0f, 0f, .5f, .5f), (.5f, 0f, .5f, .5f), (0f, .5f, .5f, .5f), (.5f, .5f, .5f, .5f) },
+    };
+
+    protected override void OnPaint(PaintEventArgs e)
+    {
+        var g = e.Graphics;
+        g.SmoothingMode = SmoothingMode.AntiAlias;
+        g.Clear(Theme.Bg);
+        var box = new Rectangle(0, 0, Width - 1, Height - 1);
+        using (var path = NavButton.Rounded(box, 6))
+        {
+            using var fill = new SolidBrush(Selected ? Theme.Input : Theme.Panel);
+            using var pen = new Pen(Selected ? Theme.Accent : (_hover ? Theme.Muted : Theme.Border), Selected ? 1.6f : 1f);
+            g.FillPath(fill, path);
+            g.DrawPath(pen, path);
+        }
+        var inner = new RectangleF(10, 8, Width - 21, Height - 17);
+        using var cell = new SolidBrush(Selected ? Theme.Accent : Theme.Muted);
+        foreach (var (x, y, w, h) in Cells(Preset))
+            g.FillRectangle(cell, inner.X + x * inner.Width + 1.5f, inner.Y + y * inner.Height + 1.5f, w * inner.Width - 3f, h * inner.Height - 3f);
+    }
+}

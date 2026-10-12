@@ -7,9 +7,21 @@
     <Nullable>enable</Nullable>
     <ImplicitUsings>enable</ImplicitUsings>
     <ApplicationIcon>Bunker.ico</ApplicationIcon>
-    <Version>0.0.1</Version>
+    <Version>0.0.3</Version>
     <AssemblyName>Bunker</AssemblyName>
     <RootNamespace>Bunker</RootNamespace>
   </PropertyGroup>
+
+  <!-- Build number: CI passes -p:BuildNumber=<run number>. Local builds use the number of 10-minute
+       intervals since 12 Oct 2026, so it goes up with every build. It becomes the 4th part of the version. -->
+  <PropertyGroup>
+    <BuildNumber Condition="'$(BuildNumber)' == ''">$([System.Math]::Floor($([MSBuild]::Divide($([System.DateTime]::UtcNow.Subtract($([System.DateTime]::Parse('2026-10-12'))).TotalMinutes), 10))))</BuildNumber>
+    <AssemblyVersion>$(Version).$(BuildNumber)</AssemblyVersion>
+    <FileVersion>$(Version).$(BuildNumber)</FileVersion>
+  </PropertyGroup>
+
+  <ItemGroup>
+    <EmbeddedResource Include="..\assets\logo-512.png" LogicalName="logo.png" />
+  </ItemGroup>
 
 </Project>
