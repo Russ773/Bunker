@@ -65,6 +65,7 @@ Watch the console, see who's online and run your server, without ever launching 
 
 Recent additions, newest ideas first:
 
+* 🌐 **Servers overview.** A new **Servers** page above Layout shows every saved server at once: online or offline (and why), players, FPS, uptime, who is on, and a small chart of recent player counts. Open any server with one click, or **say something or run a command on all online servers** in one go (you confirm first). Bunker only keeps these extra connections while the page is open.
 * 🔔 **Tray icon and notifications.** A Bunker icon in the system tray (right-click to show, connect or quit). When Bunker is minimised or behind other windows, Windows tells you about chat watch-words and a lost connection. Everything is optional in **Settings → General**, including hiding Bunker from the taskbar when minimised.
 * 🔌 **Auto-reconnect.** If the connection to your server drops (a restart, a wobble, your PC waking from sleep), Bunker keeps trying to get it back and tells you in the console. Click Connect or Disconnect to stop it, or turn it off in **Settings → General**.
 * ❌ **The X asks first.** Clicking the X in the corner now asks whether to **minimise** Bunker (so it stays connected and your schedules keep running) or close it. Tick *Remember my choice* to stop being asked, and change it any time in **Settings → General**.
@@ -93,6 +94,7 @@ Bunker is split in two so it is always clear what is part of the app and what is
 | 🖥️ **Console** | The heart of Bunker. Colour-coded live output and a command box that runs **any** console command. Command history with ↑/↓, **search and filters** (hide chat, warnings, errors, **a whole plugin such as [Economics], or any line containing words you choose**), auto-scroll, and your choice of **font and size**. Chat appears the way it does in the game, and a **Command / Chat** switch lets you talk from the same box. |
 | 📊 **Dashboard** | Live players, FPS, entities, uptime, memory and map, with the player list and console in one glance. |
 | 👥 **Players** | Who's online with ping, time played and health. Right-click for copy, Steam profile, kick, ban, mute, teleport, give an item (with picture search), or a private note. The same menu works in the Dashboard and the Player database. |
+| 🌐 **Servers** | All your servers on one page: status, players, FPS, uptime and a small player chart for each, a one-click Open, and a box to send a message or command to every online server. |
 | 🪟 **Layout** | Pick 1, 2 or 4 sections and put a core panel *or any widget* in each. Go **fullscreen** for a wall-display control room. |
 | 💬 **Chat** | Send chat from Bunker with your own name, colour and Steam picture instead of SERVER (**Settings → Chat**). It needs the small [BunkerChat plugin](plugins/BunkerChat.cs) on the server (Carbon or Oxide); without it Bunker falls back to the plain `say` command with your name in the text. Messages from players show with their name colour, **[TEAM]** and plugin prefixes such as **[ADMIN]**. |
 | ⚙️ **Settings** | Several saved servers (passwords encrypted for your Windows account), **import from RustAdmin**, dark and light themes, console font, your chat name and colours, startup options, what the X in the corner does (ask, minimise or close), and updates for both Bunker and your widgets that *ask first*. |
@@ -115,6 +117,9 @@ Every widget is listed under the **WIDGETS** heading in the sidebar. Click one t
 ## 🖼️ Screenshots
 
 <table>
+  <tr>
+    <td colspan="2"><img src="docs/screenshots/servers.png" alt="Servers overview"><br><sub><b>🌐 Servers overview</b>: every server at a glance, with one-click Open and send-to-all</sub></td>
+  </tr>
   <tr>
     <td width="50%"><img src="docs/screenshots/widgets.png" alt="The Widgets page"><br><sub><b>🧩 Widgets</b>: every widget under its own heading in the sidebar</sub></td>
     <td width="50%"><img src="docs/screenshots/layout.png" alt="Custom layout"><br><sub><b>🪟 Layout</b>: put core panels or any widget in each section</sub></td>
@@ -301,6 +306,7 @@ Pushing a tag such as `v1.0.0` runs the pipeline:
 - [x] Favourite and hidden widgets, and widget updates
 - [x] Auto-reconnect when the connection drops mid-session
 - [ ] Ban list as a proper table (once the server's reply format is confirmed)
+- [x] Multi-server overview
 - [ ] Widget library submissions through the app
 - [x] Microsoft Store listing
 

@@ -24,6 +24,9 @@ public class MainForm : Form
         _pages["dashboard"] = Pages.Dashboard(_core);
         _pages["console"] = Pages.Console(_core);
         _pages["players"] = Pages.Players(_core);
+        var servers = new ServersView(_core);
+        servers.OpenRequested += (id, page) => { _ = _core.SwitchServerAsync(id); Navigate(page); };
+        _pages["servers"] = new Page("Servers", "All your servers at a glance. Bunker keeps a light connection to each one while this page is open", servers);
         _pages["layout"] = new LayoutPage(_core);
         _pages["widgets"] = new WidgetsPage(_core);
         _pages["settings"] = new SettingsPage(_core);

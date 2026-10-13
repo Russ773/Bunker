@@ -120,7 +120,7 @@ public class ServerMonitor : IDisposable
         finally { _busy = false; }
     }
 
-    private static ServerInfo? ParseInfo(string json)
+    internal static ServerInfo? ParseInfo(string json)
     {
         try
         {
@@ -134,7 +134,7 @@ public class ServerMonitor : IDisposable
         catch { return null; }
     }
 
-    private static IReadOnlyList<PlayerInfo> ParsePlayers(string json)
+    internal static IReadOnlyList<PlayerInfo> ParsePlayers(string json)
     {
         try
         {
