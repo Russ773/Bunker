@@ -215,6 +215,7 @@ Want to make one? Read the **[widget guide](docs/WIDGETS.md)** and open a pull r
 * 🔐 **RCON passwords are encrypted** with Windows DPAPI, so only your Windows account can read them.
 * 📡 Bunker talks to **your server** and to **GitHub** (to check for updates to Bunker and your widgets, the Rust item list and pictures, and, if you open it, the widget library). The Rust item list and pictures come from [bobosneefdev/rust-items-json](https://github.com/bobosneefdev/rust-items-json) on GitHub, at most once a day, and can be switched off in **Settings → General**. Nothing else, and no analytics.
 * 🙋 **Updates always ask first.** Nothing installs without your OK, and a widget update shows you everything it can do before it replaces the old one.
+* 🧹 **Uninstalling removes everything.** The uninstaller deletes the program and, when you say yes, all the data Bunker saved (servers and their encrypted passwords, player notes, schedules, widgets and item pictures, all kept in `%APPDATA%Bunker`). A silent uninstall removes it all without asking. The Microsoft Store version is removed by Windows in the usual way.
 * 🧪 The widget safety rules have **automated tests** that run on every release.
 
 ---

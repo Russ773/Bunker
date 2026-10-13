@@ -58,9 +58,64 @@ Name: "{group}\Bunker"; Filename: "{app}\Bunker.exe"
 Name: "{group}\Uninstall Bunker"; Filename: "{uninstallexe}"
 Name: "{autodesktop}\Bunker"; Filename: "{app}\Bunker.exe"; Tasks: desktopicon
 
+[UninstallDelete]
+; Everything left in the install folder, including files Bunker created while running.
+Type: filesandordirs; Name: "{app}"
+
 [Tasks]
 Name: "desktopicon"; Description: "Create a &desktop shortcut"; GroupDescription: "Shortcuts:"
 
 [Run]
 ; No skipifsilent: after an update (silent install) the app starts again by itself.
 Filename: "{app}\Bunker.exe"; Description: "Launch Bunker"; Flags: nowait postinstall
+
+[Code]
+// Uninstalling removes everything Bunker put on the PC: the program, and (after asking) the settings and data it saved.
+// All of that data lives in one folder, %APPDATA%\Bunker: saved servers and their encrypted passwords, player notes,
+// widgets, schedules and the item pictures.
+
+function DataFolder(): String;
+var
+  Custom: String;
+begin
+  // BUNKER_DATA_DIR is the folder Bunker itself uses when it is set (for testing). Only trusted if it really looks like a Bunker data folder.
+  Custom := GetEnv('BUNKER_DATA_DIR');
+  if (Custom <> '') and FileExists(Custom + '\settings.json') then
+    Result := Custom
+  else
+    Result := ExpandConstant('{userappdata}\Bunker');
+end;
+
+// The installer Bunker downloads when it updates itself is left in the temp folder.
+procedure RemoveDownloadedInstallers();
+var
+  Temp: String;
+  Found: TFindRec;
+begin
+  Temp := ExpandConstant('{%TEMP}');
+  if (Temp <> '') and FindFirst(Temp + '\Bunker-Setup-*.exe', Found) then
+  begin
+    try
+      repeat
+        DeleteFile(Temp + '\' + Found.Name);
+      until not FindNext(Found);
+    finally
+      FindClose(Found);
+    end;
+  end;
+end;
+
+procedure CurUninstallStepChanged(CurUninstallStep: TUninstallStep);
+var
+  Folder: String;
+begin
+  if CurUninstallStep <> usPostUninstall then Exit;
+  RemoveDownloadedInstallers();
+  Folder := DataFolder();
+  if not DirExists(Folder) then Exit;
+  // A silent uninstall means "remove everything"; otherwise ask once, with Yes as the default.
+  if UninstallSilent() or (MsgBox('Bunker has been removed.' + #13#10#13#10 +
+      'Do you also want to delete everything it saved for you? This includes your saved servers and their passwords, player notes, schedules, widgets and the Rust item pictures.' + #13#10#13#10 +
+      'This cannot be undone.', mbConfirmation, MB_YESNO) = IDYES) then
+    DelTree(Folder, True, True, True);
+end;
