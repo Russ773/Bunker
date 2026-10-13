@@ -57,6 +57,12 @@ public class ExportTests
     }
 
     [Fact]
+    public void Exports_go_in_a_Bunker_folder_inside_Documents()
+    {
+        Assert.Equal(Path.Combine(@"C:\Users\Me\Documents", "Bunker", "Exports"), ExportText.FolderIn(@"C:\Users\Me\Documents"));
+    }
+
+    [Fact]
     public void File_names_are_safe_and_carry_the_time()
     {
         Assert.Equal("bunker-console-2026-10-13-1925.txt", ExportText.FileName("bunker-console", T, "txt"));

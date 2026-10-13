@@ -119,7 +119,7 @@ public class PlayerDbView : Panel
         using var dialog = new SaveFileDialog
         {
             Title = "Export players", Filter = "CSV file (*.csv)|*.csv", OverwritePrompt = true,
-            InitialDirectory = Environment.GetFolderPath(Environment.SpecialFolder.MyDocuments),
+            InitialDirectory = ExportText.EnsureFolder(),
             FileName = ExportText.FileName("players-" + server, DateTime.Now, "csv"),
         };
         if (dialog.ShowDialog(FindForm()) != DialogResult.OK) return;

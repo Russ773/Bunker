@@ -155,7 +155,7 @@ public class ConsoleView : Panel
         using var dialog = new SaveFileDialog
         {
             Title = _chat ? "Save the chat" : "Save the console", Filter = "Text file (*.txt)|*.txt", OverwritePrompt = true,
-            InitialDirectory = Environment.GetFolderPath(Environment.SpecialFolder.MyDocuments),
+            InitialDirectory = ExportText.EnsureFolder(),
             FileName = ExportText.FileName(_chat ? "bunker-chat" : "bunker-console", DateTime.Now, "txt"),
         };
         if (dialog.ShowDialog(FindForm()) != DialogResult.OK) return;

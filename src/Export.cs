@@ -64,6 +64,18 @@ public static class ExportText
     /// <summary>Excel turns a 17-digit number into 7.65612E+16 and loses the end. Written as ="7656..." it stays as the text it is.</summary>
     private static string SteamIdCell(string id) => id.Length > 0 && id.All(char.IsDigit) ? $"=\"{id}\"" : Cell(id);
 
+    /// <summary>Where saved files go by default: a Bunker folder inside Documents, so the rest of the user's folders stay tidy.</summary>
+    public static string FolderIn(string documents) => Path.Combine(documents, "Bunker", "Exports");
+
+    /// <summary>The export folder, created if it is not there yet. If it cannot be made (a locked-down PC), Documents itself.</summary>
+    public static string EnsureFolder()
+    {
+        var documents = Environment.GetFolderPath(Environment.SpecialFolder.MyDocuments);
+        var folder = FolderIn(documents);
+        try { Directory.CreateDirectory(folder); return folder; }
+        catch { return documents; }
+    }
+
     /// <summary>A file name made from a title and the time, with nothing Windows would refuse.</summary>
     public static string FileName(string title, DateTime now, string extension)
     {
