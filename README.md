@@ -65,6 +65,7 @@ Watch the console, see who's online and run your server, without ever launching 
 
 Recent additions, newest ideas first:
 
+* 🔌 **Auto-reconnect.** If the connection to your server drops (a restart, a wobble, your PC waking from sleep), Bunker keeps trying to get it back and tells you in the console. Click Connect or Disconnect to stop it, or turn it off in **Settings → General**.
 * ❌ **The X asks first.** Clicking the X in the corner now asks whether to **minimise** Bunker (so it stays connected and your schedules keep running) or close it. Tick *Remember my choice* to stop being asked, and change it any time in **Settings → General**.
 * 💬 **Chat as yourself.** Set a name, Steam ID and colour in **Settings → Chat** and your messages show in-game with your name and Steam picture instead of SERVER (needs the small [BunkerChat plugin](plugins/BunkerChat.cs)). The console box has a **Command / Chat** switch, and asks "say this in chat?" before sending ordinary words as a command.
 * 🎨 **Chat looks like the game.** Coloured player names, a green **[TEAM]** tag, plugin prefixes such as **[ADMIN]** (colour set in Settings → Chat), and no more repeated names when a chat plugin adds its own.
@@ -296,7 +297,7 @@ Pushing a tag such as `v1.0.0` runs the pipeline:
 - [x] Chat as yourself, and chat that looks like the game
 - [x] Plugin lists (Carbon and Oxide) as a sortable table
 - [x] Favourite and hidden widgets, and widget updates
-- [ ] Auto-reconnect when the connection drops mid-session
+- [x] Auto-reconnect when the connection drops mid-session
 - [ ] Ban list as a proper table (once the server's reply format is confirmed)
 - [ ] Widget library submissions through the app
 - [x] Microsoft Store listing

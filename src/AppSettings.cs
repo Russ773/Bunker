@@ -89,6 +89,8 @@ public class AppSettings
     public bool CheckForUpdatesOnLaunch { get; set; } = true;
     public bool StartMaximised { get; set; } = true;
     public bool AutoConnect { get; set; } = true;
+    /// <summary>Try to reconnect by itself when the connection to the server drops.</summary>
+    public bool AutoReconnect { get; set; } = true;
     /// <summary>What the X in the corner of the window does: "ask", "minimise" or "close".</summary>
     public string CloseButton { get; set; } = CloseButtonSetting.Ask;
     /// <summary>Download the Rust item list and pictures from GitHub (bobosneefdev/rust-items-json) so item search stays current.</summary>

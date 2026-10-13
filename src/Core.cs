@@ -205,8 +205,10 @@ public class Core
         Rcon.MessageReceived += m => _ui.Post(_ => OnMessage(m), null);
         Rcon.Disconnected += reason => _ui.Post(_ =>
         {
+            var wasConnected = State == ConnState.Connected;
             Log.Add(reason, LogKind.Info);
             SetState(ConnState.Disconnected, reason);
+            if (wasConnected) StartReconnect(); // the connection dropped (the user did not disconnect): try to get it back
         }, null);
     }
 
@@ -222,6 +224,7 @@ public class Core
     public async Task DeleteServerAsync(string id)
     {
         var wasActive = Settings.ActiveServer?.Id == id;
+        if (wasActive) CancelReconnect();
         if (wasActive && State != ConnState.Disconnected) await DisconnectAsync();
         Settings.RemoveServer(id);
         Settings.Save();
@@ -232,6 +235,7 @@ public class Core
     public async Task SwitchServerAsync(string id)
     {
         if (Settings.Servers.All(s => s.Id != id)) return;
+        CancelReconnect();
         if (State != ConnState.Disconnected) await DisconnectAsync();
         Settings.ActiveServerId = id;
         Monitor.ClearHistory();
@@ -242,7 +246,14 @@ public class Core
     }
 
 
+    /// <summary>Connects to the active server. Doing this yourself ends any automatic reconnecting.</summary>
     public async Task ConnectAsync()
+    {
+        CancelReconnect();
+        await ConnectCoreAsync(logFailure: true);
+    }
+
+    private async Task ConnectCoreAsync(bool logFailure)
     {
         var s = Settings.ActiveServer;
         if (s is null || State == ConnState.Connecting) return;
@@ -256,15 +267,64 @@ public class Core
         }
         catch (Exception e)
         {
-            Log.Add("Connection failed: " + e.Message, LogKind.Error);
+            if (logFailure) Log.Add("Connection failed: " + e.Message, LogKind.Error);
             SetState(ConnState.Disconnected, "Connection failed");
         }
     }
 
     public async Task DisconnectAsync()
     {
+        CancelReconnect();
         await Rcon.DisconnectAsync();
         SetState(ConnState.Disconnected, "Disconnected");
+    }
+
+    // ---------------------------------------------------------------- Reconnecting
+
+    private CancellationTokenSource? _reconnect;
+
+    /// <summary>True while Bunker is waiting to retry after the connection dropped.</summary>
+    public bool Reconnecting => _reconnect is not null;
+
+    private void StartReconnect()
+    {
+        if (!Settings.AutoReconnect || Settings.ActiveServer is null || _reconnect is not null) return;
+        var cts = _reconnect = new CancellationTokenSource();
+        _ = ReconnectLoopAsync(cts);
+    }
+
+    private void CancelReconnect()
+    {
+        var cts = _reconnect;
+        _reconnect = null;
+        cts?.Cancel();
+    }
+
+    private async Task ReconnectLoopAsync(CancellationTokenSource cts)
+    {
+        var ct = cts.Token;
+        try
+        {
+            for (var attempt = 1; !ct.IsCancellationRequested; attempt++)
+            {
+                for (var left = ReconnectPlan.DelaySeconds(attempt); left > 0; left--)
+                {
+                    SetState(ConnState.Disconnected, $"Reconnecting in {left}s (attempt {attempt})");
+                    await Task.Delay(1000, ct);
+                }
+                if (attempt == 1) Log.Add("Connection lost. Trying to reconnect automatically (click Connect or Disconnect to stop).", LogKind.Warning);
+                await ConnectCoreAsync(logFailure: false);
+                if (ct.IsCancellationRequested) return;
+                if (State == ConnState.Connected) { Log.Add("Reconnected.", LogKind.Info); return; }
+                if (ReconnectPlan.ShouldLogFailure(attempt)) Log.Add($"Still unable to reach the server (attempt {attempt}). Trying again...", LogKind.Info);
+            }
+        }
+        catch (OperationCanceledException) { }
+        finally
+        {
+            if (ReferenceEquals(_reconnect, cts)) _reconnect = null;
+            cts.Dispose();
+        }
     }
 
     /// <summary>Raised when the list of hidden console messages changes, so every console redraws.</summary>

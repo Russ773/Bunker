@@ -201,8 +201,9 @@ public partial class SettingsPage : Panel, ISectionPage
         inner.Controls.Add(Check("Start Bunker maximised", _core.Settings.StartMaximised, 72, v => _core.Settings.StartMaximised = v));
         inner.Controls.Add(Check("Connect to the active server when Bunker starts", _core.Settings.AutoConnect, 106, v => _core.Settings.AutoConnect = v));
         inner.Controls.Add(Check("Keep the Rust item list and pictures up to date from GitHub (used by item search)", _core.Settings.UseOnlineItemList, 140, v => _core.Settings.UseOnlineItemList = v));
-        inner.Controls.Add(new Label { Text = "When I click the X in the corner of the window", ForeColor = Theme.Muted, Font = Theme.Small, AutoSize = true, Location = new Point(2, 182) });
-        var closeChoices = new FlowLayoutPanel { Location = new Point(0, 202), Size = new Size(520, 30), BackColor = Theme.Panel, WrapContents = false };
+        inner.Controls.Add(Check("Reconnect automatically if the connection to the server drops", _core.Settings.AutoReconnect, 174, v => _core.Settings.AutoReconnect = v));
+        inner.Controls.Add(new Label { Text = "When I click the X in the corner of the window", ForeColor = Theme.Muted, Font = Theme.Small, AutoSize = true, Location = new Point(2, 218) });
+        var closeChoices = new FlowLayoutPanel { Location = new Point(0, 238), Size = new Size(520, 30), BackColor = Theme.Panel, WrapContents = false };
         void AddCloseChoice(string text, string value)
         {
             var radio = new RadioButton { Text = text, AutoSize = true, ForeColor = Theme.Text, Cursor = Cursors.Hand, Margin = new Padding(0, 0, 24, 0), Checked = CloseButtonSetting.Normalise(_core.Settings.CloseButton) == value };
@@ -213,7 +214,7 @@ public partial class SettingsPage : Panel, ISectionPage
         AddCloseChoice("Minimise Bunker", CloseButtonSetting.Minimise);
         AddCloseChoice("Close Bunker", CloseButtonSetting.Close);
         inner.Controls.Add(closeChoices);
-        inner.Controls.Add(new Label { Text = "Theme, maximised and connect settings take effect the next time Bunker starts.", Font = Theme.Small, ForeColor = Theme.Muted, AutoSize = true, Location = new Point(2, 246) });
+        inner.Controls.Add(new Label { Text = "Theme, maximised and connect settings take effect the next time Bunker starts.", Font = Theme.Small, ForeColor = Theme.Muted, AutoSize = true, Location = new Point(2, 282) });
         return Wrap("General", inner);
     }
 
