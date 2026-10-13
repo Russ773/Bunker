@@ -72,7 +72,8 @@ jobs:
           mkdir -p ~/.ssh
           ssh-keyscan -p "${SFTP_PORT:-22}" "$SFTP_HOST" >> ~/.ssh/known_hosts
           printf 'cd %s\nput dist/Bunker-Setup-*.exe\nput dist/latest.json\n' "${SFTP_PATH:-.}" > batch.txt
-          OPTS="-P ${SFTP_PORT:-22} -b batch.txt"
+          # sftp -b switches on BatchMode, which forbids password prompts; the first -o wins, so turn it back off before -b.
+          OPTS="-oBatchMode=no -P ${SFTP_PORT:-22} -b batch.txt"
           if [ -n "$SFTP_KEY" ]; then
             echo "$SFTP_KEY" > key && chmod 600 key
             sftp $OPTS -i key "$SFTP_USER@$SFTP_HOST"
