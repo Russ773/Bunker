@@ -46,8 +46,9 @@ jobs:
             "$VERSION" "$VERSION" "$(date -u +%Y-%m-%dT%H:%M:%SZ)" > dist/latest.json
           ls -la dist
 
+      # SFTP is used when SFTP_HOST is set (the current host); otherwise FTP.
       - name: Upload via FTP (explicit TLS if the server offers it)
-        if: env.FTP_HOST != ''
+        if: env.SFTP_HOST == '' && env.FTP_HOST != ''
         run: |
           set -e
           BASE="ftp://$FTP_HOST:${FTP_PORT:-21}/${FTP_PATH#/}"
@@ -65,7 +66,7 @@ jobs:
           done
 
       - name: Upload via SFTP
-        if: env.FTP_HOST == '' && env.SFTP_HOST != ''
+        if: env.SFTP_HOST != ''
         run: |
           set -e
           mkdir -p ~/.ssh
