@@ -64,3 +64,34 @@ jobs:
     with:
       tag: ${{ github.ref_name }}
     secrets: inherit
+
+  # Sends the Store package to Partner Center as a new submission (Microsoft still certifies it before it goes live).
+  # Switched on by the repository variable STORE_PRODUCT_ID (the app's Store ID, 9PL3409LVH1R) and these secrets:
+  # AZURE_AD_TENANT_ID, AZURE_AD_APPLICATION_CLIENT_ID, AZURE_AD_APPLICATION_SECRET and SELLER_ID.
+  # If it fails, the release and the webspace upload are unaffected: fix it and use "Re-run failed jobs".
+  submit-store:
+    needs: build
+    if: vars.STORE_PRODUCT_ID != '' && vars.MSIX_IDENTITY_NAME != ''
+    runs-on: windows-latest
+    steps:
+      - name: Get the Store package
+        uses: actions/download-artifact@v4
+        with:
+          name: bunker-store-package
+          path: store
+
+      - name: Set up the Microsoft Store CLI
+        uses: microsoft/microsoft-store-apppublisher@v1.4
+
+      - name: Sign in to Partner Center
+        run: msstore reconfigure --tenantId $env:TENANT_ID --sellerId $env:SELLER_ID --clientId $env:CLIENT_ID --clientSecret $env:CLIENT_SECRET
+        env:
+          TENANT_ID: ${{ secrets.AZURE_AD_TENANT_ID }}
+          SELLER_ID: ${{ secrets.SELLER_ID }}
+          CLIENT_ID: ${{ secrets.AZURE_AD_APPLICATION_CLIENT_ID }}
+          CLIENT_SECRET: ${{ secrets.AZURE_AD_APPLICATION_SECRET }}
+
+      - name: Submit to the Store
+        run: msstore publish "$((Get-ChildItem store -Filter *.msix).FullName)" -id $env:PRODUCT_ID
+        env:
+          PRODUCT_ID: ${{ vars.STORE_PRODUCT_ID }}
