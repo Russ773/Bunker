@@ -53,9 +53,9 @@ Watch the console, see who's online and run your server, without ever launching 
 2. Run it. It installs just for you, with no admin prompt.
 3. Start **Bunker** and enter your server's RCON details. That's it.
 
-> 🛍️ **Microsoft Store:** Bunker has been submitted to the Microsoft Store as **Bunker RCON**. Once it is approved this page will link to it, and the Store version installs with no Windows warnings and updates itself.
+> 🛍️ **Easiest way: [get Bunker from the Microsoft Store](https://apps.microsoft.com/detail/9PL3409LVH1R)** (listed as **Bunker RCON**). It installs with no Windows warnings and the Store keeps it up to date.
 >
-> 💡 Until then, the installer above isn't code-signed, so Windows SmartScreen may say the publisher is unknown. Choose **More info → Run anyway**.
+> 💡 The installer above isn't code-signed, so Windows SmartScreen may say the publisher is unknown. Choose **More info → Run anyway**.
 > If Windows 11's Smart App Control blocks it outright, right-click the downloaded file, open
 > **Properties** and tick **Unblock** before running it.
 
@@ -298,7 +298,7 @@ Pushing a tag such as `v1.0.0` runs the pipeline:
 - [ ] Auto-reconnect when the connection drops mid-session
 - [ ] Ban list as a proper table (once the server's reply format is confirmed)
 - [ ] Widget library submissions through the app
-- [ ] Microsoft Store listing (submitted, waiting for review)
+- [x] Microsoft Store listing
 
 Have an idea? [Open an issue](https://github.com/Russ773/Bunker/issues) or build a [widget](docs/WIDGETS.md).
 
