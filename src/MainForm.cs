@@ -71,10 +71,51 @@ public class MainForm : Form
                 f.Shown += async (_, _) => { await Task.Delay(800); using var bmp = new Bitmap(f.Width, f.Height); f.DrawToBitmap(bmp, new Rectangle(0, 0, f.Width, f.Height)); bmp.Save(hideShot); f.Close(); };
                 f.ShowDialog(this);
             };
+        if (Environment.GetEnvironmentVariable("BUNKER_TEST_CLOSEFORM") is { Length: > 0 } closeShot)
+            Shown += async (_, _) =>
+            {
+                await Task.Delay(8000);
+                BeginInvoke(() => Close()); // the same path as the X: opens the dialog
+                await Task.Delay(1500);
+                if (OwnedForms.FirstOrDefault(f => f is CloseChoiceForm) is { } f)
+                {
+                    using var bmp = new Bitmap(f.Width, f.Height); f.DrawToBitmap(bmp, new Rectangle(0, 0, f.Width, f.Height)); bmp.Save(closeShot);
+                    f.Close();
+                }
+            };
         if (Environment.GetEnvironmentVariable("BUNKER_TEST_FULLSCREEN") == "1")
             Shown += async (_, _) => { await Task.Delay(6000); using var f = new FullscreenForm(_core, this); f.ShowDialog(this); };
 #endif
-        FormClosing += (_, _) => _core.Rcon.Dispose();
+        FormClosing += OnFormClosing;
+    }
+
+    /// <summary>The X, Alt+F4 or the taskbar's Close ask whether to minimise instead (unless a choice was remembered). Updates, restarts and Windows shutting down are never asked.</summary>
+    private void OnFormClosing(object? sender, FormClosingEventArgs e)
+    {
+        if (e.CloseReason == CloseReason.UserClosing)
+        {
+            var choice = ChooseCloseAction();
+            if (choice == CloseChoice.Cancel) { e.Cancel = true; return; }
+            if (choice == CloseChoice.Minimise) { e.Cancel = true; WindowState = FormWindowState.Minimized; return; }
+        }
+        _core.Rcon.Dispose();
+    }
+
+    private CloseChoice ChooseCloseAction()
+    {
+        switch (CloseButtonSetting.Normalise(_core.Settings.CloseButton))
+        {
+            case CloseButtonSetting.Minimise: return CloseChoice.Minimise;
+            case CloseButtonSetting.Close: return CloseChoice.Close;
+        }
+        using var form = new CloseChoiceForm();
+        form.ShowDialog(this);
+        if (form.Choice != CloseChoice.Cancel && form.Remember)
+        {
+            _core.Settings.CloseButton = form.Choice == CloseChoice.Minimise ? CloseButtonSetting.Minimise : CloseButtonSetting.Close;
+            _core.Settings.Save();
+        }
+        return form.Choice;
     }
 
     private void Navigate(string key)

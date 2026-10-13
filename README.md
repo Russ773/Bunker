@@ -65,6 +65,7 @@ Watch the console, see who's online and run your server, without ever launching 
 
 Recent additions, newest ideas first:
 
+* ❌ **The X asks first.** Clicking the X in the corner now asks whether to **minimise** Bunker (so it stays connected and your schedules keep running) or close it. Tick *Remember my choice* to stop being asked, and change it any time in **Settings → General**.
 * 💬 **Chat as yourself.** Set a name, Steam ID and colour in **Settings → Chat** and your messages show in-game with your name and Steam picture instead of SERVER (needs the small [BunkerChat plugin](plugins/BunkerChat.cs)). The console box has a **Command / Chat** switch, and asks "say this in chat?" before sending ordinary words as a command.
 * 🎨 **Chat looks like the game.** Coloured player names, a green **[TEAM]** tag, plugin prefixes such as **[ADMIN]** (colour set in Settings → Chat), and no more repeated names when a chat plugin adds its own.
 * 🙈 **Hide console noise.** Hide a whole plugin (`[Economics]`, `[Steam Groups]`) or any line containing words you choose, from **Console → Filter** or by right-clicking a line.
@@ -92,7 +93,7 @@ Bunker is split in two so it is always clear what is part of the app and what is
 | 👥 **Players** | Who's online with ping, time played and health. Right-click for copy, Steam profile, kick, ban, mute, teleport, give an item (with picture search), or a private note. The same menu works in the Dashboard and the Player database. |
 | 🪟 **Layout** | Pick 1, 2 or 4 sections and put a core panel *or any widget* in each. Go **fullscreen** for a wall-display control room. |
 | 💬 **Chat** | Send chat from Bunker with your own name, colour and Steam picture instead of SERVER (**Settings → Chat**). It needs the small [BunkerChat plugin](plugins/BunkerChat.cs) on the server (Carbon or Oxide); without it Bunker falls back to the plain `say` command with your name in the text. Messages from players show with their name colour, **[TEAM]** and plugin prefixes such as **[ADMIN]**. |
-| ⚙️ **Settings** | Several saved servers (passwords encrypted for your Windows account), **import from RustAdmin**, dark and light themes, console font, your chat name and colours, startup options, and updates for both Bunker and your widgets that *ask first*. |
+| ⚙️ **Settings** | Several saved servers (passwords encrypted for your Windows account), **import from RustAdmin**, dark and light themes, console font, your chat name and colours, startup options, what the X in the corner does (ask, minimise or close), and updates for both Bunker and your widgets that *ask first*. |
 
 ### 🧩 Widgets: optional add-ons
 
