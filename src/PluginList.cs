@@ -7,13 +7,16 @@ namespace Bunker;
 public sealed record PluginProblem(string File, string Line, string Message);
 
 /// <summary>A plugin list read out of a server reply, ready to show as a table.</summary>
-public sealed class PluginList
+public sealed class PluginList : IReplyTable
 {
     public string Framework { get; init; } = "";
     public string[] Columns { get; init; } = Array.Empty<string>();
 
     /// <summary>Which column holds the plugin's name (what you type into Reload, Load and Unload).</summary>
     public int NameColumn { get; init; }
+    int IReplyTable.PickColumn => NameColumn;
+    int IReplyTable.BoldColumn => NameColumn;
+    int IReplyTable.MutedColumn => Columns.Length > 0 && Columns[0] == "Type" ? 0 : -1; // the kind of plugin reads better in a quieter colour than its name
 
     public List<string[]> Rows { get; } = new();
     public List<string> Unloaded { get; } = new();

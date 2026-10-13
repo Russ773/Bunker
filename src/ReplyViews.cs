@@ -58,8 +58,8 @@ public sealed class TextReplyBox : IReplyTarget
 }
 
 /// <summary>
-/// Shows a plugin list (Carbon or Oxide) as a sortable table instead of a block of text. Click a heading to sort, click a row to
-/// fill in the plugin name. Problems (plugins that were not loaded or would not compile) are listed underneath. If a reply is not a
+/// Shows a plugin list (Carbon or Oxide) or the ban list as a sortable table instead of a block of text. Click a heading to sort, click a row to
+/// fill in the plugin name (or the player's Steam ID). Problems (plugins that were not loaded or would not compile) are listed underneath. If a reply is not a
 /// plugin list it is shown as plain text, and the original text is always one click away.
 /// </summary>
 public sealed class PluginTableView : Panel, IReplyTarget
@@ -74,7 +74,7 @@ public sealed class PluginTableView : Panel, IReplyTarget
         WordWrap = false, ScrollBars = RichTextBoxScrollBars.Both, Dock = DockStyle.Bottom, Height = 0, Visible = false,
     };
     private readonly Panel _content = new() { Dock = DockStyle.Fill, BackColor = Theme.Bg };
-    private PluginList? _list;
+    private IReplyTable? _list;
     private bool _showingRaw = true;
     private bool _filling;
 
@@ -99,7 +99,7 @@ public sealed class PluginTableView : Panel, IReplyTarget
         _grid.SelectionChanged += (_, _) =>
         {
             if (_filling || _list is null || _grid.SelectedRows.Count != 1) return;
-            if (_grid.SelectedRows[0].Cells[_list.NameColumn].Value is string name && name.Length > 0) Picked?.Invoke(name);
+            if (_grid.SelectedRows[0].Cells[_list.PickColumn].Value is string name && name.Length > 0) Picked?.Invoke(name);
         };
 
         var bar = new Panel { Dock = DockStyle.Top, Height = 26, BackColor = Theme.Bg };
@@ -130,8 +130,8 @@ public sealed class PluginTableView : Panel, IReplyTarget
     {
         if (InvokeRequired) { BeginInvoke(() => AppendReply(reply)); return; }
         _raw.AppendReply(reply);
-        _list = PluginListParser.TryParse(CustomWidgetView.CleanReply(reply));
-        if (_list is null) { Show(raw: true); _summary.Text = "Not a plugin list, so it is shown as text."; _toggle.Text = ""; return; }
+        _list = ReplyTables.TryParse(CustomWidgetView.CleanReply(reply));
+        if (_list is null) { Show(raw: true); _summary.Text = "Not a plugin or ban list, so it is shown as text."; _toggle.Text = ""; return; }
         FillTable(_list);
         Show(raw: false);
     }
@@ -145,7 +145,7 @@ public sealed class PluginTableView : Panel, IReplyTarget
         if (_list is not null) _summary.Text = _list.Summary + (raw ? "" : "   (click a heading to sort, click a row to pick it)");
     }
 
-    private void FillTable(PluginList list)
+    private void FillTable(IReplyTable list)
     {
         _filling = true;
         _grid.SuspendLayout();
@@ -153,9 +153,8 @@ public sealed class PluginTableView : Panel, IReplyTarget
         _grid.Rows.Clear();
         foreach (var name in list.Columns) _grid.Columns.Add(new DataGridViewTextBoxColumn { HeaderText = name, SortMode = DataGridViewColumnSortMode.Automatic, MinimumWidth = 60 });
         foreach (var row in list.Rows) _grid.Rows.Add(row.Cast<object>().ToArray());
-        _grid.Columns[list.NameColumn].DefaultCellStyle.Font = Theme.Semibold;
-        // Type and version columns read better in a quieter colour than the plugin's name.
-        if (list.Columns[0] == "Type") _grid.Columns[0].DefaultCellStyle.ForeColor = Theme.Muted;
+        _grid.Columns[list.BoldColumn].DefaultCellStyle.Font = Theme.Semibold;
+        if (list.MutedColumn >= 0) _grid.Columns[list.MutedColumn].DefaultCellStyle.ForeColor = Theme.Muted;
         // Size each column from its longest text (measured here because the grid may not have been drawn yet). Columns then share
         // any spare width in proportion, and never get narrower than their text, so a table that fits has no sideways scrollbar.
         _grid.AutoSizeColumnsMode = DataGridViewAutoSizeColumnsMode.Fill;
@@ -172,13 +171,13 @@ public sealed class PluginTableView : Panel, IReplyTarget
         _grid.ClearSelection();
         _grid.ResumeLayout();
         _filling = false;
-        ShowProblems(list);
+        ShowProblems(list as PluginList);
     }
 
-    private void ShowProblems(PluginList list)
+    private void ShowProblems(PluginList? list)
     {
         _problems.Clear();
-        if (list.Unloaded.Count == 0 && list.Failed.Count == 0) { _problems.Visible = false; _problems.Height = 0; return; }
+        if (list is null || (list.Unloaded.Count == 0 && list.Failed.Count == 0)) { _problems.Visible = false; _problems.Height = 0; return; }
 
         var lines = 0;
         void Write(string text, Color colour, bool bold = false)

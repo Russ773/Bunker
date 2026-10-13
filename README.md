@@ -65,6 +65,7 @@ Watch the console, see who's online and run your server, without ever launching 
 
 Recent additions, newest ideas first:
 
+* 🚫 **Ban list as a table.** The Ban Manager widget now shows your bans as a sortable table (Steam ID, name, reason and when each ban ends, with expired ones marked). Click a row to fill in the Steam ID, then press Unban.
 * 🌐 **Servers overview.** A new **Servers** page above Layout shows every saved server at once: online or offline (and why), players, FPS, uptime, who is on, and a small chart of recent player counts. Open any server with one click, or **say something or run a command on all online servers** in one go (you confirm first). Bunker only keeps these extra connections while the page is open.
 * 🔔 **Tray icon and notifications.** A Bunker icon in the system tray (right-click to show, connect or quit). When Bunker is minimised or behind other windows, Windows tells you about chat watch-words and a lost connection. Everything is optional in **Settings → General**, including hiding Bunker from the taskbar when minimised.
 * 🔌 **Auto-reconnect.** If the connection to your server drops (a restart, a wobble, your PC waking from sleep), Bunker keeps trying to get it back and tells you in the console. Click Connect or Disconnect to stop it, or turn it off in **Settings → General**.
@@ -139,6 +140,10 @@ Every widget is listed under the **WIDGETS** heading in the sidebar. Click one t
   <tr>
     <td width="50%"><img src="docs/screenshots/plugin-table.png" alt="Carbon plugin table"><br><sub><b>📋 Plugin table</b>: sortable, with failed plugins listed underneath</sub></td>
     <td width="50%"><img src="docs/screenshots/item-search.png" alt="Item search with pictures"><br><sub><b>🔎 Item search</b>: type "wood", pick it by picture</sub></td>
+  </tr>
+  <tr>
+    <td width="50%"><img src="docs/screenshots/ban-list.png" alt="Ban list table"><br><sub><b>🚫 Ban list</b>: sortable, with expiry dates</sub></td>
+    <td width="50%"></td>
   </tr>
 </table>
 
@@ -305,7 +310,7 @@ Pushing a tag such as `v1.0.0` runs the pipeline:
 - [x] Plugin lists (Carbon and Oxide) as a sortable table
 - [x] Favourite and hidden widgets, and widget updates
 - [x] Auto-reconnect when the connection drops mid-session
-- [ ] Ban list as a proper table (once the server's reply format is confirmed)
+- [x] Ban list as a proper table
 - [x] Multi-server overview
 - [ ] Widget library submissions through the app
 - [x] Microsoft Store listing

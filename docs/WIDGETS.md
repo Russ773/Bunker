@@ -110,7 +110,7 @@ Inside a button's `commands` (and `confirm`) text, `{id}` is replaced by what th
 
 ### Plugin lists as a table
 
-Set `"format": "plugins"` on an `output` control and a Carbon (`c.plugins`) or Oxide (`oxide.plugins`) plugin list is shown as a sortable table: click a heading to sort, and failed or unloaded plugins are listed underneath. Add `"pick": "<id of a text control>"` and clicking a row fills that field with the plugin name. Anything that is not a plugin list is shown as plain text, and **Show raw reply** is always one click away.
+Set `"format": "plugins"` on an `output` control and a Carbon (`c.plugins`) or Oxide (`oxide.plugins`) plugin list is shown as a sortable table: click a heading to sort, and failed or unloaded plugins are listed underneath. Add `"pick": "<id of a text control>"` and clicking a row fills that field with the plugin name. The same table is used for the server's ban list (`banlistex`): Steam ID, name, reason and when each ban ends, and a click on a row picks the Steam ID. Anything that is not a plugin list or a ban list is shown as plain text, and **Show raw reply** is always one click away.
 
 ```json
 { "type": "output", "id": "plugins", "format": "plugins", "pick": "plugin", "height": 380 },
