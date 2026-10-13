@@ -57,13 +57,18 @@ public class OriginPill : Control
 public class WidgetsPage : Panel, ISectionPage
 {
     public const string ManageKey = "manage";
+    public const string HubKey = "hub";
 
     private readonly Core _core;
     private readonly Panel _info = new() { Dock = DockStyle.Top, Height = 54, BackColor = Theme.Bg };
     private readonly Panel _content = new() { Dock = DockStyle.Fill, BackColor = Theme.Bg };
     private readonly Dictionary<string, Panel> _hosts = new();
     private readonly Panel _manageHost = new() { Dock = DockStyle.Fill, BackColor = Theme.Bg, Visible = false };
-    private string _current = WidgetCatalog.BuiltIn[0].Key;
+    private readonly Panel _hubHost = new() { Dock = DockStyle.Fill, BackColor = Theme.Bg, Visible = false };
+    private string _current = HubKey;
+
+    /// <summary>A widget was chosen on the page of tiles: its key, or "manage" for the widget library.</summary>
+    public event Action<string>? OpenRequested;
 
     public WidgetsPage(Core core)
     {
@@ -71,17 +76,22 @@ public class WidgetsPage : Panel, ISectionPage
         BackColor = Theme.Bg;
 
         _content.Controls.Add(_manageHost);
+        _content.Controls.Add(_hubHost);
+        var hub = new WidgetHubView(core) { Dock = DockStyle.Fill };
+        hub.OpenRequested += key => OpenRequested?.Invoke(key);
+        hub.GetMoreRequested += () => OpenRequested?.Invoke(ManageKey);
+        _hubHost.Controls.Add(hub);
         var body = new Panel { BackColor = Theme.Bg };
         body.Controls.Add(_content);
         body.Controls.Add(_info);
 
-        var page = new Page("Widgets", "Optional add-ons. Pick one from the WIDGETS list in the menu on the left", body);
+        var page = new Page("Widgets", "Optional add-ons. Open one from here, or star your favourites to keep them in the menu on the left", body);
         page.Dock = DockStyle.Fill;
         Controls.Add(page);
 
         // A widget was installed or removed: drop everything that was built and show the current one again (or the first).
         _core.Widgets.Changed += () => BeginInvoke(Reset);
-        _core.WidgetUpdates.Changed += () => { if (IsHandleCreated) BeginInvoke(() => { if (_current != ManageKey) ShowSection(_current); }); };
+        _core.WidgetUpdates.Changed += () => { if (IsHandleCreated) BeginInvoke(() => { if (_current != ManageKey && _current != HubKey) ShowSection(_current); }); };
         ShowSection(_current);
     }
 
@@ -89,7 +99,7 @@ public class WidgetsPage : Panel, ISectionPage
     {
         foreach (var host in _hosts.Values) { _content.Controls.Remove(host); host.Dispose(); }
         _hosts.Clear();
-        ShowSection(_current);
+        ShowSection(Find(_current) is null && _current != ManageKey ? HubKey : _current); // a removed widget sends you back to the tiles
     }
 
     private WidgetInfo? Find(string key) =>
@@ -99,6 +109,17 @@ public class WidgetsPage : Panel, ISectionPage
     {
         foreach (var h in _hosts.Values) h.Visible = false;
         _manageHost.Visible = false;
+        _hubHost.Visible = false;
+
+        if (key == HubKey)
+        {
+            _current = key;
+            _hubHost.Visible = true;
+            _info.Height = 0; // the page of tiles has no strip above it
+            ShowInfo(null);
+            return;
+        }
+        _info.Height = 54;
 
         if (key == ManageKey)
         {

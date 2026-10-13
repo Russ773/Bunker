@@ -1,5 +1,13 @@
 [
   {
+    "version": "1.0.14",
+    "items": [
+      "A roomier Widgets page: All widgets in the sidebar opens every widget as a tile, grouped and searchable. The sidebar now lists just your favourites, so it no longer needs scrolling.",
+      "Tighter spacing in the sidebar, so more fits on smaller screens.",
+      "Saved console and player files now go to Documents\\Bunker\\Exports instead of cluttering Documents."
+    ]
+  },
+  {
     "version": "1.0.13",
     "items": [
       "Export the console to a text file (Save in the Console header), and the Player database to a CSV file that opens in Excel (Export CSV).",

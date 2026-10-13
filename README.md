@@ -65,6 +65,7 @@ Watch the console, see who's online and run your server, without ever launching 
 
 Recent additions, newest ideas first:
 
+* 🗂️ **A roomier Widgets page.** **All widgets** in the sidebar opens every widget as a tile, grouped (Favourites, Built in, Community) with a search box. The sidebar no longer has a long list to scroll, and its spacing is tighter so it fits smaller screens.
 * 💾 **Export.** **Save** in the Console header writes what you can see (search and filters applied) to a text file, and **Export CSV** on the Player database saves the players as a spreadsheet that opens in Excel, Google Sheets or LibreOffice. Files go to `Documents\Bunker\Exports` by default, so your other folders stay tidy.
 * 📣 **What's new after an update.** The first time a new version runs, a short note lists what changed. It never shows on a fresh install, and you can open it again from **Settings → About**.
 * 🚫 **Ban list as a table.** The Ban Manager widget now shows your bans as a sortable table (Steam ID, name, reason and when each ban ends, with expired ones marked). Click a row to fill in the Steam ID, then press Unban.
@@ -77,7 +78,7 @@ Recent additions, newest ideas first:
 * 🙈 **Hide console noise.** Hide a whole plugin (`[Economics]`, `[Steam Groups]`) or any line containing words you choose, from **Console → Filter** or by right-clicking a line.
 * 🔎 **Item search with pictures.** Type "wood" in **Give items** (or the player menu) and get *Wood* with its picture. The list comes from the game's own files and updates itself when Rust does.
 * 📋 **Plugin lists as a table.** Carbon and Oxide plugin lists show as a sortable table (versions, hook time, memory, uptime) with failed plugins listed underneath. Click a row to fill in the plugin name.
-* ⭐ **Favourite widgets.** Click the star next to a widget in the WIDGETS menu and it moves to the top. Right-click to **hide** a widget from the menu (it stays in Layout).
+* ⭐ **Favourite widgets.** Click the ☆ on any widget tile to make it a favourite. Favourites are what the sidebar lists under WIDGETS, so it stays short. Right-click a tile to **hide** it (it stays in Layout, and a Hidden group on the Widgets page brings it back).
 * 🔄 **Widget updates.** **Settings → Updates** now lists newer versions of your community widgets, and an orange dot marks them in the menu.
 * 🖱️ **One right-click menu everywhere.** The Players page, the Dashboard and the **Player database** share the same menu: copy, Steam profile, kick, ban, mute, teleport, give item and notes.
 * 📥 **Import servers from RustAdmin** (Settings → Servers → Import).
@@ -104,7 +105,7 @@ Bunker is split in two so it is always clear what is part of the app and what is
 
 ### 🧩 Widgets: optional add-ons
 
-Every widget is listed under the **WIDGETS** heading in the sidebar. Click one to open it, with a live console beside it so you see the server's reply. A tag marks it **Built-in** or **Community** (community ones also have a green dot). **Add to Layout** puts any widget into a Layout section in one click. Click the **star** next to a widget to make it a favourite (favourites are listed first). Right-click a widget to hide it from the menu; it stays available in the Layout picker, and a "hidden" row at the bottom brings it back. An orange dot means a newer version of a community widget is available (see **Settings → Updates**).
+**All widgets** (under the WIDGETS heading in the sidebar) opens a page with every widget as a tile, grouped as Favourites, Built in and Community, with a search box. Click a tile to open the widget, with a live console beside it so you see the server's reply. **Add to Layout** puts any widget into a Layout section in one click. Click the **☆** on a tile to make it a favourite: favourites are listed in the sidebar, so the ones you use most are one click away. Right-click a tile to hide it; hidden widgets stay available in the Layout picker and wait in a Hidden group at the bottom of the page. An orange **Update available** marks a community widget that has a newer version (see **Settings → Updates**).
 
 | | |
 | --- | --- |
@@ -145,7 +146,7 @@ Every widget is listed under the **WIDGETS** heading in the sidebar. Click one t
   </tr>
   <tr>
     <td width="50%"><img src="docs/screenshots/ban-list.png" alt="Ban list table"><br><sub><b>🚫 Ban list</b>: sortable, with expiry dates</sub></td>
-    <td width="50%"></td>
+    <td width="50%"><img src="docs/screenshots/widget-hub.png" alt="Widgets page"><br><sub><b>🗂️ Widgets</b>: every widget as a tile, with search and favourites</sub></td>
   </tr>
 </table>
 
@@ -310,7 +311,7 @@ Pushing a tag such as `v1.0.0` runs the pipeline:
 - [x] Searchable Rust item list with pictures, kept current automatically
 - [x] Chat as yourself, and chat that looks like the game
 - [x] Plugin lists (Carbon and Oxide) as a sortable table
-- [x] Favourite and hidden widgets, and widget updates
+- [x] Favourite and hidden widgets, widget updates, and a tile page for all widgets
 - [x] Auto-reconnect when the connection drops mid-session
 - [x] Ban list as a proper table
 - [x] Multi-server overview

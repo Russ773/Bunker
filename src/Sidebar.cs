@@ -28,7 +28,7 @@ public class Sidebar : Panel
         Paint += (_, e) => { using var p = new Pen(Theme.Border); e.Graphics.DrawLine(p, Width - 1, 0, Width - 1, Height); };
 
         // Server + connection block (very bottom). Docked-top children stack with the last added on top, so add in reverse.
-        var conn = new Panel { Dock = DockStyle.Bottom, Height = 150, Padding = new Padding(20, 14, 20, 16), BackColor = Theme.Panel };
+        var conn = new Panel { Dock = DockStyle.Bottom, Height = 142, Padding = new Padding(20, 14, 20, 16), BackColor = Theme.Panel };
         _connect.Dock = DockStyle.Bottom;
         _connect.Height = 38;
         conn.Controls.Add(_connect);
@@ -47,16 +47,16 @@ public class Sidebar : Panel
 
         nav.Controls.Add(Caption("CORE"));
 
-        var lower = new Panel { Dock = DockStyle.Bottom, Height = 148, BackColor = Theme.Panel, Padding = new Padding(0, 8, 0, 6) };
+        var lower = new Panel { Dock = DockStyle.Bottom, Height = 128, BackColor = Theme.Panel, Padding = new Padding(0, 8, 0, 6) };
         AddItems(lower, ("servers", "", "Servers"), ("layout", "", "Layout"), ("settings", "", "Settings"));
         lower.Paint += (_, e) => { using var p = new Pen(Theme.Border); e.Graphics.DrawLine(p, 14, 0, lower.Width - 14, 0); };
 
         // Brand (top)
-        var brand = new Panel { Dock = DockStyle.Top, Height = 78, BackColor = Theme.Panel };
+        var brand = new Panel { Dock = DockStyle.Top, Height = 70, BackColor = Theme.Panel };
         if (Theme.AppIcon is { } icon)
-            brand.Controls.Add(new PictureBox { Image = SplashForm.LoadLogo() ?? icon.ToBitmap(), SizeMode = PictureBoxSizeMode.Zoom, Size = new Size(38, 38), Location = new Point(20, 20), BackColor = Theme.Panel });
-        brand.Controls.Add(new Label { Text = "BUNKER", Font = Theme.Brand, ForeColor = Theme.Text, AutoSize = true, Location = new Point(66, 18) });
-        brand.Controls.Add(new Label { Text = Updater.VersionText, Font = Theme.Small, ForeColor = Theme.Muted, AutoSize = true, Location = new Point(68, 42) });
+            brand.Controls.Add(new PictureBox { Image = SplashForm.LoadLogo() ?? icon.ToBitmap(), SizeMode = PictureBoxSizeMode.Zoom, Size = new Size(38, 38), Location = new Point(20, 16), BackColor = Theme.Panel });
+        brand.Controls.Add(new Label { Text = "BUNKER", Font = Theme.Brand, ForeColor = Theme.Text, AutoSize = true, Location = new Point(66, 14) });
+        brand.Controls.Add(new Label { Text = Updater.VersionText, Font = Theme.Small, ForeColor = Theme.Muted, AutoSize = true, Location = new Point(68, 38) });
 
         Controls.Add(nav);
         Controls.Add(brand);
@@ -68,6 +68,7 @@ public class Sidebar : Panel
         HandleCreated += (_, _) => BeginInvoke(() => { if (_widgetItems.FirstOrDefault(w => w.Selected) is { } shown) _widgetList.ScrollControlIntoView(shown); });
         _core.Widgets.Changed += () => BeginInvoke(BuildWidgetList);
         _core.WidgetUpdates.Changed += () => { if (IsHandleCreated) BeginInvoke(BuildWidgetList); };
+        _core.WidgetPrefsChanged += () => { if (IsHandleCreated) BeginInvoke(BuildWidgetList); };
 
         _connect.Click += (_, _) => ConnectClicked?.Invoke();
         _core.StateChanged += RefreshState;
@@ -77,8 +78,8 @@ public class Sidebar : Panel
 
     private static Label Caption(string text) => new()
     {
-        Text = text, Dock = DockStyle.Top, Height = 30, Font = new Font("Segoe UI Semibold", 8f), ForeColor = Theme.Dim,
-        Padding = new Padding(22, 12, 0, 0), BackColor = Theme.Panel,
+        Text = text, Dock = DockStyle.Top, Height = 26, Font = new Font("Segoe UI Semibold", 8f), ForeColor = Theme.Dim,
+        Padding = new Padding(22, 8, 0, 0), BackColor = Theme.Panel,
     };
 
     /// <summary>Adds nav buttons in the given order (Top-docked children stack last-added-first, so add reversed).</summary>
@@ -96,86 +97,57 @@ public class Sidebar : Panel
 
     public void Select(string key)
     {
-        if (key == "widgets") key = "widgets:" + WidgetCatalog.BuiltIn[0].Key;
+        if (key == "widgets") key = WidgetsKey(WidgetsPage.HubKey);
+        var before = _selectedKey;
         _selectedKey = key;
         foreach (var (k, b) in _items) b.Selected = k == key;
+        // The row for the open widget (when it is not a favourite) comes and goes as you move between widgets.
+        if (before != key && (before.StartsWith("widgets:") || key.StartsWith("widgets:"))) BuildWidgetList();
         foreach (var w in _widgetItems) w.Selected = w.Key == key;
         if (_widgetItems.FirstOrDefault(w => w.Selected) is { } shown && IsHandleCreated) BeginInvoke(() => _widgetList.ScrollControlIntoView(shown));
     }
 
-    /// <summary>(Re)creates the list under the WIDGETS heading: the built-in widgets, then installed community ones, then a way to get more.</summary>
-    private bool _showHidden;
+    private static string WidgetsKey(string widget) => "widgets:" + widget;
 
+    /// <summary>
+    /// (Re)creates the list under the WIDGETS heading: one "All widgets" row that opens the full page of tiles, then only your favourites
+    /// (and the widget that is open, if it is not one). Everything else is on the Widgets page, so this list never needs to scroll much.
+    /// </summary>
     private void BuildWidgetList()
     {
         foreach (var w in _widgetItems) { _widgetList.Controls.Remove(w); w.Dispose(); }
         _widgetItems.Clear();
 
-        var hiddenKeys = _core.Settings.HiddenWidgets;
+        var settings = _core.Settings;
         var all = WidgetCatalog.AllWidgets(_core).ToList();
-        var shown = WidgetCatalog.FavouritesFirst(all.Where(i => !hiddenKeys.Contains(i.Key)), _core.Settings.FavouriteWidgets);
-        var hidden = all.Where(i => hiddenKeys.Contains(i.Key)).ToList();
+        var openKey = _selectedKey.StartsWith("widgets:") ? _selectedKey["widgets:".Length..] : null;
+        if (openKey == WidgetsPage.HubKey || openKey == WidgetsPage.ManageKey) openKey = null;
+        var rows = WidgetGroups.Sidebar(all, settings.FavouriteWidgets, settings.HiddenWidgets, openKey);
 
-        var entries = new List<WidgetNavItem>();
-        foreach (var info in shown) entries.Add(MakeWidgetItem(info, dim: false));
+        var anyUpdate = all.Any(i => i.IsCommunity && _core.WidgetUpdates.HasUpdate(i.CustomId));
+        var hub = new WidgetNavItem(WidgetsKey(WidgetsPage.HubKey), $"All widgets  ({all.Count})",
+            "Every widget as a tile, with search. Star the ones you use most and they are listed here." + (anyUpdate ? "\n\nA newer version of a community widget is available." : ""),
+            false, isAction: true, hasUpdate: anyUpdate);
+        hub.Click += (_, _) => Navigated?.Invoke(WidgetsKey(WidgetsPage.HubKey));
 
-        // Widgets you hid are tucked behind one row; they stay in the Layout picker either way.
-        if (hidden.Count > 0)
-        {
-            var toggle = new WidgetNavItem("toggle:hidden", _showHidden ? $"Hide the {hidden.Count} hidden" : $"{hidden.Count} hidden...",
-                "Widgets you hid from this menu. They are still available in the Layout picker. Right-click one to show it again.", false, isAction: true);
-            toggle.Click += (_, _) => { _showHidden = !_showHidden; BuildWidgetList(); };
-            entries.Add(toggle);
-            if (_showHidden) foreach (var info in hidden) entries.Add(MakeWidgetItem(info, dim: true));
-        }
+        var entries = new List<WidgetNavItem> { hub };
+        foreach (var info in rows) entries.Add(MakeWidgetItem(info));
 
-        var more = new WidgetNavItem("widgets:" + WidgetsPage.ManageKey, "Get more widgets...", "Browse the library, or add one from a file or link.", false, isAction: true);
-        more.Click += (_, _) => Navigated?.Invoke("widgets:" + WidgetsPage.ManageKey);
-        entries.Add(more);
-
-        foreach (var e in entries) e.Selected = e.Key == _selectedKey;
+        foreach (var e in entries) e.Selected = e.Key == _selectedKey || (e == hub && _selectedKey == WidgetsKey(WidgetsPage.ManageKey));
         _widgetItems.AddRange(entries);
         // Top-docked controls stack last-added-first, so add in reverse.
         foreach (var e in Enumerable.Reverse(entries)) _widgetList.Controls.Add(e);
     }
 
-    private WidgetNavItem MakeWidgetItem(WidgetInfo info, bool dim)
+    private WidgetNavItem MakeWidgetItem(WidgetInfo info)
     {
-        var key = "widgets:" + info.Key;
-        var hint = dim ? "Right-click to show it in this menu again." : "Right-click to hide it from this menu.";
+        var key = WidgetsKey(info.Key);
         var update = info.IsCommunity && _core.WidgetUpdates.HasUpdate(info.CustomId);
         var favourite = _core.Settings.FavouriteWidgets.Contains(info.Key);
-        var item = new WidgetNavItem(key, info.Name, (update ? "A newer version of this widget is available.\n\n" : "") + info.Blurb + "\n\n" + hint + "\nClick the star to make it a favourite (listed first).", info.IsCommunity, dim: dim, hasUpdate: update, canStar: true, starred: favourite);
+        var item = new WidgetNavItem(key, info.Name, (update ? "A newer version of this widget is available.\n\n" : "") + info.Blurb + "\n\nClick the star to " + (favourite ? "remove it from" : "add it to") + " your favourites.", info.IsCommunity, hasUpdate: update, canStar: true, starred: favourite);
         item.Click += (_, _) => Navigated?.Invoke(key);
-        item.StarClicked += () => ToggleFavourite(info.Key);
-        item.MouseUp += (_, e) =>
-        {
-            if (e.Button != MouseButtons.Right) return;
-            var menu = new ContextMenuStrip { BackColor = Theme.Input, ForeColor = Theme.Text, Renderer = new DarkMenuRenderer(), ShowImageMargin = false };
-            var toggle = new ToolStripMenuItem(dim ? "Show in menu" : "Hide from menu") { BackColor = Theme.Input, ForeColor = Theme.Text };
-            toggle.Click += (_, _) => SetHidden(info.Key, hide: !dim);
-            menu.Items.Add(toggle);
-            menu.Items.Add(new ToolStripMenuItem("Still available in Layout") { Enabled = false, BackColor = Theme.Input, ForeColor = Theme.Muted });
-            menu.Show(item, e.Location);
-        };
+        item.StarClicked += () => _core.ToggleFavouriteWidget(info.Key);
         return item;
-    }
-
-    private void ToggleFavourite(string widgetKey)
-    {
-        var list = _core.Settings.FavouriteWidgets;
-        if (!list.Remove(widgetKey)) list.Add(widgetKey);
-        _core.Settings.Save();
-        BeginInvoke(BuildWidgetList);
-    }
-
-    private void SetHidden(string widgetKey, bool hide)
-    {
-        var list = _core.Settings.HiddenWidgets;
-        if (hide && !list.Contains(widgetKey)) list.Add(widgetKey);
-        if (!hide) list.Remove(widgetKey);
-        _core.Settings.Save();
-        BeginInvoke(BuildWidgetList);
     }
 
     private void ShowServerMenu()

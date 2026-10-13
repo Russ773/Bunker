@@ -28,7 +28,9 @@ public class MainForm : Form
         servers.OpenRequested += (id, page) => { _ = _core.SwitchServerAsync(id); Navigate(page); };
         _pages["servers"] = new Page("Servers", "All your servers at a glance. Bunker keeps a light connection to each one while this page is open", servers);
         _pages["layout"] = new LayoutPage(_core);
-        _pages["widgets"] = new WidgetsPage(_core);
+        var widgets = new WidgetsPage(_core);
+        widgets.OpenRequested += key => Navigate("widgets:" + key);
+        _pages["widgets"] = widgets;
         _pages["settings"] = new SettingsPage(_core);
         foreach (var page in _pages.Values)
         {

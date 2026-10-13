@@ -83,7 +83,7 @@ public class NavButton : Control
     {
         _glyph = glyph;
         Text = text;
-        Height = 44;
+        Height = 38;
         Dock = DockStyle.Top;
         Cursor = Cursors.Hand;
         DoubleBuffered = true;

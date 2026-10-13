@@ -336,6 +336,24 @@ public class Core
         }
     }
 
+    /// <summary>Raised when a widget is starred, un-starred, hidden or shown, so the sidebar and the Widgets page redraw.</summary>
+    public event Action? WidgetPrefsChanged;
+    public void NotifyWidgetPrefsChanged() => WidgetPrefsChanged?.Invoke();
+
+    public void ToggleFavouriteWidget(string key)
+    {
+        if (!Settings.FavouriteWidgets.Remove(key)) Settings.FavouriteWidgets.Add(key);
+        Settings.Save();
+        NotifyWidgetPrefsChanged();
+    }
+
+    public void SetWidgetHidden(string key, bool hide)
+    {
+        WidgetGroups.SetHidden(Settings.FavouriteWidgets, Settings.HiddenWidgets, key, hide);
+        Settings.Save();
+        NotifyWidgetPrefsChanged();
+    }
+
     /// <summary>Raised when the list of hidden console messages changes, so every console redraws.</summary>
     public event Action? ConsoleFilterChanged;
     public void NotifyConsoleFilterChanged() => ConsoleFilterChanged?.Invoke();
