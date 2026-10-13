@@ -7,6 +7,7 @@ public class MainForm : Form
     private readonly Core _core = new(AppSettings.Load());
     private readonly Sidebar _sidebar;
     private readonly Dictionary<string, Control> _pages = new();
+    private TrayService? _tray;
 
     public MainForm()
     {
@@ -87,6 +88,16 @@ public class MainForm : Form
             Shown += async (_, _) => { await Task.Delay(6000); using var f = new FullscreenForm(_core, this); f.ShowDialog(this); };
 #endif
         FormClosing += OnFormClosing;
+#if DEBUG
+        if (Environment.GetEnvironmentVariable("BUNKER_OFFSCREEN") != "1" || Environment.GetEnvironmentVariable("BUNKER_TEST_TRAY") is { Length: > 0 }) // test runs get killed, which would leave a ghost icon in the real tray
+#endif
+            _tray = new TrayService(this, _core);
+#if DEBUG
+        // Test hook (debug builds only): show the tray icon for a few seconds, then quit cleanly so no ghost icon is left behind.
+        if (Environment.GetEnvironmentVariable("BUNKER_TEST_TRAY") is { Length: > 0 } trayResult)
+            Shown += async (_, _) => { await Task.Delay(4000); File.WriteAllText(trayResult, "tray created and running"); Application.Exit(); };
+#endif
+        FormClosed += (_, _) => _tray?.Dispose();
     }
 
     /// <summary>The X, Alt+F4 or the taskbar's Close ask whether to minimise instead (unless a choice was remembered). Updates, restarts and Windows shutting down are never asked.</summary>

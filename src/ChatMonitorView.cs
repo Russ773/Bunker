@@ -88,10 +88,9 @@ public class ChatMonitorView : Panel
         base.Dispose(disposing);
     }
 
-    private List<string> Words() =>
-        _words.Text.Split(new[] { ',', ';', '\n' }, StringSplitOptions.RemoveEmptyEntries | StringSplitOptions.TrimEntries).Where(w => w.Length > 0).ToList();
+    private List<string> Words() => WatchWords.Parse(_words.Text);
 
-    private bool Matches(LogEntry e) => Words() is { Count: > 0 } words && words.Any(w => e.Text.Contains(w, StringComparison.OrdinalIgnoreCase));
+    private bool Matches(LogEntry e) => WatchWords.Matches(_words.Text, e.Text);
 
     /// <summary>
     /// Keeps the newest message in view. A table with no room to show a row (not laid out yet, or squeezed very small) refuses to scroll

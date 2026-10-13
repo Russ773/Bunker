@@ -91,6 +91,12 @@ public class AppSettings
     public bool AutoConnect { get; set; } = true;
     /// <summary>Try to reconnect by itself when the connection to the server drops.</summary>
     public bool AutoReconnect { get; set; } = true;
+    /// <summary>Show the Bunker icon in the system tray (menu to show, connect or quit).</summary>
+    public bool ShowTrayIcon { get; set; } = true;
+    /// <summary>Minimising takes Bunker off the taskbar so only the tray icon is left. Needs the tray icon.</summary>
+    public bool TrayHideWhenMinimised { get; set; }
+    /// <summary>Windows notifications for chat watch-words and a lost connection while Bunker is not in front. Needs the tray icon.</summary>
+    public bool TrayNotifications { get; set; } = true;
     /// <summary>What the X in the corner of the window does: "ask", "minimise" or "close".</summary>
     public string CloseButton { get; set; } = CloseButtonSetting.Ask;
     /// <summary>Download the Rust item list and pictures from GitHub (bobosneefdev/rust-items-json) so item search stays current.</summary>

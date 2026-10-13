@@ -65,6 +65,7 @@ Watch the console, see who's online and run your server, without ever launching 
 
 Recent additions, newest ideas first:
 
+* 🔔 **Tray icon and notifications.** A Bunker icon in the system tray (right-click to show, connect or quit). When Bunker is minimised or behind other windows, Windows tells you about chat watch-words and a lost connection. Everything is optional in **Settings → General**, including hiding Bunker from the taskbar when minimised.
 * 🔌 **Auto-reconnect.** If the connection to your server drops (a restart, a wobble, your PC waking from sleep), Bunker keeps trying to get it back and tells you in the console. Click Connect or Disconnect to stop it, or turn it off in **Settings → General**.
 * ❌ **The X asks first.** Clicking the X in the corner now asks whether to **minimise** Bunker (so it stays connected and your schedules keep running) or close it. Tick *Remember my choice* to stop being asked, and change it any time in **Settings → General**.
 * 💬 **Chat as yourself.** Set a name, Steam ID and colour in **Settings → Chat** and your messages show in-game with your name and Steam picture instead of SERVER (needs the small [BunkerChat plugin](plugins/BunkerChat.cs)). The console box has a **Command / Chat** switch, and asks "say this in chat?" before sending ordinary words as a command.

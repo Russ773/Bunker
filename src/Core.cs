@@ -208,7 +208,7 @@ public class Core
             var wasConnected = State == ConnState.Connected;
             Log.Add(reason, LogKind.Info);
             SetState(ConnState.Disconnected, reason);
-            if (wasConnected) StartReconnect(); // the connection dropped (the user did not disconnect): try to get it back
+            if (wasConnected) { ConnectionLost?.Invoke(); StartReconnect(); } // the connection dropped (the user did not disconnect): try to get it back
         }, null);
     }
 
@@ -283,6 +283,15 @@ public class Core
 
     private CancellationTokenSource? _reconnect;
 
+    /// <summary>Raised when an established connection drops by itself (not when you disconnect).</summary>
+    public event Action? ConnectionLost;
+    /// <summary>Raised when automatic reconnecting succeeds.</summary>
+    public event Action? Reconnected;
+
+    /// <summary>Raised when the tray icon settings change, so the icon shows or hides straight away.</summary>
+    public event Action? TraySettingsChanged;
+    public void NotifyTraySettingsChanged() => TraySettingsChanged?.Invoke();
+
     /// <summary>True while Bunker is waiting to retry after the connection dropped.</summary>
     public bool Reconnecting => _reconnect is not null;
 
@@ -315,7 +324,7 @@ public class Core
                 if (attempt == 1) Log.Add("Connection lost. Trying to reconnect automatically (click Connect or Disconnect to stop).", LogKind.Warning);
                 await ConnectCoreAsync(logFailure: false);
                 if (ct.IsCancellationRequested) return;
-                if (State == ConnState.Connected) { Log.Add("Reconnected.", LogKind.Info); return; }
+                if (State == ConnState.Connected) { Log.Add("Reconnected.", LogKind.Info); Reconnected?.Invoke(); return; }
                 if (ReconnectPlan.ShouldLogFailure(attempt)) Log.Add($"Still unable to reach the server (attempt {attempt}). Trying again...", LogKind.Info);
             }
         }
