@@ -75,6 +75,14 @@ public class MainForm : Form
                 f.Shown += async (_, _) => { await Task.Delay(800); using var bmp = new Bitmap(f.Width, f.Height); f.DrawToBitmap(bmp, new Rectangle(0, 0, f.Width, f.Height)); bmp.Save(hideShot); f.Close(); };
                 f.ShowDialog(this);
             };
+        if (Environment.GetEnvironmentVariable("BUNKER_TEST_WHATSNEW") is { Length: > 0 } notesShot)
+            Shown += async (_, _) =>
+            {
+                await Task.Delay(5000);
+                using var f = new WhatsNewForm(WhatsNew.Load().Take(4).ToList(), "Bunker was updated to " + WhatsNew.Load()[0].Version);
+                f.Shown += async (_, _) => { await Task.Delay(800); using var bmp = new Bitmap(f.Width, f.Height); f.DrawToBitmap(bmp, new Rectangle(0, 0, f.Width, f.Height)); bmp.Save(notesShot); f.Close(); };
+                f.ShowDialog(this);
+            };
         if (Environment.GetEnvironmentVariable("BUNKER_TEST_CLOSEFORM") is { Length: > 0 } closeShot)
             Shown += async (_, _) =>
             {
@@ -145,8 +153,31 @@ public class MainForm : Form
     {
         _ = RefreshItemsLaterAsync();
         if (await AutoUpdateAsync()) return;
+        ShowWhatsNewIfUpdated();
         if (_core.Settings.ActiveServer is null) RunOnboarding();
         if (_core.Settings.ActiveServer is not null && _core.Settings.AutoConnect) await AutoConnectAsync();
+    }
+
+    /// <summary>The first time a newer version runs, lists what changed since the version before (once, not on a fresh install).</summary>
+    private void ShowWhatsNewIfUpdated()
+    {
+#if DEBUG
+        return; // dev builds never change the real settings or pop notes; BUNKER_TEST_WHATSNEW has its own hook
+#endif
+        var settings = _core.Settings;
+        var current = Updater.CurrentVersion;
+        var last = Version.TryParse(settings.LastSeenVersion, out var seen) ? seen : null;
+        if (last == current) return;
+        var freshInstall = settings.IsFirstRun;
+        settings.LastSeenVersion = current.ToString();
+        try { settings.Save(); } catch { }
+        if (freshInstall) return;
+
+        // A version from before this existed has nothing recorded: tell it about the newest few.
+        var notes = WhatsNew.Since(WhatsNew.Load(), last ?? new Version(0, 0, 0), current);
+        if (notes.Count == 0) return;
+        using var form = new WhatsNewForm(notes, $"Bunker was updated to {current}");
+        form.ShowDialog(this);
     }
 
     /// <summary>A few seconds after launch, quietly checks whether Rust has been updated and fetches the newer item list if so.</summary>

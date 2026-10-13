@@ -89,6 +89,11 @@ public class AppSettings
     public bool CheckForUpdatesOnLaunch { get; set; } = true;
     public bool StartMaximised { get; set; } = true;
     public bool AutoConnect { get; set; } = true;
+    /// <summary>The version that last ran, so the "what's new" note shows once after an update.</summary>
+    public string LastSeenVersion { get; set; } = "";
+    /// <summary>True when there was no settings file yet (a fresh install, which has nothing to be told about).</summary>
+    [JsonIgnore]
+    public bool IsFirstRun { get; private set; }
     /// <summary>Try to reconnect by itself when the connection to the server drops.</summary>
     public bool AutoReconnect { get; set; } = true;
     /// <summary>Show the Bunker icon in the system tray (menu to show, connect or quit).</summary>
@@ -157,9 +162,11 @@ public class AppSettings
 
     public static AppSettings Load()
     {
+        var existed = File.Exists(FilePath);
         AppSettings s;
         try { s = JsonSerializer.Deserialize<AppSettings>(File.ReadAllText(FilePath)) ?? new(); }
-        catch { return new(); }
+        catch { return new() { IsFirstRun = !existed }; }
+        s.IsFirstRun = !existed;
 
         if (s.LegacyServer is not null)
         {

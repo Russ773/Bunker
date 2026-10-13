@@ -363,8 +363,16 @@ public partial class SettingsPage : Panel, ISectionPage
         inner.Controls.Add(github);
         inner.Controls.Add(releases);
 
+        var notes = Theme.GhostButton("What's new");
+        notes.Location = new Point(0, 216);
+        notes.Click += (_, _) =>
+        {
+            using var form = new WhatsNewForm(WhatsNew.Latest(WhatsNew.Load(), Updater.CurrentVersion), "What's new in Bunker");
+            form.ShowDialog(FindForm());
+        };
+        inner.Controls.Add(notes);
         var folder = Theme.GhostButton("Open settings folder");
-        folder.Location = new Point(0, 216);
+        folder.Location = new Point(notes.Width + 10, 216);
         folder.Click += (_, _) => { try { Directory.CreateDirectory(AppSettings.Folder); Process.Start(new ProcessStartInfo(AppSettings.Folder) { UseShellExecute = true }); } catch { } };
         inner.Controls.Add(folder);
         return Wrap("About", inner);

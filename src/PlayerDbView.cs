@@ -10,6 +10,8 @@ public class PlayerDbView : Panel
     private readonly DarkGrid _grid = new();
     private readonly ModernField _search = new();
     private readonly CheckBox _onlineOnly = new() { Text = "Online now", AutoSize = true, ForeColor = Theme.Text, Cursor = Cursors.Hand, Margin = new Padding(14, 10, 0, 0) };
+    private readonly Button _export = Theme.GhostButton("Export CSV...");
+    private List<PlayerRecord> _shown = new();
     private readonly Label _count = new() { AutoSize = true, ForeColor = Theme.Muted, Font = Theme.Small, Margin = new Padding(14, 12, 0, 0) };
 
     private readonly Label _title = new() { AutoSize = true, Font = new Font("Segoe UI Semibold", 12f), ForeColor = Theme.Text };
@@ -40,6 +42,11 @@ public class PlayerDbView : Panel
         top.Controls.Add(_search);
         top.Controls.Add(_onlineOnly);
         top.Controls.Add(_count);
+        _export.Height = 34;
+        _export.Margin = new Padding(14, 1, 0, 0);
+        Tips.Set(_export, "Save the players shown here (with the search applied) as a spreadsheet file");
+        top.Controls.Add(_export);
+        _export.Click += (_, _) => ExportCsv();
 
         foreach (var (key, title, weight) in new[] { ("Status", "Status", 70), ("Name", "Name", 120), ("Id", "Steam ID", 130), ("First", "First seen", 90), ("Time", "Time played", 80), ("Sessions", "Visits", 45), ("Note", "Note", 160) })
         {
@@ -104,6 +111,26 @@ public class PlayerDbView : Panel
         base.Dispose(disposing);
     }
 
+    /// <summary>Saves the players shown (search applied) as a CSV file that opens in Excel.</summary>
+    private void ExportCsv()
+    {
+        if (_shown.Count == 0) { MessageBox.Show(FindForm(), "There are no players to save yet.", "Export players", MessageBoxButtons.OK, MessageBoxIcon.Information); return; }
+        var server = _core.Settings.ActiveServer?.DisplayName ?? "server";
+        using var dialog = new SaveFileDialog
+        {
+            Title = "Export players", Filter = "CSV file (*.csv)|*.csv", OverwritePrompt = true,
+            InitialDirectory = Environment.GetFolderPath(Environment.SpecialFolder.MyDocuments),
+            FileName = ExportText.FileName("players-" + server, DateTime.Now, "csv"),
+        };
+        if (dialog.ShowDialog(FindForm()) != DialogResult.OK) return;
+        try
+        {
+            File.WriteAllText(dialog.FileName, ExportText.PlayersCsv(_shown, _core.Tracker.IsOnline), new System.Text.UTF8Encoding(true));
+            _core.Log.Add($"Saved {_shown.Count:N0} player{(_shown.Count == 1 ? "" : "s")} to {dialog.FileName}", LogKind.Info);
+        }
+        catch (Exception ex) { MessageBox.Show(FindForm(), "Could not save the file: " + ex.Message, "Export players", MessageBoxButtons.OK, MessageBoxIcon.Warning); }
+    }
+
     private PlayerRecord? Selected() => _selectedId is null ? null : _core.Tracker.Records.FirstOrDefault(r => r.SteamId == _selectedId);
 
     private static string Ago(DateTime utc)
@@ -120,6 +147,7 @@ public class PlayerDbView : Panel
             .Where(r => !_onlineOnly.Checked || _core.Tracker.IsOnline(r.SteamId))
             .Where(r => q.Length == 0 || r.Name.Contains(q, StringComparison.OrdinalIgnoreCase) || r.SteamId.Contains(q) || r.Note.Contains(q, StringComparison.OrdinalIgnoreCase))
             .OrderByDescending(r => _core.Tracker.IsOnline(r.SteamId)).ThenByDescending(r => r.LastSeenUtc).ToList();
+        _shown = rows;
 
         _grid.SuspendLayout();
         _grid.Rows.Clear();

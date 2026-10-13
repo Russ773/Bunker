@@ -1,0 +1,71 @@
+[
+  {
+    "version": "1.0.13",
+    "items": [
+      "Export the console to a text file (Save in the Console header), and the Player database to a CSV file that opens in Excel (Export CSV).",
+      "A note like this one now appears after Bunker updates. You can open it again any time from Settings → About."
+    ]
+  },
+  {
+    "version": "1.0.12",
+    "items": [
+      "The Ban Manager shows your bans as a sortable table, with the date each ban ends. Click a row to fill in the Steam ID, then press Unban."
+    ]
+  },
+  {
+    "version": "1.0.11",
+    "items": [
+      "A new Servers page shows every saved server at a glance, with one-click Open and a box to say something or run a command on all online servers.",
+      "Uninstalling now removes everything, including your saved data (it asks first)."
+    ]
+  },
+  {
+    "version": "1.0.10",
+    "items": [
+      "Clicking the X in the corner asks whether to minimise or close. Tick Remember my choice to stop being asked; change it in Settings → General.",
+      "Bunker reconnects by itself if the connection to your server drops.",
+      "A Bunker icon in the system tray, and Windows notifications for chat watch-words and a lost connection while Bunker is not in front."
+    ]
+  },
+  {
+    "version": "1.0.9",
+    "items": [
+      "Right-click any player in the Player database for the same menu as the Players page, even if they have left.",
+      "If you type ordinary words into the console box, Bunker asks whether you meant to say them in chat."
+    ]
+  },
+  {
+    "version": "1.0.8",
+    "items": [
+      "A Command / Chat switch in the console box, so you can talk to players from the console.",
+      "Star your favourite widgets to list them first, and choose the colour of chat tags such as [ADMIN]."
+    ]
+  },
+  {
+    "version": "1.0.7",
+    "items": [
+      "A cleaner widget page that uses the whole window, and Settings → Updates now lists newer versions of your widgets."
+    ]
+  },
+  {
+    "version": "1.0.6",
+    "items": [
+      "Hide console messages by plugin name (for example [Economics]) or by words.",
+      "Update checks no longer run into GitHub's rate limit."
+    ]
+  },
+  {
+    "version": "1.0.5",
+    "items": [
+      "Chat as yourself: set a name, Steam ID and colour in Settings → Chat (needs the small BunkerChat plugin on your server).",
+      "Fixed an error when opening the Chat monitor."
+    ]
+  },
+  {
+    "version": "1.0.4",
+    "items": [
+      "Chat looks like it does in the game, with coloured names and [TEAM] tags.",
+      "Carbon and Oxide plugin lists appear as a sortable table."
+    ]
+  }
+]

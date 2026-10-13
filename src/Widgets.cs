@@ -19,6 +19,7 @@ public class ConsoleView : Panel
     private bool _sayInChat; // console only: what you type is said in the chat instead of run as a command
     private const string CommandPlaceholder = "Type a command (e.g. status, say hello)";
     private readonly CheckBox _autoScroll = new() { Text = "Auto-scroll", Checked = true, AutoSize = true, ForeColor = Theme.Muted, Cursor = Cursors.Hand, Margin = new Padding(0, 3, 12, 0) };
+    private readonly Label _save = new() { Text = "Save", AutoSize = true, ForeColor = Theme.Muted, Cursor = Cursors.Hand, Margin = new Padding(0, 4, 10, 0) };
     private readonly Label _clear = new() { Text = "Clear", AutoSize = true, ForeColor = Theme.Muted, Cursor = Cursors.Hand, Margin = new Padding(0, 4, 4, 0) };
     private readonly List<string> _history = new();
     private Panel? _bar;
@@ -30,7 +31,7 @@ public class ConsoleView : Panel
     private bool _showHiddenNow; // reveals lines hidden by your rules, until you turn it off
 
     /// <summary>Controls the hosting Card should show on the right of its header.</summary>
-    public Control[] HeaderActions => new Control[] { _autoScroll, _clear };
+    public Control[] HeaderActions => new Control[] { _autoScroll, _save, _clear };
 
     public ConsoleView(Core core, bool chat = false, bool showInput = true)
     {
@@ -88,6 +89,10 @@ public class ConsoleView : Panel
             _box.MouseDown += OnBoxMouseDown;
         }
         _core.StateChanged += ApplyEnabled;
+        _save.Click += (_, _) => SaveLog();
+        _save.MouseEnter += (_, _) => _save.ForeColor = Theme.Accent;
+        _save.MouseLeave += (_, _) => _save.ForeColor = Theme.Muted;
+        Tips.Set(_save, "Save what is shown here (with the search and filters applied) to a text file");
         _clear.Click += (_, _) => _core.Log.Clear();
         _clear.MouseEnter += (_, _) => _clear.ForeColor = Theme.Accent;
         _clear.MouseLeave += (_, _) => _clear.ForeColor = Theme.Muted;
@@ -140,6 +145,26 @@ public class ConsoleView : Panel
         Choose("Command  (run what I type)", false);
         Choose(name.Length > 0 ? $"Chat  (say it as {name})" : "Chat  (say it as SERVER)", true);
         menu.Show(_mode, new Point(0, _mode.Height));
+    }
+
+    /// <summary>Saves the lines the console is showing (search and filters applied) to a text file.</summary>
+    private void SaveLog()
+    {
+        var entries = _core.Log.Entries.Where(Passes).ToList();
+        if (entries.Count == 0) { MessageBox.Show(FindForm(), "There is nothing to save yet.", "Save the console", MessageBoxButtons.OK, MessageBoxIcon.Information); return; }
+        using var dialog = new SaveFileDialog
+        {
+            Title = _chat ? "Save the chat" : "Save the console", Filter = "Text file (*.txt)|*.txt", OverwritePrompt = true,
+            InitialDirectory = Environment.GetFolderPath(Environment.SpecialFolder.MyDocuments),
+            FileName = ExportText.FileName(_chat ? "bunker-chat" : "bunker-console", DateTime.Now, "txt"),
+        };
+        if (dialog.ShowDialog(FindForm()) != DialogResult.OK) return;
+        try
+        {
+            File.WriteAllText(dialog.FileName, ExportText.LogText(entries), new System.Text.UTF8Encoding(true));
+            _core.Log.Add($"Saved {entries.Count:N0} line{(entries.Count == 1 ? "" : "s")} to {dialog.FileName}", LogKind.Info);
+        }
+        catch (Exception ex) { MessageBox.Show(FindForm(), "Could not save the file: " + ex.Message, "Save the console", MessageBoxButtons.OK, MessageBoxIcon.Warning); }
     }
 
     private void OnAdded(LogEntry e) => Append(e);

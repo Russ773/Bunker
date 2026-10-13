@@ -65,6 +65,8 @@ Watch the console, see who's online and run your server, without ever launching 
 
 Recent additions, newest ideas first:
 
+* 💾 **Export.** **Save** in the Console header writes what you can see (search and filters applied) to a text file, and **Export CSV** on the Player database saves the players as a spreadsheet that opens in Excel, Google Sheets or LibreOffice.
+* 📣 **What's new after an update.** The first time a new version runs, a short note lists what changed. It never shows on a fresh install, and you can open it again from **Settings → About**.
 * 🚫 **Ban list as a table.** The Ban Manager widget now shows your bans as a sortable table (Steam ID, name, reason and when each ban ends, with expired ones marked). Click a row to fill in the Steam ID, then press Unban.
 * 🌐 **Servers overview.** A new **Servers** page above Layout shows every saved server at once: online or offline (and why), players, FPS, uptime, who is on, and a small chart of recent player counts. Open any server with one click, or **say something or run a command on all online servers** in one go (you confirm first). Bunker only keeps these extra connections while the page is open.
 * 🔔 **Tray icon and notifications.** A Bunker icon in the system tray (right-click to show, connect or quit). When Bunker is minimised or behind other windows, Windows tells you about chat watch-words and a lost connection. Everything is optional in **Settings → General**, including hiding Bunker from the taskbar when minimised.
