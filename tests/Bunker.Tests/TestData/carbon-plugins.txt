@@ -3,7 +3,7 @@
    Core                                                                             Carbon Community                                 v1.0.0              646         69.2mb                                                   11h50m31s
 2  Scripts (105)
    AFK API                                                                          2CHEVSKII                                        v1.0.1   23ms       12,301      40.0kb                                  737ms [424ms]    11h50m30s
-   Admin Panel                                                                      Lewis Pickles                                    v1.5.13  267ms      223,472     264.0kb                                 537ms [123ms]    11h50m30s
+   Admin Panel                                                                      Example Author                                   v1.5.13  267ms      223,472     264.0kb                                 537ms [123ms]    11h50m30s
    Auto Doors                                                                       Wulf/lukespragg/Arainrr/James/Bushhy             v3.3.12  146ms      468,708     192.0kb                                 141ms [21ms]     11h50m30s
    Better Chat                                                                      LaserHydra                                       v5.2.15  36ms       513         1.3mb                                   124ms [22ms]     11h50m29s
    ChaosUpdateChecker                                                               k1lly0u                                          v2.0.2              2           40.0kb                                  24ms [8ms]       11h50m28s
