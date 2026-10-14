@@ -220,6 +220,14 @@ public class Core
         ServerChanged?.Invoke();
     }
 
+    /// <summary>Chooses which saved servers the Multi Server page shows.</summary>
+    public void SaveOverviewServers(List<string> ids)
+    {
+        Settings.OverviewServerIds = ids;
+        Settings.Save();
+        ServerChanged?.Invoke();
+    }
+
     /// <summary>Removes a saved server (and disconnects first if it is the one in use).</summary>
     public async Task DeleteServerAsync(string id)
     {

@@ -28,6 +28,7 @@
     <EmbeddedResource Include="..\assets\items-fallback.json" LogicalName="items-fallback.json" />
     <EmbeddedResource Include="..\plugins\BunkerChat.cs" LogicalName="BunkerChat.cs" />
     <EmbeddedResource Include="..\assets\whatsnew.json" LogicalName="whatsnew.json" />
+    <EmbeddedResource Include="..\assets\multiserver.png" LogicalName="multiserver.png" Condition="Exists('..\assets\multiserver.png')" />
   </ItemGroup>
 
 

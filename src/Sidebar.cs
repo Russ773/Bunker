@@ -48,7 +48,7 @@ public class Sidebar : Panel
         nav.Controls.Add(Caption("CORE"));
 
         var lower = new Panel { Dock = DockStyle.Bottom, Height = 128, BackColor = Theme.Panel, Padding = new Padding(0, 8, 0, 6) };
-        AddItems(lower, ("servers", "", "Servers"), ("layout", "", "Layout"), ("settings", "", "Settings"));
+        AddItems(lower, ("servers", "", "Multi Server"), ("layout", "", "Layout"), ("settings", "", "Settings"));
         lower.Paint += (_, e) => { using var p = new Pen(Theme.Border); e.Graphics.DrawLine(p, 14, 0, lower.Width - 14, 0); };
 
         // Brand (top)

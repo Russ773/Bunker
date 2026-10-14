@@ -1,5 +1,12 @@
 [
   {
+    "version": "1.0.15",
+    "items": [
+      "The Servers page is now called Multi Server, and shows up to six servers side by side, all the same size and filling the window. It lists who is online on each, and you can add a server or choose which six to show from the page.",
+      "The welcome screen on first launch lets you add several servers in a row and shows what the Multi Server page looks like."
+    ]
+  },
+  {
     "version": "1.0.14",
     "items": [
       "A roomier Widgets page: All widgets in the sidebar opens every widget as a tile, grouped and searchable. The sidebar now lists just your favourites, so it no longer needs scrolling.",

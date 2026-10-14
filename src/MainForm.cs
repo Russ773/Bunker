@@ -26,7 +26,7 @@ public class MainForm : Form
         _pages["players"] = Pages.Players(_core);
         var servers = new ServersView(_core);
         servers.OpenRequested += (id, page) => { _ = _core.SwitchServerAsync(id); Navigate(page); };
-        _pages["servers"] = new Page("Servers", "All your servers at a glance. Bunker keeps a light connection to each one while this page is open", servers);
+        _pages["servers"] = new Page("Multi Server", "Up to six of your servers at a glance. Bunker keeps a light connection to each one while this page is open", servers);
         _pages["layout"] = new LayoutPage(_core);
         var widgets = new WidgetsPage(_core);
         widgets.OpenRequested += key => Navigate("widgets:" + key);
@@ -75,6 +75,14 @@ public class MainForm : Form
                 await Task.Delay(9000);
                 using var f = new HiddenMessagesForm(_core);
                 f.Shown += async (_, _) => { await Task.Delay(800); using var bmp = new Bitmap(f.Width, f.Height); f.DrawToBitmap(bmp, new Rectangle(0, 0, f.Width, f.Height)); bmp.Save(hideShot); f.Close(); };
+                f.ShowDialog(this);
+            };
+        if (Environment.GetEnvironmentVariable("BUNKER_TEST_ONBOARD") is { Length: > 0 } onboardShot)
+            Shown += async (_, _) =>
+            {
+                await Task.Delay(3000);
+                using var f = new OnboardingForm(null, firstRun: true) { StartPosition = FormStartPosition.Manual, Location = new Point(-4000, 100) };
+                f.Shown += async (_, _) => { await Task.Delay(800); using var bmp = new Bitmap(f.Width, f.Height); f.DrawToBitmap(bmp, new Rectangle(0, 0, f.Width, f.Height)); bmp.Save(onboardShot); f.Close(); };
                 f.ShowDialog(this);
             };
         if (Environment.GetEnvironmentVariable("BUNKER_TEST_WHATSNEW") is { Length: > 0 } notesShot)
@@ -216,6 +224,16 @@ public class MainForm : Form
         using var f = new OnboardingForm(null, firstRun: _core.Settings.ActiveServer is null);
         if (f.ShowDialog(this) != DialogResult.OK) return false;
         _core.SaveServer(f.Result!, makeActive: true);
+
+        // "I have more servers to add": ask again, up to the number the Multi Server page can show.
+        var more = f.AddAnother;
+        while (more && _core.Settings.Servers.Count < ServerGrid.MaxShown)
+        {
+            using var next = new OnboardingForm(null, firstRun: false, addingAnother: true);
+            if (next.ShowDialog(this) != DialogResult.OK) break;
+            _core.SaveServer(next.Result!, makeActive: false);
+            more = next.AddAnother;
+        }
         return true;
     }
 

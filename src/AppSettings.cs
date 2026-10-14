@@ -96,6 +96,8 @@ public class AppSettings
     public bool IsFirstRun { get; private set; }
     /// <summary>Try to reconnect by itself when the connection to the server drops.</summary>
     public bool AutoReconnect { get; set; } = true;
+    /// <summary>Which saved servers the Multi Server page shows when there are more than six. Empty means the first six.</summary>
+    public List<string> OverviewServerIds { get; set; } = new();
     /// <summary>Show the Bunker icon in the system tray (menu to show, connect or quit).</summary>
     public bool ShowTrayIcon { get; set; } = true;
     /// <summary>Minimising takes Bunker off the taskbar so only the tray icon is left. Needs the tray icon.</summary>
