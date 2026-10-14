@@ -6,21 +6,12 @@ on:
       tag:
         required: true
         type: string
-      only_getbunker:
-        required: false
-        type: boolean
-        default: false
   workflow_dispatch:
     inputs:
       tag:
         description: 'Release tag to upload (e.g. v0.0.2)'
         required: true
         type: string
-      only_getbunker:
-        description: 'Upload only to getbunker.app (leaves the older site alone, so its installers are not overwritten)'
-        required: false
-        type: boolean
-        default: false
 
 permissions:
   contents: read
@@ -30,7 +21,6 @@ jobs:
     runs-on: ubuntu-latest
     env:
       TAG: ${{ inputs.tag }}
-      ONLY_GETBUNKER: ${{ inputs.only_getbunker }}
       GH_TOKEN: ${{ github.token }}
       FTP_HOST: ${{ secrets.FTP_HOST }}
       FTP_PORT: ${{ secrets.FTP_PORT }}
@@ -44,8 +34,6 @@ jobs:
       SFTP_PASSWORD: ${{ secrets.SFTP_PASSWORD }}
       SFTP_KEY: ${{ secrets.SFTP_KEY }}
       SFTP_PATH: ${{ secrets.SFTP_PATH }}
-      # A second folder on the same server: the release folder of getbunker.app.
-      SFTP_PATH_GETBUNKER: ${{ secrets.SFTP_PATH_GETBUNKER }}
     steps:
       - name: Get release files
         run: |
@@ -83,15 +71,15 @@ jobs:
           set -e
           mkdir -p ~/.ssh
           ssh-keyscan -p "${SFTP_PORT:-22}" "$SFTP_HOST" >> ~/.ssh/known_hosts
-          # The release goes to the older site's folder and, when SFTP_PATH_GETBUNKER is set, to getbunker.app too. Files are only ever added.
-          : > batch.txt
-          if [ "$ONLY_GETBUNKER" != "true" ]; then
-            printf 'cd %s\nput dist/Bunker-Setup-*.exe\nput dist/latest.json\n' "${SFTP_PATH:-.}" >> batch.txt
-          fi
-          if [ -n "$SFTP_PATH_GETBUNKER" ]; then
-            printf 'cd %s\nput dist/Bunker-Setup-*.exe\nput dist/latest.json\n' "$SFTP_PATH_GETBUNKER" >> batch.txt
-          fi
-          if [ ! -s batch.txt ]; then echo "Nothing to upload: only_getbunker was chosen but SFTP_PATH_GETBUNKER is not set"; exit 1; fi
+          # SFTP_PATH is the web folder of getbunker.app. The installers go in its "release" folder (made if it is not there yet), so
+          # https://getbunker.app/release/latest.json and .../Bunker-Setup-latest.exe work. Files are only ever added, never removed.
+          BASE="${SFTP_PATH%/}"
+          case "$BASE" in
+            */release) DEST="$BASE" ;;
+            *) DEST="${BASE:-.}/release" ;;
+          esac
+          # The leading dash makes sftp carry on if the folder already exists.
+          printf -- '-mkdir %s\ncd %s\nput dist/Bunker-Setup-*.exe\nput dist/latest.json\n' "$DEST" "$DEST" > batch.txt
           # sftp -b switches on BatchMode, which forbids password prompts; the first -o wins, so turn it back off before -b.
           OPTS="-oBatchMode=no -P ${SFTP_PORT:-22} -b batch.txt"
           if [ -n "$SFTP_KEY" ]; then
