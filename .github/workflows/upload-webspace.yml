@@ -6,12 +6,21 @@ on:
       tag:
         required: true
         type: string
+      only_getbunker:
+        required: false
+        type: boolean
+        default: false
   workflow_dispatch:
     inputs:
       tag:
         description: 'Release tag to upload (e.g. v0.0.2)'
         required: true
         type: string
+      only_getbunker:
+        description: 'Upload only to getbunker.app (leaves the older site alone, so its installers are not overwritten)'
+        required: false
+        type: boolean
+        default: false
 
 permissions:
   contents: read
@@ -21,6 +30,7 @@ jobs:
     runs-on: ubuntu-latest
     env:
       TAG: ${{ inputs.tag }}
+      ONLY_GETBUNKER: ${{ inputs.only_getbunker }}
       GH_TOKEN: ${{ github.token }}
       FTP_HOST: ${{ secrets.FTP_HOST }}
       FTP_PORT: ${{ secrets.FTP_PORT }}
@@ -34,6 +44,8 @@ jobs:
       SFTP_PASSWORD: ${{ secrets.SFTP_PASSWORD }}
       SFTP_KEY: ${{ secrets.SFTP_KEY }}
       SFTP_PATH: ${{ secrets.SFTP_PATH }}
+      # A second folder on the same server: the release folder of getbunker.app.
+      SFTP_PATH_GETBUNKER: ${{ secrets.SFTP_PATH_GETBUNKER }}
     steps:
       - name: Get release files
         run: |
@@ -71,7 +83,15 @@ jobs:
           set -e
           mkdir -p ~/.ssh
           ssh-keyscan -p "${SFTP_PORT:-22}" "$SFTP_HOST" >> ~/.ssh/known_hosts
-          printf 'cd %s\nput dist/Bunker-Setup-*.exe\nput dist/latest.json\n' "${SFTP_PATH:-.}" > batch.txt
+          # The release goes to the older site's folder and, when SFTP_PATH_GETBUNKER is set, to getbunker.app too. Files are only ever added.
+          : > batch.txt
+          if [ "$ONLY_GETBUNKER" != "true" ]; then
+            printf 'cd %s\nput dist/Bunker-Setup-*.exe\nput dist/latest.json\n' "${SFTP_PATH:-.}" >> batch.txt
+          fi
+          if [ -n "$SFTP_PATH_GETBUNKER" ]; then
+            printf 'cd %s\nput dist/Bunker-Setup-*.exe\nput dist/latest.json\n' "$SFTP_PATH_GETBUNKER" >> batch.txt
+          fi
+          if [ ! -s batch.txt ]; then echo "Nothing to upload: only_getbunker was chosen but SFTP_PATH_GETBUNKER is not set"; exit 1; fi
           # sftp -b switches on BatchMode, which forbids password prompts; the first -o wins, so turn it back off before -b.
           OPTS="-oBatchMode=no -P ${SFTP_PORT:-22} -b batch.txt"
           if [ -n "$SFTP_KEY" ]; then
