@@ -7,6 +7,7 @@ Watch the console, see who's online and run your server, without ever launching 
 
 <br>
 
+[![Website](https://img.shields.io/badge/website-getbunker.app-e0592a?style=for-the-badge)](https://getbunker.app)
 [![Latest release](https://img.shields.io/github/v/release/Russ773/Bunker?style=for-the-badge&color=e0592a&label=release&logo=github)](https://github.com/Russ773/Bunker/releases/latest)
 [![Downloads](https://img.shields.io/github/downloads/Russ773/Bunker/total?style=for-the-badge&color=4cc38a&label=downloads&logo=download)](https://github.com/Russ773/Bunker/releases)
 [![Build](https://img.shields.io/github/actions/workflow/status/Russ773/Bunker/ci.yml?style=for-the-badge&label=build&logo=githubactions&logoColor=white)](https://github.com/Russ773/Bunker/actions)
@@ -49,7 +50,7 @@ Watch the console, see who's online and run your server, without ever launching 
 
 </div>
 
-1. Grab **`Bunker-Setup-x.y.z.exe`** from the [latest release](https://github.com/Russ773/Bunker/releases/latest).
+1. Grab **`Bunker-Setup-x.y.z.exe`** from the [latest release](https://github.com/Russ773/Bunker/releases/latest), or download the same installer from [getbunker.app](https://getbunker.app).
 2. Run it. It installs just for you, with no admin prompt.
 3. Start **Bunker** and enter your server's RCON details. That's it.
 
@@ -338,7 +339,7 @@ Pull requests are welcome (under the [MIT License](LICENSE)), especially **widge
 
 <div align="center">
 
-<sub>Released under the [MIT License](LICENSE).</sub>
+<sub>Website: [getbunker.app](https://getbunker.app) &nbsp;·&nbsp; Released under the [MIT License](LICENSE).</sub>
 
 <sub>Bunker is an independent community tool. **Rust** is a trademark of Facepunch Studios; Bunker is not affiliated with or endorsed by Facepunch.</sub>
 
