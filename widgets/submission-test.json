@@ -1,0 +1,55 @@
+{
+  "id": "submission-test",
+  "name": "Submission Test",
+  "author": "Bunker",
+  "version": "1.0.0",
+  "description": "Live server numbers plus one-click reports. The server's reply is shown right in the widget.",
+  "controls": [
+    {
+      "type": "stat",
+      "label": "Players online",
+      "source": "players"
+    },
+    {
+      "type": "stat",
+      "label": "Server FPS",
+      "source": "fps"
+    },
+    {
+      "type": "stat",
+      "label": "Uptime",
+      "source": "uptime"
+    },
+    {
+      "type": "output",
+      "id": "report",
+      "height": 200
+    },
+    {
+      "type": "button",
+      "text": "Status",
+      "output": "report",
+      "commands": [
+        "status"
+      ]
+    },
+    {
+      "type": "button",
+      "style": "ghost",
+      "text": "Server info",
+      "output": "report",
+      "commands": [
+        "serverinfo"
+      ]
+    },
+    {
+      "type": "button",
+      "style": "ghost",
+      "text": "Player list",
+      "output": "report",
+      "commands": [
+        "playerlist"
+      ]
+    }
+  ]
+}
