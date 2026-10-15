@@ -193,6 +193,9 @@ public class WidgetStore
     public IReadOnlyList<WidgetDef> All => _items.Select(i => i.Def).OrderBy(d => d.Name, StringComparer.OrdinalIgnoreCase).ToList();
     public WidgetDef? Get(string? id) => id is null ? null : _items.FirstOrDefault(i => i.Def.Id == id).Def;
 
+    /// <summary>The file text of an installed widget, for sharing it.</summary>
+    public string? JsonOf(string? id) => id is null ? null : _items.FirstOrDefault(i => i.Def.Id == id).Json;
+
     public WidgetStore() => Load();
 
     public void Load()

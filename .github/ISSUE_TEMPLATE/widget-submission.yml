@@ -1,0 +1,38 @@
+name: Share a widget
+description: Send in a widget you made, so it can join the library for everyone
+title: "Widget: "
+labels: ["widget-submission"]
+body:
+  - type: markdown
+    attributes:
+      value: |
+        Thanks for sharing! In Bunker, **Widgets → Get more widgets → Share a widget** fills this form in for you.
+
+        Your widget is checked automatically (you will see the result in a comment within a minute or two), then read by a person. If it is accepted it appears in **Browse library** for every Bunker user.
+  - type: input
+    id: widget_name
+    attributes:
+      label: Widget name
+      placeholder: Resource Drop
+    validations:
+      required: true
+  - type: textarea
+    id: widget_json
+    attributes:
+      label: Widget file
+      description: The whole widget file (the JSON). Keep it under 64 KB. See the [widget guide](https://github.com/Russ773/Bunker/blob/main/docs/WIDGETS.md) for the format.
+      render: json
+    validations:
+      required: true
+  - type: textarea
+    id: widget_notes
+    attributes:
+      label: Notes for the reviewer (optional)
+      description: Anything worth knowing, such as which servers or plugins you tested it on.
+  - type: checkboxes
+    id: agreement
+    attributes:
+      label: Before you submit
+      options:
+        - label: I wrote this widget, or I have the right to share it, and I am happy for it to be shared under the project's MIT licence.
+          required: true

@@ -129,9 +129,24 @@ Carbon's layout was checked against a real server reply. Oxide's is the commonly
 
 ## Share your widget
 
-1. Make sure the file passes in Bunker (**Get more widgets... → Add from file…**).
-2. Fork this repository, add your file to [`widgets/`](../widgets) (keep it under 64 KB) and add its file name to [`widgets/index.json`](../widgets/index.json) so it shows up in **Browse library**.
-3. Open a pull request. Describe what the widget does and which Rust commands it uses, and say where you checked that they work.
+The easiest way is from inside Bunker. You need a free GitHub account.
 
-Widgets are reviewed by hand before they are merged, and anyone can still install widgets from other places using a link.
-Always read the command list before you install a widget you did not write.
+1. Open **Widgets → Get more widgets...** and press **Share a widget...**.
+2. Choose one of your installed widgets, or a `.json` file from your PC. Bunker checks it and lists every command it can send.
+3. Add a note for the reviewer if you like, then press **Submit on GitHub**. Your browser opens the submission page with the widget already filled in. Press **Submit new issue**.
+   (A widget that is too long to fit in a web address is put on your clipboard instead: paste it into the **Widget file** box.)
+
+What happens next:
+
+* A check runs on GitHub within a minute or two and replies on your submission. It uses the same rules as the app, plus these for the library:
+  the widget needs an `author`, a `version` like `1.0.0`, and a `description`; its `id` can't already be in the library unless your
+  `version` is higher (that is how you publish an update).
+* If something needs fixing, the reply says what. Edit the widget file in your submission and it is checked again.
+* A person then reads the widget, command by command. If it is accepted it is added to [`widgets/`](../widgets), and it shows up in
+  **Browse library** for every Bunker user straight away. People who already have it see **Update available** when you publish a newer version.
+
+You can also open the form yourself: [Share a widget](https://github.com/Russ773/Bunker/issues/new?template=widget-submission.yml).
+Or, if you prefer, fork the repository, add your file to [`widgets/`](../widgets) (under 64 KB) and add its file name to
+[`widgets/index.json`](../widgets/index.json), then open a pull request that says what the widget does and which Rust commands it uses.
+
+Anyone can still install widgets from other places using a link. Always read the command list before you install a widget you did not write.

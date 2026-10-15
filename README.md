@@ -66,6 +66,7 @@ Watch the console, see who's online and run your server, without ever launching 
 
 Recent additions, newest ideas first:
 
+* 📤 **Share your widgets.** Made a widget? **Widgets → Get more widgets → Share a widget** checks it, lists every command it can send, and opens GitHub with the submission filled in. It is checked automatically, read by a person, and then appears in **Browse library** for everyone.
 * 🗂️ **A roomier Widgets page.** **All widgets** in the sidebar opens every widget as a tile, grouped (Favourites, Built in, Community) with a search box. The sidebar no longer has a long list to scroll, and its spacing is tighter so it fits smaller screens.
 * 💾 **Export.** **Save** in the Console header writes what you can see (search and filters applied) to a text file, and **Export CSV** on the Player database saves the players as a spreadsheet that opens in Excel, Google Sheets or LibreOffice. Files go to `Documents\Bunker\Exports` by default, so your other folders stay tidy.
 * 📣 **What's new after an update.** The first time a new version runs, a short note lists what changed. It never shows on a fresh install, and you can open it again from **Settings → About**.
@@ -317,7 +318,7 @@ Pushing a tag such as `v1.0.0` runs the pipeline:
 - [x] Auto-reconnect when the connection drops mid-session
 - [x] Ban list as a proper table
 - [x] Multi-server overview
-- [ ] Widget library submissions through the app
+- [x] Widget library submissions through the app
 - [x] Microsoft Store listing
 
 Have an idea? [Open an issue](https://github.com/Russ773/Bunker/issues) or build a [widget](docs/WIDGETS.md).

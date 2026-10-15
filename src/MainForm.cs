@@ -77,6 +77,14 @@ public class MainForm : Form
                 f.Shown += async (_, _) => { await Task.Delay(800); using var bmp = new Bitmap(f.Width, f.Height); f.DrawToBitmap(bmp, new Rectangle(0, 0, f.Width, f.Height)); bmp.Save(hideShot); f.Close(); };
                 f.ShowDialog(this);
             };
+        if (Environment.GetEnvironmentVariable("BUNKER_TEST_SHARE") is { Length: > 0 } shareShot && Environment.GetEnvironmentVariable("BUNKER_TEST_SHARE_FILE") is { Length: > 0 } shareFile)
+            Shown += async (_, _) =>
+            {
+                await Task.Delay(3000);
+                using var f = new ShareWidgetForm(_core) { StartPosition = FormStartPosition.Manual, Location = new Point(-4000, 100) };
+                f.Shown += async (_, _) => { f.Load(File.ReadAllText(shareFile), Path.GetFileName(shareFile)); await Task.Delay(800); using var bmp = new Bitmap(f.Width, f.Height); f.DrawToBitmap(bmp, new Rectangle(0, 0, f.Width, f.Height)); bmp.Save(shareShot); f.Close(); };
+                f.ShowDialog(this);
+            };
         if (Environment.GetEnvironmentVariable("BUNKER_TEST_ONBOARD") is { Length: > 0 } onboardShot)
             Shown += async (_, _) =>
             {

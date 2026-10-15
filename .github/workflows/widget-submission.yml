@@ -1,0 +1,96 @@
+name: Widget submission
+
+# A widget sent in through "Share a widget" in Bunker (or the issue form on GitHub) is checked with the app's own widget rules,
+# and the result is posted on the issue. Adding the label "approved" (only people with write access can) publishes it to the library.
+
+on:
+  issues:
+    types: [opened, edited, labeled]
+
+permissions:
+  contents: write
+  issues: write
+
+concurrency:
+  group: widget-library
+  cancel-in-progress: false
+
+jobs:
+  check:
+    if: (github.event.action == 'opened' || github.event.action == 'edited') && contains(github.event.issue.labels.*.name, 'widget-submission')
+    runs-on: windows-latest
+    steps:
+      - uses: actions/checkout@v4
+
+      - uses: actions/setup-dotnet@v4
+        with:
+          dotnet-version: '10.0.x'
+
+      # The issue text is untrusted: it is only ever read from the environment and written to a file, never run.
+      - name: Read the widget from the issue
+        shell: bash
+        env:
+          ISSUE_BODY: ${{ github.event.issue.body }}
+        run: node .github/scripts/widget-issue.js extract widget.json
+
+      - name: Check the widget with the app's own rules
+        shell: bash
+        run: dotnet run --project src -c Release -- --check-widget widget.json result.json || true
+
+      - name: Reply on the issue
+        shell: bash
+        env:
+          GH_TOKEN: ${{ github.token }}
+          ISSUE: ${{ github.event.issue.number }}
+        run: |
+          node .github/scripts/widget-issue.js comment result.json comment.md labels.json
+          gh issue comment "$ISSUE" --body-file comment.md
+          ADD=$(node -p "require('./labels.json').add")
+          REMOVE=$(node -p "require('./labels.json').remove")
+          gh issue edit "$ISSUE" --add-label "$ADD"
+          gh issue edit "$ISSUE" --remove-label "$REMOVE" || true
+
+  publish:
+    if: github.event.action == 'labeled' && github.event.label.name == 'approved' && contains(github.event.issue.labels.*.name, 'widget-submission')
+    runs-on: windows-latest
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          ref: main
+
+      - uses: actions/setup-dotnet@v4
+        with:
+          dotnet-version: '10.0.x'
+
+      - name: Read the widget from the issue
+        shell: bash
+        env:
+          ISSUE_BODY: ${{ github.event.issue.body }}
+        run: node .github/scripts/widget-issue.js extract widget.json
+
+      - name: Check the widget again
+        shell: bash
+        run: dotnet run --project src -c Release -- --check-widget widget.json result.json || true
+
+      - name: Add it to the library
+        shell: bash
+        env:
+          GH_TOKEN: ${{ github.token }}
+          ISSUE: ${{ github.event.issue.number }}
+        run: |
+          if node .github/scripts/widget-issue.js add widget.json result.json comment.md; then
+            NAME=$(node -p "require('./result.json').name")
+            VERSION=$(node -p "require('./result.json').version")
+            git config user.name "github-actions[bot]"
+            git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
+            git add widgets
+            git commit -m "Add widget: $NAME $VERSION (from issue #$ISSUE)"
+            git push origin HEAD:main
+            gh issue comment "$ISSUE" --body-file comment.md
+            gh issue edit "$ISSUE" --add-label added
+            gh issue close "$ISSUE" --reason completed
+          else
+            gh issue comment "$ISSUE" --body-file comment.md
+            gh issue edit "$ISSUE" --remove-label approved || true
+            exit 1
+          fi

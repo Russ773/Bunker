@@ -20,7 +20,7 @@ public class WidgetManagerView : Panel
 
         var intro = new Label
         {
-            Text = "Community widgets add extra buttons and fields to Bunker. A widget is a small JSON file, never a program, and it can only send the commands you see listed when you install it.",
+            Text = "Community widgets add extra buttons and fields to Bunker. A widget is a small JSON file, never a program, and it can only send the commands you see listed when you install it. Made one yourself? Use Share a widget to send it in for the library.",
             Dock = DockStyle.Top, Height = 54, ForeColor = Theme.Muted, Font = Theme.Small, Padding = new Padding(0, 4, 0, 0),
         };
 
@@ -28,8 +28,9 @@ public class WidgetManagerView : Panel
         var file = Theme.GhostButton("Add from file...");
         var link = Theme.GhostButton("Add from link...");
         var folder = Theme.GhostButton("Open folder");
+        var share = Theme.GhostButton("Share a widget...");
         var top = new FlowLayoutPanel { Dock = DockStyle.Top, Height = 50, Padding = new Padding(0, 8, 0, 0), BackColor = Theme.Panel };
-        foreach (var b in new[] { browse, file, link, folder }) { b.Height = 34; b.Margin = new Padding(0, 0, 8, 0); top.Controls.Add(b); }
+        foreach (var b in new[] { browse, file, link, folder, share }) { b.Height = 34; b.Margin = new Padding(0, 0, 8, 0); top.Controls.Add(b); }
 
         _grid.Columns.Add("Name", "Name");
         _grid.Columns.Add("Author", "Author");
@@ -52,6 +53,8 @@ public class WidgetManagerView : Panel
 
         browse.Click += (_, _) => { using var f = new WidgetLibraryForm(this); f.ShowDialog(FindForm()); };
         file.Click += async (_, _) => await AddFromFileAsync();
+        share.Click += (_, _) => { using var f = new ShareWidgetForm(_core); f.ShowDialog(FindForm()); };
+        Tips.Set(share, "Made a widget? Send it in so it can join the library for everyone");
         link.Click += async (_, _) => await AddFromLinkAsync();
         folder.Click += (_, _) => { try { Directory.CreateDirectory(_core.Widgets.Folder); Process.Start(new ProcessStartInfo(_core.Widgets.Folder) { UseShellExecute = true }); } catch { } };
         _details.Click += (_, _) => { if (Selected() is { } d) { using var f = new WidgetReviewForm(d, install: false); f.ShowDialog(FindForm()); } };
